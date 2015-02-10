@@ -15,11 +15,19 @@ AM_CFLAGS =\
 lib_LTLIBRARIES = libjconf.la
 
 libjconf_la_SOURCES =  \
-	jconf.c
+	jconf.c \
+	node.c \
+	type.c \
+	parser.c
 
 
 jconfsubincludedir=$(includedir)/jconf
-jconfsubinclude_HEADERS= jconf.h
+jconfsubinclude_HEADERS= jconf.h \
+	node.h \
+	directive.h \
+	scope.h \
+	type.h \
+	parser.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jconf-0.1.pc

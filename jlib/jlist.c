@@ -18,9 +18,9 @@
 
 
 #include "jlist.h"
+#include "jmem.h"
 #include <stdlib.h>
 
-static inline JList *j_list_alloc(void *data);
 
 JList *j_list_append(JList * l, void *data)
 {
@@ -92,11 +92,52 @@ void *j_list_find_data(JList * l, JListCompare compare,
 }
 
 
-static inline JList *j_list_alloc(void *data)
+JList *j_list_alloc(void *data)
 {
-    JList *l = (JList *) malloc(sizeof(JList));
+    JList *l = (JList *) j_malloc(sizeof(JList));
     l->data = data;
     l->prev = NULL;
     l->next = NULL;
     return l;
+}
+
+void j_list_free1(JList * l, JListDestroy destroy)
+{
+    if (destroy) {
+        destroy(j_list_data(l));
+    }
+    j_free(l);
+}
+
+void j_list_free(JList * l)
+{
+    j_list_free_full(l, NULL);
+}
+
+/*
+ * Frees the list and all data using JListDestroy
+ */
+void j_list_free_full(JList * l, JListDestroy destroy)
+{
+    if (l == NULL) {
+        return;
+    }
+    do {
+        JList *next = j_list_next(l);
+        j_list_free1(l, destroy);
+        l = next;
+    } while (l);
+}
+
+int j_list_compare(JList * l1, JList * l2, JListCompare compare)
+{
+    while (l1 && l2) {
+        int ret = compare(j_list_data(l1), j_list_data(l2));
+        if (ret) {
+            return ret;
+        }
+        l1 = j_list_next(l1);
+        l2 = j_list_next(l2);
+    }
+    return l1 == l2;
 }

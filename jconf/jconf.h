@@ -18,7 +18,10 @@
 #ifndef __J_CONF_H__
 #define __J_CONF_H__
 
-
+#include "type.h"
+#include "node.h"
+#include "directive.h"
+#include "scope.h"
 
 
 

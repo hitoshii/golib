@@ -22,6 +22,7 @@
 
 #define j_malloc(size)  malloc(size)
 #define j_free(ptr)    free(ptr)
+#define j_realloc(ptr,size) realloc(ptr,size)
 
 
 

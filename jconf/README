@@ -1,0 +1,12 @@
+This document describes the format of JConf.
+
+JConf is a format for configuration file. Below is a sample
+
+1 ListenPort 12345
+2 # This is a comment
+3
+4 OpenIt   # this is another comment
+5 <Module A>
+6   Log "${LogLocation}/log"
+7 </Module>
+8

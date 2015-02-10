@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,15 +15,14 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
+#ifndef __J_CONF_DIRECTIVE_H__
+#define __J_CONF_DIRECTIVE_H__
 
-#ifndef __J_LIB_H__
-#define __J_LIB_H__
+#include "node.h"
 
-#include "jtypes.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jmem.h"
-#include "jlist.h"
+
+#define j_conf_directive_new(name)  j_conf_node_new(J_CONF_NODE_DIRECTIVE,name)
+#define j_conf_directive_free(d)    j_conf_node_free(d)
 
 
 #endif

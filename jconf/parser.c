@@ -15,9 +15,12 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_LIB_ARRAY_H__
-#define __J_LIB_ARRAY_H__
+
+#include "parser.h"
 
 
-
-#endif
+struct _JConfParser {
+    char *filename;
+    char **env;
+    JConfNode *root;
+};

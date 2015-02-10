@@ -857,6 +857,9 @@ uninstall-am: uninstall-dist_docDATA uninstall-local
 uninstall-local:
 	-rm -r $(docdir)
 
+runtest:
+	@cd $(top_builddir)/tests && ./runtest
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

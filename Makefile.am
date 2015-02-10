@@ -16,3 +16,7 @@ dist_doc_DATA = \
 # Remove doc directory on uninstall
 uninstall-local:
 	-rm -r $(docdir)
+
+
+runtest:
+	@cd $(top_builddir)/tests && ./runtest

@@ -16,8 +16,8 @@ lib_LTLIBRARIES = libjlib.la
 
 libjlib_la_SOURCES = \
 	jlist.c \
-	jarray.c \
 	jmem.c \
+	jstrfuncs.c \
 	jstring.c 
 
 libjlib_la_LDFLAGS = 
@@ -30,9 +30,9 @@ jlibsubincludedir=$(includedir)/jlib
 jlibsubinclude_HEADERS= \
 	jlib.h \
 	jlist.h \
-	jarray.h \
 	jmem.h \
 	jtypes.h \
+	jstrfuncs.h \
 	jstring.h
 
 pkgconfigdir = $(libdir)/pkgconfig

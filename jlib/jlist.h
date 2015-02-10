@@ -34,6 +34,9 @@ struct _JList {
 #define j_list_new()    (NULL)
 
 
+JList *j_list_alloc(void *data);
+
+
 /*
  * Appends a new element with data to last of the list
  */
@@ -66,6 +69,24 @@ JList *j_list_first(JList * l);
  * Returns the last element of the list
  */
 JList *j_list_last(JList * l);
+
+/*
+ * Frees the list
+ */
+void j_list_free(JList * l);
+/*
+ * Frees the list and all data using JListDestroy
+ */
+typedef void (*JListDestroy) (void *data);
+void j_list_free_full(JList * l, JListDestroy destroy);
+
+void j_list_free1(JList * l, JListDestroy destroy);
+
+
+/*
+ * Compares two list
+ */
+int j_list_compare(JList * l1, JList * l2, JListCompare compare);
 
 
 #endif
