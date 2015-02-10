@@ -16,13 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
+#include "jstring.h"
+#include "jmem.h"
 #include <string.h>
 
 /*
  * Calculates the length of a string
  * If str is NULL, -1 is returned
  */
-int j_strlen(char *str)
+int j_strlen(const char *str)
 {
     if (str == NULL) {
         return -1;
@@ -34,12 +36,31 @@ int j_strlen(char *str)
  * Duplicates a string.
  * If str is NULL, returns NULL
  */
-char *j_strdup(char *str)
+char *j_strdup(const char *str)
 {
     if (str == NULL) {
         return NULL;
     }
     return strdup(str);
+}
+
+/*
+ * Duplicates the first count bytes of str.
+ * Returns a newly-allocated buffer count+1 bytes long which always nul-terminated.
+ * If str is less than count bytes long. the whole str is duplicated.
+ */
+char *j_strndup(const char *str, unsigned int count)
+{
+    if (str == NULL) {
+        return NULL;
+    }
+    int len = j_strlen(str);
+    if (len <= count) {
+        return j_strdup(str);
+    }
+    char *buffer = j_malloc(sizeof(char) * (count + 1));
+    strncpy(buffer, str, count);
+    return buffer;
 }
 
 
@@ -102,4 +123,82 @@ char *j_strchug(char *str)
         *(ptr + wp) = '\0';
     }
     return str;
+}
+
+/*
+ * Creates a NULL-terminated array of strings. makeing a use of va_list
+ */
+char **j_strdupv_valist(unsigned int count, va_list vl)
+{
+    if (count == 0) {
+        return NULL;
+    }
+    char **strv = (char **) j_malloc(sizeof(char *) * (count + 1));
+    unsigned int i;
+    for (i = 0; i < count; i++) {
+        const char *s = va_arg(vl, char *);
+        strv[i] = j_strdup(s);
+    }
+    strv[count] = NULL;
+    return strv;
+}
+
+/*
+ * Creates a NULL-terminated array of strings, making a use of va_list
+ * This function doesn't duplicate the strings, just take them
+ */
+char **j_strv_valist(unsigned int count, va_list vl)
+{
+    if (count == 0) {
+        return NULL;
+    }
+    char **strv = (char **) j_malloc(sizeof(char *) * (count + 1));
+    unsigned int i;
+    for (i = 0; i < count; i++) {
+        strv[i] = va_arg(vl, char *);
+    }
+    strv[count] = NULL;
+    return strv;
+}
+
+/*
+ * Creates a NULL-terminated array of strings, like j_strdupv()
+ * But this function doesn't duplicate strings, it just takes the strings
+ */
+char **j_strv(unsigned int count, ...)
+{
+    va_list vl;
+    va_start(vl, count);
+    char **strv = j_strv_valist(count, vl);
+    va_end(vl);
+    return strv;
+}
+
+/*
+ * Creates a NULL-terminated array of strings
+ */
+char **j_strdupv(unsigned int count, ...)
+{
+    va_list vl;
+    va_start(vl, count);
+    char **strv = j_strdupv_valist(count, vl);
+    va_end(vl);
+    return strv;
+}
+
+/*
+ * Fres a NULL-terminated array of strings.
+ * If strv is NULL, do nothing
+ */
+void j_strfreev(char **strv)
+{
+    if (strv == NULL) {
+        return;
+    }
+    char **ptr = strv;
+    while (*ptr != NULL) {
+        j_free(*ptr);
+        ptr++;
+    }
+    j_free(strv);
 }

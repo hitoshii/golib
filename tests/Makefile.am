@@ -1,0 +1,25 @@
+## Process this file with automake to produce Makefile.in
+
+## Created by Anjuta
+
+AM_CPPFLAGS = \
+	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
+	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
+	$(jlib_INCLUDE)
+
+AM_CFLAGS =\
+	 -Wall\
+	 -g
+
+AM_LDFLAGS =\
+	$(jlib_ADD)
+
+noinst_PROGRAMS= \
+	test-string
+
+noinst_SCRIPTS=runtest
+
+test_string_SOURCES = \
+	string.c

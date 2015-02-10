@@ -80,17 +80,17 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = jlib
+subdir = jconf
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(srcdir)/jlib-0.1.pc.in $(top_srcdir)/depcomp \
-	$(jlibsubinclude_HEADERS)
+	$(srcdir)/jconf-0.1.pc.in $(top_srcdir)/depcomp \
+	$(jconfsubinclude_HEADERS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = jlib-0.1.pc
+CONFIG_CLEAN_FILES = jconf-0.1.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -120,18 +120,15 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
-	"$(DESTDIR)$(jlibsubincludedir)"
+	"$(DESTDIR)$(jconfsubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libjlib_la_DEPENDENCIES =
-am_libjlib_la_OBJECTS = jlist.lo jarray.lo jmem.lo jstring.lo
-libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
+libjconf_la_LIBADD =
+am_libjconf_la_OBJECTS = jconf.lo
+libjconf_la_OBJECTS = $(am_libjconf_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libjlib_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libjlib_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -166,15 +163,15 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libjlib_la_SOURCES)
-DIST_SOURCES = $(libjlib_la_SOURCES)
+SOURCES = $(libjconf_la_SOURCES)
+DIST_SOURCES = $(libjconf_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
 DATA = $(pkgconfig_DATA)
-HEADERS = $(jlibsubinclude_HEADERS)
+HEADERS = $(jconfsubinclude_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -314,34 +311,23 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\"
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+	$(jlib_INCLUDE)
 
 AM_CFLAGS = \
 	 -Wall\
 	 -g
 
-lib_LTLIBRARIES = libjlib.la
-libjlib_la_SOURCES = \
-	jlist.c \
-	jarray.c \
-	jmem.c \
-	jstring.c 
+lib_LTLIBRARIES = libjconf.la
+libjconf_la_SOURCES = \
+	jconf.c
 
-libjlib_la_LDFLAGS = 
-libjlib_la_LIBADD = 
-jlibsubincludedir = $(includedir)/jlib
-jlibsubinclude_HEADERS = \
-	jlib.h \
-	jlist.h \
-	jarray.h \
-	jmem.h \
-	jtypes.h \
-	jstring.h
-
+jconfsubincludedir = $(includedir)/jconf
+jconfsubinclude_HEADERS = jconf.h
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = jlib-0.1.pc
+pkgconfig_DATA = jconf-0.1.pc
 EXTRA_DIST = \
-	jlib-0.1.pc.in
+	jconf-0.1.pc.in
 
 all: all-am
 
@@ -356,9 +342,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu jlib/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu jconf/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu jlib/Makefile
+	  $(AUTOMAKE) --gnu jconf/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -377,7 +363,7 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-jlib-0.1.pc: $(top_builddir)/config.status $(srcdir)/jlib-0.1.pc.in
+jconf-0.1.pc: $(top_builddir)/config.status $(srcdir)/jconf-0.1.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
@@ -415,8 +401,8 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libjlib.la: $(libjlib_la_OBJECTS) $(libjlib_la_DEPENDENCIES) $(EXTRA_libjlib_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libjlib_la_LINK) -rpath $(libdir) $(libjlib_la_OBJECTS) $(libjlib_la_LIBADD) $(LIBS)
+libjconf.la: $(libjconf_la_OBJECTS) $(libjconf_la_DEPENDENCIES) $(EXTRA_libjconf_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK) -rpath $(libdir) $(libjconf_la_OBJECTS) $(libjconf_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -424,10 +410,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jarray.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlist.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmem.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstring.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jconf.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -476,27 +459,27 @@ uninstall-pkgconfigDATA:
 	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(pkgconfigdir)'; $(am__uninstall_files_from_dir)
-install-jlibsubincludeHEADERS: $(jlibsubinclude_HEADERS)
+install-jconfsubincludeHEADERS: $(jconfsubinclude_HEADERS)
 	@$(NORMAL_INSTALL)
-	@list='$(jlibsubinclude_HEADERS)'; test -n "$(jlibsubincludedir)" || list=; \
+	@list='$(jconfsubinclude_HEADERS)'; test -n "$(jconfsubincludedir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(jlibsubincludedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(jlibsubincludedir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(jconfsubincludedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(jconfsubincludedir)" || exit 1; \
 	fi; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(jlibsubincludedir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(jlibsubincludedir)" || exit $$?; \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(jconfsubincludedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(jconfsubincludedir)" || exit $$?; \
 	done
 
-uninstall-jlibsubincludeHEADERS:
+uninstall-jconfsubincludeHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(jlibsubinclude_HEADERS)'; test -n "$(jlibsubincludedir)" || list=; \
+	@list='$(jconfsubinclude_HEADERS)'; test -n "$(jconfsubincludedir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(jlibsubincludedir)'; $(am__uninstall_files_from_dir)
+	dir='$(DESTDIR)$(jconfsubincludedir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -584,7 +567,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(jlibsubincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(jconfsubincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -640,7 +623,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-jlibsubincludeHEADERS install-pkgconfigDATA
+install-data-am: install-jconfsubincludeHEADERS install-pkgconfigDATA
 
 install-dvi: install-dvi-am
 
@@ -686,8 +669,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-jlibsubincludeHEADERS uninstall-libLTLIBRARIES \
-	uninstall-pkgconfigDATA
+uninstall-am: uninstall-jconfsubincludeHEADERS \
+	uninstall-libLTLIBRARIES uninstall-pkgconfigDATA
 
 .MAKE: install-am install-strip
 
@@ -698,14 +681,14 @@ uninstall-am: uninstall-jlibsubincludeHEADERS uninstall-libLTLIBRARIES \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
-	install-info-am install-jlibsubincludeHEADERS \
+	install-info-am install-jconfsubincludeHEADERS \
 	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
 	install-pkgconfigDATA install-ps install-ps-am install-strip \
 	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am \
-	uninstall-jlibsubincludeHEADERS uninstall-libLTLIBRARIES \
+	uninstall-jconfsubincludeHEADERS uninstall-libLTLIBRARIES \
 	uninstall-pkgconfigDATA
 
 

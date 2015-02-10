@@ -1,0 +1,14 @@
+#!/bin/bash
+
+test()
+{
+    $1 1>/dev/null 2>&1
+    if [ $? -ne 0 ]
+    then
+        echo -e "$1 \033[;31mfail\033[0m"
+    else
+        echo -e "$1 \033[;32msuccess\033[0m"
+    fi
+}
+
+test ./test-string

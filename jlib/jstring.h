@@ -18,13 +18,13 @@
 #ifndef __J_LIB_STRING_H__
 #define __J_LIB_STRING_H__
 
-
+#include <stdarg.h>
 
 /*
  * Calculates the length of a string
  * If str is NULL, -1 is returned
  */
-int j_strlen(char *str);
+int j_strlen(const char *str);
 
 /*
  * Removes trailing whitespace from a string.
@@ -53,7 +53,46 @@ char *j_strchug(char *str);
  * Duplicates a string.
  * If str is NULL, returns NULL
  */
-char *j_strdup(char *str);
+char *j_strdup(const char *str);
+
+/*
+ * Duplicates the first count bytes of str.
+ * Returns a newly-allocated buffer count+1 bytes long which always nul-terminated.
+ * If str is less than count bytes long. the whole str is duplicated.
+ */
+char *j_strndup(const char *str, unsigned int count);
+
+/*
+ * Creates a NULL-terminated array of strings, which has count strings.
+ * This function duplicates the strings.
+ * For instance, j_strdupv(3,"hello","world","!")
+ * Do not use NULL as a argument.
+ */
+char **j_strdupv(unsigned int count, ...);
+
+/*
+ * Creates a NULL-terminated array of strings. makeing a use of va_list
+ * This function duplicates the strings.
+ */
+char **j_strdupv_valist(unsigned int count, va_list vl);
+
+/*
+ * Creates a NULL-terminated array of strings, like j_strdupv()
+ * But this function doesn't duplicate strings, it just takes the strings
+ */
+char **j_strv(unsigned int count, ...);
+
+/*
+ * Creates a NULL-terminated array of strings, making a use of va_list
+ * This function doesn't duplicate the strings, just take them
+ */
+char **j_strv_valist(unsigned int count, va_list vl);
+
+/*
+ * Fres a NULL-terminated array of strings.
+ * If strv is NULL, do nothing
+ */
+void j_strfreev(char **strv);
 
 
 #endif

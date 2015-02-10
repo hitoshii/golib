@@ -317,6 +317,8 @@ htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
+jlib_ADD = @jlib_ADD@
+jlib_INCLUDE = @jlib_INCLUDE@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -336,7 +338,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = jlib
+SUBDIRS = jlib jconf tests
 dist_doc_DATA = \
 	README \
 	COPYING \
