@@ -14,7 +14,6 @@ AC_PROG_CC
 
 AC_PREFIX_DEFAULT(/usr)
 
-
 jlib_INCLUDE='-I$(top_builddir)/jlib'
 AC_SUBST(jlib_INCLUDE)
 jlib_ADD='-L$(top_builddir)/jlib -ljlib'
