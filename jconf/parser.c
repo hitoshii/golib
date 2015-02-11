@@ -17,10 +17,23 @@
  */
 
 #include "parser.h"
+#include <jlib.h>
 
 
 struct _JConfParser {
-    char *filename;
-    char **env;
-    JConfNode *root;
+    JList *env;
+    JConfNode *root;            /* a root group */
 };
+
+
+JConfParser *j_conf_parser_new()
+{
+    JConfParser *parser = (JConfParser *) j_malloc(sizeof(JConfParser));
+    parser->env = NULL;
+    parser->root = j_conf_node_new(J_CONF_NODE_SCOPE, NULL);
+    return parser;
+}
+
+void j_conf_parser_add_env(JConfParser * parser, const char *env)
+{
+}

@@ -22,6 +22,20 @@
 #include <stdlib.h>
 
 
+/*
+ * Returns the length of JList 
+ */
+unsigned int j_list_length(JList * l)
+{
+    unsigned int len = 0;
+    while (l) {
+        len++;
+        l = j_list_next(l);
+    }
+    return len;
+}
+
+
 JList *j_list_append(JList * l, void *data)
 {
     JList *new = j_list_alloc(data);

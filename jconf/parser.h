@@ -24,4 +24,14 @@
 typedef struct _JConfParser JConfParser;
 
 
+JConfParser *j_conf_parser_new();
+
+/*
+ * env must contain a '=',
+ * it should be something like "DefaultLog=/var/log/log"
+ * If the format of env is invalid, then nothing will be added
+ */
+void j_conf_parser_add_env(JConfParser * parser, const char *env);
+
+
 #endif

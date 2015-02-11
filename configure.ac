@@ -19,16 +19,21 @@ AC_SUBST(jlib_INCLUDE)
 jlib_ADD='-L$(top_builddir)/jlib -ljlib'
 AC_SUBST(jlib_ADD)
 
+jconf_INCLUDE='-I$(top_builddir)/jconf'
+AC_SUBST(jconf_INCLUDE)
+jconf_ADD='-L$(top_builddir)/jconf -ljconf'
+AC_SUBST(jconf_ADD)
+
 
 LT_INIT
 
 
 
 AC_OUTPUT([
-Makefile
-jlib/jlib-0.1.pc
-jlib/Makefile
-jconf/Makefile
-jconf/jconf-0.1.pc
-tests/Makefile
-])
+           Makefile
+           jlib/jlib-0.1.pc
+           jlib/Makefile
+           jconf/Makefile
+           jconf/jconf-0.1.pc
+           tests/Makefile
+           ])

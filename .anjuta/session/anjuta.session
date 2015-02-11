@@ -3,7 +3,7 @@ Maximized=1
 Geometry=1920x1019+0+27
 
 [File Loader]
-Files=../../src/jlist.h#57%%%../../src/jlist.c#90%%%../../src/jarray.h#16%%%../../src/jlib.h#21%%%../../src/jmem.c#1%%%../../src/jmem.h#10%%%../../src/jtypes.h#19%%%../../src/jstring.h#37%%%../../src/jstring.c#37
+Files=../../jlib/jmem.c#1%%%../../jlib/jstrfuncs.h#1%%%../../jlib/jlist.h#25%%%../../jlib/jlist.c#14
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
@@ -13,8 +13,7 @@ Run in terminal=2
 Working directories=../../.
 
 [Project Manager]
-Shortcut=libjlib//src//libjlib.la
-Expand=libjlib.la%%%libjlib%%%libjlib//src%%%libjlib//src//jlibsubinclude%%%libjlib//src//libjlib.la%%%libjlib//src//pkgconfig
+Expand=jlib%%%jlib//jlib%%%jlib//jlib//jlibsubinclude%%%jlib//jlib//libjlib.la
 
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized%%%1:MinGW32:MinGW32

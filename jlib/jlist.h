@@ -38,6 +38,12 @@ JList *j_list_alloc(void *data);
 
 
 /*
+ * Returns the length of JList 
+ */
+unsigned int j_list_length(JList * l);
+
+
+/*
  * Appends a new element with data to last of the list
  */
 JList *j_list_append(JList * l, void *data);

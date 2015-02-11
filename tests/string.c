@@ -47,5 +47,12 @@ int main(int argc, char *argv[])
         return 1;
     }
     j_free(str);
+
+    strv=j_strsplit_c("Hello=Yes= Or No=",'=',5);
+    if(j_strcmp0 ("Hello",strv[0])||j_strcmp0 ("Yes",strv[1])||
+       j_strcmp0 (" Or No",strv[2])||j_strcmp0 ("",strv[3])){
+        return 1;
+    }
+    j_strfreev (strv);
     return 0;
 }

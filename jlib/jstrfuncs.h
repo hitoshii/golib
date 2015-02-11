@@ -145,5 +145,11 @@ char *j_str_forward(char *str, unsigned int count);
  */
 char *j_str_replace(char *str, const char *t1, const char *t2);
 
+/*
+ * Splits str into a number of tokens not containing character c
+ * The result is a NULL-terminated array of string. Use j_strfreev() to free it
+ */
+char **j_strsplit_c(const char *str, char c, int max);
+
 
 #endif

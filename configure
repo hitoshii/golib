@@ -663,6 +663,8 @@ build_vendor
 build_cpu
 build
 LIBTOOL
+jconf_ADD
+jconf_INCLUDE
 jlib_ADD
 jlib_INCLUDE
 am__fastdepCC_FALSE
@@ -3808,6 +3810,11 @@ fi
 jlib_INCLUDE='-I$(top_builddir)/jlib'
 
 jlib_ADD='-L$(top_builddir)/jlib -ljlib'
+
+
+jconf_INCLUDE='-I$(top_builddir)/jconf'
+
+jconf_ADD='-L$(top_builddir)/jconf -ljconf'
 
 
 

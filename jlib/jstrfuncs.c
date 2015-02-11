@@ -90,6 +90,7 @@ char *j_strndup(const char *str, unsigned int count)
     }
     char *buffer = j_malloc(sizeof(char) * (count + 1));
     strncpy(buffer, str, count);
+    buffer[count] = '\0';
     return buffer;
 }
 
@@ -381,4 +382,39 @@ char *j_str_replace(char *str, const char *t1, const char *t2)
     }
     j_free(str);
     return j_string_free(string, 0);
+}
+
+/*
+ * Splits str into a number of tokens not containing character c
+ * The result is a NULL-terminated array of string. Use j_strfreev() to free it
+ */
+char **j_strsplit_c(const char *str, char c, int max)
+{
+    max--;
+    const char *ptr = str;
+    unsigned int len = 0;
+    while (*ptr) {
+        if (*ptr == c) {
+            len++;
+        }
+        ptr++;
+    }
+    if (max >= 0 && max < len) {
+        len = max;
+    }
+    char **strv = (char **) j_malloc(sizeof(char *) * (len + 2));
+    unsigned int pos = 0;
+    const char *start = str;
+    ptr = start;
+    while (*ptr) {
+        if (*ptr == c && len > 0) {
+            len--;
+            strv[pos++] = j_strndup(start, ptr - start);
+            start = ptr + 1;
+        }
+        ptr++;
+    }
+    strv[pos++] = j_strndup(start, ptr - start);
+    strv[pos] = NULL;
+    return strv;
 }
