@@ -13,3 +13,4 @@ test()
 
 test ./test-string
 test ./test-file
+test ./test-conf

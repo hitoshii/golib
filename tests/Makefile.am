@@ -20,7 +20,8 @@ AM_LDFLAGS =\
 
 noinst_PROGRAMS= \
 	test-string \
-	test-file
+	test-file \
+	test-conf
 
 noinst_SCRIPTS=runtest
 
@@ -29,3 +30,6 @@ test_string_SOURCES = \
 
 test_file_SOURCES = \
 	file.c
+
+test_conf_SOURCES = \
+	conf.c

@@ -79,7 +79,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT)
+noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
+	test-conf$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -92,13 +93,16 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_test_file_OBJECTS = file.$(OBJEXT)
-test_file_OBJECTS = $(am_test_file_OBJECTS)
-test_file_LDADD = $(LDADD)
+am_test_conf_OBJECTS = conf.$(OBJEXT)
+test_conf_OBJECTS = $(am_test_conf_OBJECTS)
+test_conf_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_file_OBJECTS = file.$(OBJEXT)
+test_file_OBJECTS = $(am_test_file_OBJECTS)
+test_file_LDADD = $(LDADD)
 am_test_string_OBJECTS = string.$(OBJEXT)
 test_string_OBJECTS = $(am_test_string_OBJECTS)
 test_string_LDADD = $(LDADD)
@@ -137,8 +141,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test_file_SOURCES) $(test_string_SOURCES)
-DIST_SOURCES = $(test_file_SOURCES) $(test_string_SOURCES)
+SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
+	$(test_string_SOURCES)
+DIST_SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
+	$(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -308,6 +314,9 @@ test_string_SOURCES = \
 test_file_SOURCES = \
 	file.c
 
+test_conf_SOURCES = \
+	conf.c
+
 all: all-am
 
 .SUFFIXES:
@@ -352,6 +361,10 @@ clean-noinstPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+test-conf$(EXEEXT): $(test_conf_OBJECTS) $(test_conf_DEPENDENCIES) $(EXTRA_test_conf_DEPENDENCIES) 
+	@rm -f test-conf$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_conf_OBJECTS) $(test_conf_LDADD) $(LIBS)
+
 test-file$(EXEEXT): $(test_file_OBJECTS) $(test_file_DEPENDENCIES) $(EXTRA_test_file_DEPENDENCIES) 
 	@rm -f test-file$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_file_OBJECTS) $(test_file_LDADD) $(LIBS)
@@ -366,6 +379,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/string.Po@am__quote@
 
