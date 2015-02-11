@@ -27,11 +27,31 @@ typedef struct _JConfParser JConfParser;
 JConfParser *j_conf_parser_new();
 
 /*
- * env must contain a '=',
+ * Frees JConfParser
+ */
+void j_conf_parser_free(JConfParser * parser);
+
+/*
+ * str must contain a '=',
  * it should be something like "DefaultLog=/var/log/log"
+ *          Then {DefaultLog} in conf file will be replaced as /var/log/log 
  * If the format of env is invalid, then nothing will be added
  */
-void j_conf_parser_add_env(JConfParser * parser, const char *env);
+void j_conf_parser_add_variable(JConfParser * parser, const char *str);
+
+/*
+ * Adds a enveriment path
+ */
+void j_conf_parser_add_env(JConfParser * parser, const char *str);
+
+
+/*
+ * Parses a conf file,
+ * If error occurs, errstr will be set the error string (optional), and returns 0
+ * Returns 1 on success
+ */
+int j_conf_parser_parse(JConfParser * parser, const char *filepath,
+                        char **errstr);
 
 
 #endif

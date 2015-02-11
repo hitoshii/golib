@@ -663,10 +663,13 @@ build_vendor
 build_cpu
 build
 LIBTOOL
+jio_ADD
+jio_INCLUDE
 jconf_ADD
 jconf_INCLUDE
 jlib_ADD
 jlib_INCLUDE
+jlib_includedir
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -3807,14 +3810,23 @@ fi
 
 
 
-jlib_INCLUDE='-I$(top_builddir)/jlib'
+jlib_includedir='$(includedir)/jlib-0.1'
+
+
+
+jlib_INCLUDE='-I$(top_builddir)'
 
 jlib_ADD='-L$(top_builddir)/jlib -ljlib'
 
 
-jconf_INCLUDE='-I$(top_builddir)/jconf'
+jconf_INCLUDE='-I$(top_builddir)'
 
 jconf_ADD='-L$(top_builddir)/jconf -ljconf'
+
+
+jio_INCLUDE='-I$(top_builddir)'
+
+jio_ADD='-L$(top_builddir)/jio -ljio'
 
 
 
@@ -11409,7 +11421,7 @@ CC="$lt_save_CC"
 
 
 
-ac_config_files="$ac_config_files Makefile jlib/jlib-0.1.pc jlib/Makefile jconf/Makefile jconf/jconf-0.1.pc tests/Makefile"
+ac_config_files="$ac_config_files Makefile jlib/jlib-0.1.pc jlib/Makefile jconf/Makefile jconf/jconf-0.1.pc jio/Makefile jio/jio-0.1.pc tests/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -12421,6 +12433,8 @@ do
     "jlib/Makefile") CONFIG_FILES="$CONFIG_FILES jlib/Makefile" ;;
     "jconf/Makefile") CONFIG_FILES="$CONFIG_FILES jconf/Makefile" ;;
     "jconf/jconf-0.1.pc") CONFIG_FILES="$CONFIG_FILES jconf/jconf-0.1.pc" ;;
+    "jio/Makefile") CONFIG_FILES="$CONFIG_FILES jio/Makefile" ;;
+    "jio/jio-0.1.pc") CONFIG_FILES="$CONFIG_FILES jio/jio-0.1.pc" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

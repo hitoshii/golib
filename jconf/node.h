@@ -19,7 +19,7 @@
 #define __J_CONF_NODE_H__
 
 #include "type.h"
-#include "jlist.h"
+#include <jlib/jlist.h>
 
 typedef struct _JConfNode JConfNode;
 typedef struct _JConfNode JConfDirective;

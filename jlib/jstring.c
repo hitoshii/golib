@@ -45,6 +45,16 @@ void j_string_append(JString * string, const char *str)
     }
 }
 
+void j_string_append_len(JString * string, const char *str,
+                         unsigned int len)
+{
+    while (*str && len > 0) {
+        j_string_append_c(string, *str);
+        str++;
+        len--;
+    }
+}
+
 void j_string_append_c(JString * string, char c)
 {
     if (string->len >= string->total - 1) {

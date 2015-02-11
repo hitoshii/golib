@@ -15,26 +15,10 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_LIB_STRING_H__
-#define __J_LIB_STRING_H__
+#ifndef __J_IO_H__
+#define __J_IO_H__
 
-
-typedef struct {
-    char *data;
-    unsigned int len;
-
-    /* private */
-    unsigned int total;
-} JString;
-
-
-JString *j_string_new();
-void j_string_append(JString * string, const char *str);
-void j_string_append_len(JString * string, const char *str,
-                         unsigned int len);
-void j_string_append_c(JString * string, char c);
-char *j_string_free(JString * string, int free_segment);
-
+#include "jfile.h"
 
 
 #endif

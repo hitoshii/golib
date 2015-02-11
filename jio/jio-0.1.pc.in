@@ -5,9 +5,9 @@ datarootdir=@datarootdir@
 datadir=@datadir@
 includedir=@includedir@/jlib-0.1
 
-Name: libjlib
+Name: libjio
 Description: Sample library created by Anjuta project wizard.
 Version: @VERSION@
-Requires: 
+Requires: jlib-0.1
 Libs: -L${libdir} -ljlib
 Cflags: -I${includedir}

@@ -319,8 +319,11 @@ infodir = @infodir@
 install_sh = @install_sh@
 jconf_ADD = @jconf_ADD@
 jconf_INCLUDE = @jconf_INCLUDE@
+jio_ADD = @jio_ADD@
+jio_INCLUDE = @jio_INCLUDE@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
+jlib_includedir = @jlib_includedir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -340,7 +343,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = jlib jconf tests
+SUBDIRS = jlib jconf jio tests
 dist_doc_DATA = \
 	README \
 	COPYING \

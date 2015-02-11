@@ -14,15 +14,24 @@ AC_PROG_CC
 
 AC_PREFIX_DEFAULT(/usr)
 
-jlib_INCLUDE='-I$(top_builddir)/jlib'
+jlib_includedir='$(includedir)/jlib-0.1'
+AC_SUBST(jlib_includedir)
+
+
+jlib_INCLUDE='-I$(top_builddir)'
 AC_SUBST(jlib_INCLUDE)
 jlib_ADD='-L$(top_builddir)/jlib -ljlib'
 AC_SUBST(jlib_ADD)
 
-jconf_INCLUDE='-I$(top_builddir)/jconf'
+jconf_INCLUDE='-I$(top_builddir)'
 AC_SUBST(jconf_INCLUDE)
 jconf_ADD='-L$(top_builddir)/jconf -ljconf'
 AC_SUBST(jconf_ADD)
+
+jio_INCLUDE='-I$(top_builddir)'
+AC_SUBST(jio_INCLUDE)
+jio_ADD='-L$(top_builddir)/jio -ljio'
+AC_SUBST(jio_ADD)
 
 
 LT_INIT
@@ -35,5 +44,7 @@ AC_OUTPUT([
            jlib/Makefile
            jconf/Makefile
            jconf/jconf-0.1.pc
+           jio/Makefile
+           jio/jio-0.1.pc
            tests/Makefile
            ])

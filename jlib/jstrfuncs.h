@@ -107,6 +107,12 @@ void j_strfreev(char **strv);
 
 
 /*
+ * Gets the length of array of strings
+ */
+int j_strv_length(char **strv);
+
+
+/*
  * Checks whether the string str begins with prefix
  * Returns 1 if yes, otherwise 0
  */

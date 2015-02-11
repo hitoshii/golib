@@ -14,12 +14,18 @@ AM_CFLAGS =\
 	 -g
 
 AM_LDFLAGS =\
-	$(jlib_ADD)
+	$(jlib_ADD) \
+	$(jconf_ADD) \
+	$(jio_ADD)
 
 noinst_PROGRAMS= \
-	test-string
+	test-string \
+	test-file
 
 noinst_SCRIPTS=runtest
 
 test_string_SOURCES = \
 	string.c
+
+test_file_SOURCES = \
+	file.c

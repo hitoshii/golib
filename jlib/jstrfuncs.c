@@ -242,6 +242,24 @@ void j_strfreev(char **strv)
     j_free(strv);
 }
 
+
+/*
+ * Gets the length of array of strings
+ */
+int j_strv_length(char **strv)
+{
+    if (strv == NULL) {
+        return -1;
+    }
+    int len = 0;
+    char **ptr = strv;
+    while (*ptr) {
+        len++;
+        ptr++;
+    }
+    return len;
+}
+
 /*
  * Checks whether the string str begins with prefix
  * Returns 1 if yes, otherwise 0

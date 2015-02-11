@@ -289,8 +289,11 @@ infodir = @infodir@
 install_sh = @install_sh@
 jconf_ADD = @jconf_ADD@
 jconf_INCLUDE = @jconf_INCLUDE@
+jio_ADD = @jio_ADD@
+jio_INCLUDE = @jio_INCLUDE@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
+jlib_includedir = @jlib_includedir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -327,7 +330,7 @@ libjconf_la_SOURCES = \
 	type.c \
 	parser.c
 
-jconfsubincludedir = $(includedir)/jconf
+jconfsubincludedir = $(jlib_includedir)/jconf
 jconfsubinclude_HEADERS = jconf.h \
 	node.h \
 	directive.h \

@@ -17,7 +17,7 @@
  */
 #include "type.h"
 #include <stdarg.h>
-#include <jlib.h>
+#include <jlib/jlib.h>
 
 struct _JConfData {
     JConfDataType type;

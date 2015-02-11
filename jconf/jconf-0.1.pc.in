@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 datarootdir=@datarootdir@
 datadir=@datadir@
-includedir=@includedir@/jconf
+includedir=@includedir@/jlib-0.1
 
 Name: libjconf
 Description: Sample library created by Anjuta project wizard.

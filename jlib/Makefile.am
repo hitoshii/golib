@@ -27,7 +27,7 @@ libjlib_la_LIBADD =
 
 
 
-jlibsubincludedir=$(includedir)/jlib
+jlibsubincludedir=$(jlib_includedir)/jlib
 jlibsubinclude_HEADERS= \
 	jlib.h \
 	jlist.h \
