@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
 {
     JConfParser *p=j_conf_parser_new();
     j_conf_parser_add_env(p,".");
+    j_conf_parser_add_variable(p,"Wiky=wiiiky@yeah.net");
     char *error=NULL;
     if(!j_conf_parser_parse(p,"./test.conf",&error)){
         printf("%s\n",error);

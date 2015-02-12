@@ -21,6 +21,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <jlib/jlib.h>
 #include <jio/jfile.h>
 
@@ -129,6 +130,22 @@ static inline char **j_conf_parser_get_path(JConfParser * parser,
     return NULL;
 }
 
+static inline char *j_conf_parser_preprocess(JConfParser * parser,
+                                             char *data)
+{
+    JList *var = parser->vars;
+    char *new = data;
+    char buf[1024];
+    while (var) {
+        JConfVar *v = (JConfVar *) j_list_data(var);
+        snprintf(buf, sizeof(buf) / sizeof(char), "{%s}", v->name);
+        new = j_str_replace(data, buf, v->value);
+        data = new;
+        var = j_list_next(var);
+    }
+    return new;
+}
+
 static inline int j_conf_parser_error(char **errstr, const char *fmt, ...)
 {
     if (errstr) {
@@ -177,6 +194,7 @@ int j_conf_parser_parse(JConfParser * parser, const char *filepath,
     if (data == NULL) {
         return j_conf_parser_error(errstr, j_strdup(strerror(errno)));
     }
+    data = j_conf_parser_preprocess(parser, data);
     char **lines = j_strsplit_c(data, '\n', -1);
     j_free(data);
 
