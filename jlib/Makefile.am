@@ -19,11 +19,12 @@ libjlib_la_SOURCES = \
 	jmem.c \
 	jstrfuncs.c \
 	jstring.c \
-	jstack.c 
+	jstack.c \
+	jpath.c
 
-libjlib_la_LDFLAGS = 
+libjlib_la_LDFLAGS =
 
-libjlib_la_LIBADD = 
+libjlib_la_LIBADD =
 
 
 
@@ -35,7 +36,8 @@ jlibsubinclude_HEADERS= \
 	jtypes.h \
 	jstrfuncs.h \
 	jstring.h \
-	jstack.h
+	jstack.h \
+	jpath.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

@@ -56,13 +56,16 @@ const char *j_conf_data_get_string(JConfData * d);
  */
 int64_t j_conf_data_get_int(JConfData * d);
 
+
+const char *j_conf_data_get_raw(JConfData * d);
+
 /*
  * Creates a new JConfData with specified type
  * If the type is J_CONF_DATA_RAW or J_CONF_DATA_STRING
  * JConfData will just take it. So this function cannot be used on
  * statically allocated string
  */
-JConfData *j_conf_data_new(JConfDataType type, ...);
+JConfData *j_conf_data_new(JConfDataType type, const char *raw, ...);
 
 
 /*

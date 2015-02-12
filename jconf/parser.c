@@ -101,6 +101,34 @@ void j_conf_parser_add_env(JConfParser * parser, const char *str)
     parser->envs = j_list_append(parser->envs, j_strdup(str));
 }
 
+
+JList *j_conf_parser_get_envs(JConfParser * parser)
+{
+    return parser->envs;
+}
+
+/*
+ */
+static inline char **j_conf_parser_get_path(JConfParser * parser,
+                                            const char *path)
+{
+    if (j_path_is_absolute(path)) {
+        return j_strdupv(1, path);
+    }
+    char *joined = NULL;
+    JList *env = j_conf_parser_get_envs(parser);
+    while (env) {
+        const char *env_path = j_list_data(env);
+        joined = j_path_join(env_path, path);
+        if (j_file_exists(joined)) {
+            return j_strdupv(1, path);
+        }
+        j_free(joined);
+        env = j_list_next(env);
+    }
+    return NULL;
+}
+
 static inline int j_conf_parser_error(char **errstr, const char *fmt, ...)
 {
     if (errstr) {
@@ -321,6 +349,12 @@ int j_conf_parser_parse(JConfParser * parser, const char *filepath,
         case J_CONF_PARSER_STATE_DIRECTIVE_NAME:
             name = j_strndup(start, ptr - start);
         case J_CONF_PARSER_STATE_DIRECTIVE_NAME_END:
+            if (j_strcmp0(INCLUDE_CONFIG, name) == 0) {
+                j_conf_parser_error(errstr, "[%s:%u] no argument "
+                                    "specified for %s", filepath, ln,
+                                    INCLUDE_CONFIG);
+                goto OUT;
+            }
             node = j_conf_node_new_take(J_CONF_NODE_DIRECTIVE, name);
             j_conf_node_append_child((JConfNode *) j_stack_top(scopes),
                                      node);
@@ -336,8 +370,44 @@ int j_conf_parser_parse(JConfParser * parser, const char *filepath,
                                     "directive argument", filepath, ln);
                 goto OUT;
             }
-            j_conf_node_append_child((JConfNode *) j_stack_top(scopes),
-                                     node);
+            if (j_stack_length(scopes) == 1 &&
+                j_strcmp0(INCLUDE_CONFIG,
+                          j_conf_node_get_name(node)) == 0) {
+                /* IncludeConf */
+                JList *arg = j_conf_node_get_arguments(node);
+                while (arg) {
+                    JConfData *d = (JConfData *) j_list_data(arg);
+                    const char *path = NULL;
+                    if (j_conf_data_is_string(d)) {
+                        path = j_conf_data_get_string(d);
+                    } else {
+                        path = j_conf_data_get_raw(d);
+                    }
+                    char **joined = j_conf_parser_get_path(parser, path);
+                    if (joined == NULL) {
+                        j_conf_parser_error(errstr, "[%s:%u] %s not found",
+                                            filepath, ln, path);
+                        j_conf_node_free(node);
+                        goto OUT;
+                    }
+                    char **file_path = joined;
+                    while (*file_path) {
+                        if (!j_conf_parser_parse
+                            (parser, *file_path, errstr)) {
+                            j_strfreev(joined);
+                            j_conf_node_free(node);
+                            goto OUT;
+                        }
+                        file_path++;
+                    }
+                    j_strfreev(joined);
+                    arg = j_list_next(arg);
+                }
+                j_conf_node_free(node);
+            } else {
+                j_conf_node_append_child((JConfNode *) j_stack_top(scopes),
+                                         node);
+            }
             break;
         case J_CONF_PARSER_STATE_SCOPE:
         case J_CONF_PARSER_STATE_SCOPE_START:

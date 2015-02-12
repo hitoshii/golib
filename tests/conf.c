@@ -35,7 +35,7 @@ static inline void print_node(JConfNode* node,int tab)
         printf("%s: ",j_conf_node_get_name(node));
         print_arguments(j_conf_node_get_arguments(node));
     }else{
-        printf("<%s",j_conf_node_get_name(node));
+        printf("<%s ",j_conf_node_get_name(node));
         print_arguments(j_conf_node_get_arguments(node));
         printf(">\n");
         JList *children= j_conf_node_get_children(node);
@@ -56,6 +56,7 @@ static inline void print_node(JConfNode* node,int tab)
 int main(int argc, char *argv[])
 {
     JConfParser *p=j_conf_parser_new();
+    j_conf_parser_add_env(p,".");
     char *error=NULL;
     if(!j_conf_parser_parse(p,"./test.conf",&error)){
         printf("%s\n",error);

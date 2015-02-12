@@ -21,6 +21,7 @@
 
 struct _JConfData {
     JConfDataType type;
+    char *raw;
     union {
         char *str;              /* for J_CONF_DATA_RAW or J_CONF_DATA_STRING */
         int64_t number;         /* for J_CONF_DATA_INT */
@@ -52,19 +53,25 @@ int64_t j_conf_data_get_int(JConfData * d)
     return d->data.number;
 }
 
+const char *j_conf_data_get_raw(JConfData * d)
+{
+    return d->raw;
+}
+
 /*
  * Creates a new JConfData with specified type
  * If the type is J_CONF_DATA_RAW or J_CONF_DATA_STRING
  * JConfData will just take it. So this function cannot be used on
  * statically allocated string
  */
-JConfData *j_conf_data_new(JConfDataType type, ...)
+JConfData *j_conf_data_new(JConfDataType type, const char *raw, ...)
 {
     JConfData *d = (JConfData *) j_malloc(sizeof(JConfData));
     d->type = type;
+    d->raw = j_strdup(raw);
 
     va_list vl;
-    va_start(vl, type);
+    va_start(vl, raw);
     switch (type) {
     case J_CONF_DATA_INT:
         d->data.number = va_arg(vl, int64_t);
@@ -109,9 +116,9 @@ static inline char *j_conf_data_str_unescape(char *str)
 JConfData *j_conf_data_parse(const char *raw)
 {
     if (j_strcmp0(raw, J_CONF_DATA_TRUE_TEXT) == 0) {
-        return j_conf_data_new(J_CONF_DATA_TRUE);
+        return j_conf_data_new(J_CONF_DATA_TRUE, raw);
     } else if (j_strcmp0(raw, J_CONF_DATA_FALSE_TEXT) == 0) {
-        return j_conf_data_new(J_CONF_DATA_FALSE);
+        return j_conf_data_new(J_CONF_DATA_FALSE, raw);
     }
     int len = j_strlen(raw);
     if (j_str_has_prefix(raw, "\"") && j_str_has_suffix(raw, "\"")
@@ -119,11 +126,11 @@ JConfData *j_conf_data_parse(const char *raw)
         char *str = j_strdup(raw + 1);
         str[len - 2] = '\0';
         str = j_conf_data_str_unescape(str);
-        return j_conf_data_new(J_CONF_DATA_STRING, str);
+        return j_conf_data_new(J_CONF_DATA_STRING, raw, str);
     } else if (j_str_isint(raw)) {
-        return j_conf_data_new(J_CONF_DATA_INT, j_str_toint(raw));
+        return j_conf_data_new(J_CONF_DATA_INT, raw, j_str_toint(raw));
     }
-    return j_conf_data_new(J_CONF_DATA_RAW, j_strdup(raw));
+    return j_conf_data_new(J_CONF_DATA_RAW, raw, j_strdup(raw));
 }
 
 /*
@@ -134,6 +141,7 @@ void j_conf_data_free(JConfData * d)
     if (d->type == J_CONF_DATA_RAW || d->type == J_CONF_DATA_STRING) {
         j_free(d->data.str);
     }
+    j_free(d->raw);
     j_free(d);
 }
 

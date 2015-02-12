@@ -21,7 +21,13 @@
 
 #include "node.h"
 
+
+
+#define INCLUDE_CONFIG  "IncludeConf"
+
+
 typedef struct _JConfParser JConfParser;
+
 
 
 JConfParser *j_conf_parser_new();
@@ -45,6 +51,8 @@ void j_conf_parser_add_variable(JConfParser * parser, const char *str);
  * Adds a enveriment path
  */
 void j_conf_parser_add_env(JConfParser * parser, const char *str);
+
+JList *j_conf_parser_get_envs(JConfParser * parser);
 
 
 /*
