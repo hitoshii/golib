@@ -6,7 +6,8 @@ AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
-	$(jlib_INCLUDE)
+	$(jlib_INCLUDE) \
+	$(jio_INCLUDE)
 
 AM_CFLAGS =\
 	 -Wall\

@@ -9,5 +9,5 @@ Name: libjio
 Description: Sample library created by Anjuta project wizard.
 Version: @VERSION@
 Requires: jlib-0.1
-Libs: -L${libdir} -ljlib
+Libs: -L${libdir} -ljio
 Cflags: -I${includedir}

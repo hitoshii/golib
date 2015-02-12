@@ -17,6 +17,8 @@ dist_doc_DATA = \
 uninstall-local:
 	-rm -r $(docdir)
 
+install-exec-local:
+	ldconfig
 
 runtest:
 	@cd $(top_builddir)/tests && ./runtest

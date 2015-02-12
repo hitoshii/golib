@@ -8,6 +8,6 @@ includedir=@includedir@/jlib-0.1
 Name: libjconf
 Description: Sample library created by Anjuta project wizard.
 Version: @VERSION@
-Requires: jlib-0.1
+Requires: jlib-0.1 jio-0.1
 Libs: -L${libdir} -ljconf
 Cflags: -I${includedir}
