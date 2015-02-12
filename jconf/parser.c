@@ -5,19 +5,24 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
 #include "parser.h"
+#include <stdarg.h>
+#include <string.h>
+#include <errno.h>
+#include <ctype.h>
 #include <jlib/jlib.h>
+#include <jio/jfile.h>
 
 
 typedef struct {
@@ -50,6 +55,11 @@ struct _JConfParser {
     JList *envs;
     JConfNode *root;            /* a root group */
 };
+
+JConfNode *j_conf_parser_get_root(JConfParser * p)
+{
+    return p->root;
+}
 
 
 JConfParser *j_conf_parser_new()
@@ -91,7 +101,41 @@ void j_conf_parser_add_env(JConfParser * parser, const char *str)
     parser->envs = j_list_append(parser->envs, j_strdup(str));
 }
 
+static inline int j_conf_parser_error(char **errstr, const char *fmt, ...)
+{
+    if (errstr) {
+        va_list vl;
+        va_start(vl, fmt);
+        *errstr = j_strdup_vprintf(fmt, vl);
+        va_end(vl);
+    }
+    return -1;
+}
 
+
+typedef enum {
+    J_CONF_PARSER_STATE_NEW,
+    J_CONF_PARSER_STATE_DIRECTIVE_NAME,
+    J_CONF_PARSER_STATE_DIRECTIVE_NAME_END,
+    J_CONF_PARSER_STATE_DIRECTIVE_VALUE,
+    J_CONF_PARSER_STATE_SCOPE,
+    J_CONF_PARSER_STATE_SCOPE_START,
+    J_CONF_PARSER_STATE_SCOPE_START_NAME,
+    J_CONF_PARSER_STATE_SCOPE_START_NAME_END,
+    J_CONF_PARSER_STATE_SCOPE_START_VALUE,
+    J_CONF_PARSER_STATE_SCOPE_START_END,
+    J_CONF_PARSER_STATE_SCOPE_END,
+    J_CONF_PARSER_STATE_SCOPE_END_NAME,
+    J_CONF_PARSER_STATE_SCOPE_END_NAME_END,
+    J_CONF_PARSER_STATE_SCOPE_END_END,
+} JConfParserState;
+
+
+#define j_isspace(c)    (isspace(c)||c=='\t')
+#define j_isname(c)     (isalnum(c)||c=='_')
+#define j_isscope(c)    (c=='<')
+#define j_isclose(c)    (c=='>')
+#define j_isend(c)      (c=='/')
 /*
  * Parses a conf file,
  * If error occurs, errstr will be set the error string (optional), and returns 0
@@ -100,4 +144,250 @@ void j_conf_parser_add_env(JConfParser * parser, const char *str)
 int j_conf_parser_parse(JConfParser * parser, const char *filepath,
                         char **errstr)
 {
+    int ret = 0;
+    char *data = j_file_readall(filepath);
+    if (data == NULL) {
+        return j_conf_parser_error(errstr, j_strdup(strerror(errno)));
+    }
+    char **lines = j_strsplit_c(data, '\n', -1);
+    j_free(data);
+
+    char **line = lines;
+    char *name = NULL;
+    char *value = NULL;
+    unsigned int ln = 0;        /* line number */
+    JStack *scopes = j_stack_new();
+    j_stack_push(scopes, j_conf_parser_get_root(parser));
+    while (*line) {
+        ln++;
+        char *comment = strchr(*line, '#');
+        if (comment) {
+            *comment = '\0';
+        }
+        const char *ptr = *line;
+        JConfParserState state = J_CONF_PARSER_STATE_NEW;
+        const char *start = ptr;
+        name = NULL;
+        value = NULL;
+        while (*ptr) {
+            char c = *ptr;
+            switch (state) {
+            case J_CONF_PARSER_STATE_NEW:
+                if (j_isscope(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE;
+                } else if (isalpha(c)) {
+                    start = ptr;
+                    state = J_CONF_PARSER_STATE_DIRECTIVE_NAME;
+                } else if (!j_isspace(c)) {
+                    j_conf_parser_error(errstr,
+                                        "[%s:%u] directive name must start with "
+                                        "an alpha character", filepath,
+                                        ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_DIRECTIVE_NAME:
+                if (j_isspace(c)) {
+                    name = j_strndup(start, ptr - start);
+                    state = J_CONF_PARSER_STATE_DIRECTIVE_NAME_END;
+                } else if (!j_isname(c)) {
+                    j_conf_parser_error(errstr,
+                                        "[%s:%u] directive name must only "
+                                        "contain underline, alpha or digit "
+                                        "character", filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_DIRECTIVE_NAME_END:
+                if (!j_isspace(c)) {
+                    start = ptr;
+                    state = J_CONF_PARSER_STATE_DIRECTIVE_VALUE;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE:
+                if (j_isspace(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE_START;
+                } else if (j_isend(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE_END;
+                } else if (isalpha(c)) {
+                    start = ptr;
+                    state = J_CONF_PARSER_STATE_SCOPE_START_NAME;
+                } else {
+                    j_conf_parser_error(errstr,
+                                        "[%s:%u] invalid character in scope closure");
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_START:
+                if (isalpha(c)) {
+                    start = ptr;
+                    state = J_CONF_PARSER_STATE_SCOPE_START_NAME;
+                } else if (!j_isspace(c)) {
+                    j_conf_parser_error(errstr, "[%s:%u] scope name "
+                                        "must start with an alpha character",
+                                        filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_START_NAME:
+                if (j_isspace(c)) {
+                    name = j_strndup(start, ptr - start);
+                    state = J_CONF_PARSER_STATE_SCOPE_START_NAME_END;
+                } else if (j_isclose(c)) {
+                    name = j_strndup(start, ptr - start);
+                    state = J_CONF_PARSER_STATE_SCOPE_START_END;
+                } else if (!j_isname(c)) {
+                    j_conf_parser_error(errstr,
+                                        "[%s:%u] scope name must only "
+                                        "contain underline, alpha or digit "
+                                        "character", filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_START_NAME_END:
+                if (j_isclose(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE_START_END;
+                } else if (!j_isspace(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE_START_VALUE;
+                    start = ptr;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_START_VALUE:
+                if (j_isclose(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE_START_END;
+                    value = j_strndup(start, ptr - start);
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_START_END:
+                if (!j_isspace(c)) {
+                    j_conf_parser_error(errstr, "[%s:%u] "
+                                        "redundant character after scope closure",
+                                        filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_END:
+                if (isalpha(c)) {
+                    start = ptr;
+                    state = J_CONF_PARSER_STATE_SCOPE_END_NAME;
+                } else if (!j_isspace(c)) {
+                    j_conf_parser_error(errstr, "[%s:%u] scope name "
+                                        "must start with an alpha character",
+                                        filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_END_NAME:
+                if (j_isspace(c)) {
+                    name = j_strndup(start, ptr - start);
+                    state = J_CONF_PARSER_STATE_SCOPE_END_NAME_END;
+                } else if (j_isclose(c)) {
+                    name = j_strndup(start, ptr - start);
+                    state = J_CONF_PARSER_STATE_SCOPE_END_END;
+                } else if (!j_isname(c)) {
+                    j_conf_parser_error(errstr,
+                                        "[%s:%u] scope name must only "
+                                        "contain underline, alpha or digit "
+                                        "character", filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_END_NAME_END:
+                if (j_isclose(c)) {
+                    state = J_CONF_PARSER_STATE_SCOPE_END_END;
+                } else if (!j_isspace(c)) {
+                    j_conf_parser_error(errstr, "[%s:%u] scope end "
+                                        "cannot contain argument",
+                                        filepath, ln);
+                    goto OUT;
+                }
+                break;
+            case J_CONF_PARSER_STATE_SCOPE_END_END:
+                if (!j_isspace(c)) {
+                    j_conf_parser_error(errstr, "[%s:%u] "
+                                        "redundant character after scope closure",
+                                        filepath, ln);
+                    goto OUT;
+                }
+                break;
+            default:
+                break;
+            }
+            ptr++;
+        }
+
+        JConfNode *node = NULL;
+        switch (state) {
+        case J_CONF_PARSER_STATE_DIRECTIVE_NAME:
+            name = j_strndup(start, ptr - start);
+        case J_CONF_PARSER_STATE_DIRECTIVE_NAME_END:
+            node = j_conf_node_new_take(J_CONF_NODE_DIRECTIVE, name);
+            j_conf_node_append_child((JConfNode *) j_stack_top(scopes),
+                                     node);
+            break;
+        case J_CONF_PARSER_STATE_DIRECTIVE_VALUE:
+            node = j_conf_node_new_take(J_CONF_NODE_DIRECTIVE, name);
+            name = NULL;
+            if (!j_conf_node_set_arguments_take(node,
+                                                j_strndup(start,
+                                                          ptr - start))) {
+                j_conf_node_free(node);
+                j_conf_parser_error(errstr, "[%s:%u] invalid "
+                                    "directive argument", filepath, ln);
+                goto OUT;
+            }
+            j_conf_node_append_child((JConfNode *) j_stack_top(scopes),
+                                     node);
+            break;
+        case J_CONF_PARSER_STATE_SCOPE:
+        case J_CONF_PARSER_STATE_SCOPE_START:
+        case J_CONF_PARSER_STATE_SCOPE_START_NAME:
+        case J_CONF_PARSER_STATE_SCOPE_START_NAME_END:
+        case J_CONF_PARSER_STATE_SCOPE_START_VALUE:
+        case J_CONF_PARSER_STATE_SCOPE_END:
+        case J_CONF_PARSER_STATE_SCOPE_END_NAME:
+        case J_CONF_PARSER_STATE_SCOPE_END_NAME_END:
+            j_conf_parser_error(errstr, "[%s:%u] unexpected EOL ",
+                                filepath, ln);
+            goto OUT;
+            break;
+        case J_CONF_PARSER_STATE_SCOPE_START_END:
+            node = j_conf_node_new(J_CONF_NODE_SCOPE, name);
+            name = NULL;
+            if (value) {
+                if (!j_conf_node_set_arguments_take(node, value)) {
+                    value = NULL;
+                    j_conf_node_free(node);
+                    j_conf_parser_error(errstr, "[%s:%u] invalid "
+                                        "scope argument", filepath, ln);
+                    goto OUT;
+                }
+            }
+            j_conf_node_append_child((JConfNode *) j_stack_top(scopes),
+                                     node);
+            j_stack_push(scopes, node);
+            break;
+        case J_CONF_PARSER_STATE_SCOPE_END_END:
+            node = (JConfNode *) j_stack_pop(scopes);
+            if (j_strcmp0(name, j_conf_node_get_name(node))) {
+                j_conf_parser_error(errstr, "[%s:%u] scope name "
+                                    "doesn\'t match", filepath, ln);
+                goto OUT;
+            }
+            j_free(name);
+            name = NULL;
+            break;
+        default:
+            break;
+
+        }
+        line++;
+    }
+    ret = 1;
+  OUT:
+    j_free(name);
+    j_free(value);
+    j_stack_free(scopes, NULL);
+    j_strfreev(lines);
+    return ret;
 }

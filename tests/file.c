@@ -5,10 +5,9 @@
 
 int main(int argc,char *argv[])
 {
-    JFile *file=j_file_new_for_path("/home/wiky/Documents/CODE/Git/jlib/tests/file.c");
-    char *data=j_file_readall(file);
+    char *data=j_file_readall(
+        "/home/wiky/Documents/CODE/Git/jlib/tests/file.c");
     printf("%s",data);
-    j_file_free(file);
     if(data==NULL){
         return 1;
     }

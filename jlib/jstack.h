@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
@@ -38,6 +38,12 @@ void j_stack_push(JStack * stack, void *data);
  * If stack is empty, NULL is returned
  */
 void *j_stack_pop(JStack * stack);
+
+/*
+ * Gets the data that is on the top of stack
+ * This function doesn't pop any data
+ */
+void *j_stack_top(JStack * stack);
 
 
 /*

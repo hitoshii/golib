@@ -49,8 +49,13 @@ JConfNodeType j_conf_node_get_type(JConfNode * n)
 
 JConfNode *j_conf_node_new(JConfNodeType type, const char *name)
 {
+    return j_conf_node_new_take(type, j_strdup(name));
+}
+
+JConfNode *j_conf_node_new_take(JConfNodeType type, char *name)
+{
     JConfNode *n = (JConfNode *) j_malloc(sizeof(JConfNode));
-    n->name = j_strdup(name);
+    n->name = name;
     n->type = type;
     n->args = NULL;
     n->children = NULL;
@@ -121,7 +126,8 @@ int j_conf_node_set_arguments(JConfNode * n, const char *raw)
                 ptr++;
             }
             if (*ptr == '\0') {
-                if (state == J_ARGUMENT_STRING_ESCAPE) {
+                if (state == J_ARGUMENT_STRING_ESCAPE
+                    || state == J_ARGUMENT_STRING) {
                     return 0;
                 } else if (state == J_ARGUMENT_RAW) {
                     char *str = j_strndup(start, ptr - start);
@@ -135,6 +141,13 @@ int j_conf_node_set_arguments(JConfNode * n, const char *raw)
         raw++;
     }
     return 1;
+}
+
+int j_conf_node_set_arguments_take(JConfNode * n, char *raw)
+{
+    int ret = j_conf_node_set_arguments(n, raw);
+    j_free(raw);
+    return ret;
 }
 
 void j_conf_node_append_child(JConfNode * n, JConfNode * child)
