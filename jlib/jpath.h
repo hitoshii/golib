@@ -35,6 +35,12 @@ int j_path_is_absolute(const char *path);
  */
 char *j_path_basename(const char *path);
 
+/*
+ * Expands all symbolic links and resolves references to /./, /../
+ * and extra '/' characters in the null-terminated string
+ * named by path to produce a canonicalized  absolute  pathname
+ */
+char *j_path_realpath(const char *path);
 
 /*
  * Searches for all the pathnames matching pattern accoding to the rules

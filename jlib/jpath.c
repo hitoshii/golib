@@ -31,6 +31,16 @@ int j_path_is_absolute(const char *path)
     return j_str_has_prefix(path, "/");
 }
 
+/*
+ * Expands all symbolic links and resolves references to /./, /../
+ * and extra '/' characters in the null-terminated string
+ * named by path to produce a canonicalized  absolute  pathname
+ */
+char *j_path_realpath(const char *path)
+{
+    char *real = realpath(path,NULL);
+    return real;
+}
 
 /*
  * Gets the last component of the filename

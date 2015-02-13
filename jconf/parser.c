@@ -55,6 +55,9 @@ struct _JConfParser {
     JList *vars;
     JList *envs;
     JConfNode *root;            /* a root group */
+    /* the root node is a group whose name is empty(NULL) */
+
+    JList *filepaths;           /* the list of config files */
 };
 
 JConfNode *j_conf_parser_get_root(JConfParser * p)
@@ -69,7 +72,32 @@ JConfParser *j_conf_parser_new()
     parser->vars = NULL;
     parser->envs = NULL;
     parser->root = j_conf_node_new(J_CONF_NODE_SCOPE, NULL);
+    parser->filepaths = NULL;
     return parser;
+}
+
+/*
+ * Checks to see if the path has been already parsed by this JConfParser
+ * This function is used to guarantee a file will not be
+ * loaded more than one times
+ */
+static inline int j_conf_parser_is_parsed(JConfParser * p,
+                                          const char *path)
+{
+    char *realpath = j_path_realpath(path);
+    if (realpath == NULL) {
+        return 0;
+    }
+    JList *ptr = p->filepaths;
+    while (ptr) {
+        if (j_strcmp0(realpath, (const char *) j_list_data(ptr)) == 0) {
+            j_free(realpath);
+            return 1;
+        }
+        ptr = j_list_next(ptr);
+    }
+    p->filepaths = j_list_append(p->filepaths, realpath);
+    return 0;
 }
 
 /*
@@ -79,6 +107,7 @@ void j_conf_parser_free(JConfParser * parser)
 {
     j_list_free_full(parser->vars, (JListDestroy) j_conf_var_free);
     j_list_free_full(parser->envs, (JListDestroy) free);
+    j_list_free_full(parser->filepaths, (JListDestroy) free);
     j_conf_node_free(parser->root);
     j_free(parser);
 }
@@ -190,6 +219,9 @@ typedef enum {
 int j_conf_parser_parse(JConfParser * parser, const char *filepath,
                         char **errstr)
 {
+    if (j_conf_parser_is_parsed(parser, filepath)) {
+        return 1;
+    }
     int ret = 0;
     char *data = j_file_readall(filepath);
     if (data == NULL) {
