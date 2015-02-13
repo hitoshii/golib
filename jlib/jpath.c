@@ -18,7 +18,10 @@
 
 #include "jpath.h"
 #include "jstrfuncs.h"
+#include "jmem.h"
 #include <stdlib.h>
+#include <string.h>
+#include <glob.h>
 
  /*
   * Checks to see if the path is absolute
@@ -26,6 +29,57 @@
 int j_path_is_absolute(const char *path)
 {
     return j_str_has_prefix(path, "/");
+}
+
+
+/*
+ * Gets the last component of the filename
+ * Returns a newly allocated string containing
+ * the last component of the filename
+ */
+char *j_path_basename(const char *path)
+{
+    char *slash = strrchr(path, '/');
+    if (slash == NULL) {        /* slash not found */
+        return j_strdup(path);
+    }
+    if (*(slash + 1)) {
+        return j_strdup(slash + 1);
+    }
+    char *ptr = slash - 1;
+    while (ptr != path) {
+        if (*ptr == '/') {
+            break;
+        }
+        ptr--;
+    }
+    if (*ptr == '/') {
+        ptr++;
+    }
+    return j_strndup(ptr, slash - ptr);
+}
+
+/*
+ * Searches for all the pathnames matching pattern accoding to the rules
+ * used by shell (see glob(3)). No tilde expansion or parameter substitution
+ * is done
+ */
+char **j_path_glob(const char *pattern)
+{
+    glob_t globs;
+    int ret = glob(pattern, 0, NULL, &globs);
+    if (ret != 0) {
+        return NULL;
+    }
+    char **strv =
+        (char **) j_malloc(sizeof(char *) * (globs.gl_pathc + 1));
+    int i;
+    for (i = 0; i < globs.gl_pathc; i++) {
+        strv[i] = j_strdup(globs.gl_pathv[i]);
+    }
+    strv[i] = NULL;
+    globfree(&globs);
+    return strv;
 }
 
 

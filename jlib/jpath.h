@@ -27,6 +27,22 @@ int j_path_is_absolute(const char *path);
 
 #define j_path_is_relative(path)    (!(j_path_is_absolute(path)))
 
+
+/*
+ * Gets the last component of the filename
+ * Returns a newly allocated string containing
+ * the last component of the filename
+ */
+char *j_path_basename(const char *path);
+
+
+/*
+ * Searches for all the pathnames matching pattern accoding to the rules
+ * used by shell (see glob(3)). No tilde expansion or parameter substitution
+ * is done
+ */
+char **j_path_glob(const char *pattern);
+
 /*
  * Joins two path, p2 must be relative
  */

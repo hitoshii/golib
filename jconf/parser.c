@@ -114,17 +114,18 @@ static inline char **j_conf_parser_get_path(JConfParser * parser,
                                             const char *path)
 {
     if (j_path_is_absolute(path)) {
-        return j_strdupv(1, path);
+        return j_path_glob(path);
     }
     char *joined = NULL;
     JList *env = j_conf_parser_get_envs(parser);
     while (env) {
         const char *env_path = j_list_data(env);
         joined = j_path_join(env_path, path);
-        if (j_file_exists(joined)) {
-            return j_strdupv(1, path);
-        }
+        char **matched = j_path_glob(joined);
         j_free(joined);
+        if (matched) {
+            return matched;
+        }
         env = j_list_next(env);
     }
     return NULL;
@@ -403,22 +404,21 @@ int j_conf_parser_parse(JConfParser * parser, const char *filepath,
                     }
                     char **joined = j_conf_parser_get_path(parser, path);
                     if (joined == NULL) {
-                        j_conf_parser_error(errstr, "[%s:%u] %s not found",
-                                            filepath, ln, path);
-                        j_conf_node_free(node);
-                        goto OUT;
-                    }
-                    char **file_path = joined;
-                    while (*file_path) {
-                        if (!j_conf_parser_parse
-                            (parser, *file_path, errstr)) {
-                            j_strfreev(joined);
-                            j_conf_node_free(node);
-                            goto OUT;
+                        printf("[%s:%u] \'%s\' not found!\n",
+                               filepath, ln, path);
+                    } else {
+                        char **file_path = joined;
+                        while (*file_path) {
+                            if (!j_conf_parser_parse
+                                (parser, *file_path, errstr)) {
+                                j_strfreev(joined);
+                                j_conf_node_free(node);
+                                goto OUT;
+                            }
+                            file_path++;
                         }
-                        file_path++;
+                        j_strfreev(joined);
                     }
-                    j_strfreev(joined);
                     arg = j_list_next(arg);
                 }
                 j_conf_node_free(node);
