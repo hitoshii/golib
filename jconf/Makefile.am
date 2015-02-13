@@ -25,8 +25,6 @@ libjconf_la_SOURCES =  \
 jconfsubincludedir=$(jlib_includedir)/jconf
 jconfsubinclude_HEADERS= jconf.h \
 	node.h \
-	directive.h \
-	scope.h \
 	type.h \
 	parser.h
 

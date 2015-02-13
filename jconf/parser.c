@@ -184,7 +184,7 @@ static inline int j_conf_parser_error(char **errstr, const char *fmt, ...)
         *errstr = j_strdup_vprintf(fmt, vl);
         va_end(vl);
     }
-    return -1;
+    return 0;
 }
 
 

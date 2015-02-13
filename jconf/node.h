@@ -41,8 +41,6 @@ JConfNodeType j_conf_node_get_type(JConfNode * n);
 
 #define j_conf_node_is_directive(n)  (J_CONF_NODE_TYPE(n)==J_CONF_NODE_DIRECTIVE)
 #define j_conf_node_is_scope(n) (J_CONF_NODE_TYPE(n)==J_CONF_NODE_SCOPE)
-#define j_conf_node_get_directive(n)    ((JConfDirective*)n)
-#define j_conf_node_get_scope(n)        ((JConfScope*)n)
 
 
 JConfNode *j_conf_node_new(JConfNodeType type, const char *name);
@@ -53,6 +51,12 @@ int j_conf_node_set_arguments(JConfNode * n, const char *raw);
 int j_conf_node_set_arguments_take(JConfNode * n, char *raw);
 
 void j_conf_node_append_child(JConfNode * n, JConfNode * child);
+
+
+/*
+ * Gets children scopes
+ */
+JList *j_conf_node_get_scope(JConfNode *n,const char *name);
 
 /*
  * Joins two nodes

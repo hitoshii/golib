@@ -155,6 +155,24 @@ void j_conf_node_append_child(JConfNode * n, JConfNode * child)
     n->children = j_list_append(n->children, child);
 }
 
+/*
+ * Gets children scopes
+ */
+JList *j_conf_node_get_scope(JConfNode *n,const char *name)
+{
+    JList *scopes=NULL;
+    JList *ptr=n->children;
+    while(ptr){
+        JConfNode *node=(JConfNode*)j_list_data(ptr);
+        if( j_conf_node_is_scope(node)&&
+            j_strcmp0(j_conf_node_get_name(node),name)==0){
+            scopes=j_list_append(scopes,node);
+        }
+        ptr=j_list_next(ptr);
+    }
+    return scopes;
+}
+
 
 int j_conf_node_join(JConfNode * n1, JConfNode * n2)
 {

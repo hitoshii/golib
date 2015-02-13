@@ -20,8 +20,6 @@
 
 #include "type.h"
 #include "node.h"
-#include "directive.h"
-#include "scope.h"
 #include "parser.h"
 
 
