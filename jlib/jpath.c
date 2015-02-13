@@ -32,6 +32,19 @@ int j_path_is_absolute(const char *path)
 }
 
 /*
+ * Returns a pointer into file_name after the root component,
+ * i.e. after the "/" in UNIX or "C:\" under Windows.
+ * If file_name is not an absolute path it returns path it self.
+ */
+const char *j_path_skip_root(const char *path)
+{
+    if (!j_path_is_absolute(path)) {
+        return path;
+    }
+    return path + 1;
+}
+
+/*
  * Expands all symbolic links and resolves references to /./, /../
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname

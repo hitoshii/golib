@@ -35,3 +35,8 @@ pkgconfig_DATA = jio-0.1.pc
 
 EXTRA_DIST = \
 	jio-0.1.pc.in
+
+
+clean-local:
+	indent -kr -ts4 -nut *.c *.h
+	rm *~

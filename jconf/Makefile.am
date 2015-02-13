@@ -33,3 +33,8 @@ pkgconfig_DATA = jconf-0.1.pc
 
 EXTRA_DIST = \
 	jconf-0.1.pc.in
+
+
+clean-local:
+	indent -kr -ts4 -nut *.c *.h
+	rm *~

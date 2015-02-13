@@ -33,3 +33,10 @@ test_file_SOURCES = \
 
 test_conf_SOURCES = \
 	conf.c
+
+
+
+clean-local:
+	indent -kr -ts4 -nut *.c
+	rm -rf hello-dir
+	rm *~

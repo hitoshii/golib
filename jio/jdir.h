@@ -19,7 +19,19 @@
 #define __J_IO_DIR_H__
 
 
-int j_dir_stat(const char *path);
+/*
+ * Checks to see if path is a existing directory
+ */
+int j_dir_exist(const char *path);
+
+/*
+ * Creates a directory if it doesn't exist.
+ * Creates intermediate parent directories as needed, too.
+ *
+ * If path exists or newly-created, returns 1
+ * otherwise 0
+ */
+int j_mkdir_with_parents(const char *path, int mode);
 
 
 

@@ -56,7 +56,7 @@ void j_conf_node_append_child(JConfNode * n, JConfNode * child);
 /*
  * Gets children scopes
  */
-JList *j_conf_node_get_scope(JConfNode *n,const char *name);
+JList *j_conf_node_get_scope(JConfNode * n, const char *name);
 
 /*
  * Joins two nodes

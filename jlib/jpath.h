@@ -24,6 +24,13 @@
  */
 int j_path_is_absolute(const char *path);
 
+/*
+ * Returns a pointer into file_name after the root component,
+ * i.e. after the "/" in UNIX or "C:\" under Windows.
+ * If file_name is not an absolute path it returns path it self.
+ */
+const char *j_path_skip_root(const char *path);
+
 
 #define j_path_is_relative(path)    (!(j_path_is_absolute(path)))
 
