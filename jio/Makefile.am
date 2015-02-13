@@ -14,16 +14,20 @@ AM_CFLAGS =\
 lib_LTLIBRARIES = libjio.la
 
 
-libjio_la_SOURCES = jfile.c
+libjio_la_SOURCES = \
+	jfile.c \
+	jdir.c
 
-libjio_la_LDFLAGS = 
+libjio_la_LDFLAGS =
 
-libjio_la_LIBADD = 
+libjio_la_LIBADD =
 
 
 
 jiosubincludedir=$(jlib_includedir)/jio
-jiosubinclude_HEADERS= jfile.h \
+jiosubinclude_HEADERS= \
+	jfile.h \
+	jdir.h \
 	jio.h
 
 pkgconfigdir = $(libdir)/pkgconfig

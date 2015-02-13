@@ -18,6 +18,8 @@
 #ifndef __J_IO_FILE_H__
 #define __J_IO_FILE_H__
 
+#include <sys/stat.h>
+
 /*
  * Reads all data from path
  * Returns newly-allocated string on success
@@ -26,10 +28,23 @@
 char *j_file_readall(const char *path);
 
 
-/*
- * Checks to see if path is a existing normal file
- */
-int j_file_exists(const char *path);
+typedef enum {
+    J_FILE_TYPE_SCK = S_IFSOCK, /* socket */
+    J_FILE_TYPE_LNK = S_IFLNK,  /* symbolic link */
+    J_FILE_TYPE_REG = S_IFREG,  /* regular file */
+    J_FILE_TYPE_BLK = S_IFBLK,  /* block device */
+    J_FILE_TYPE_DIR = S_IFDIR,  /* directory */
+    J_FILE_TYPE_CHR = S_IFCHR,  /* character device */
+    J_FILE_TYPE_IFO = S_IFIFO,  /* FIFO */
+} JFileType;
+
+typedef struct {
+    JFileType type;
+} JFileInfo;
+#define j_file_is_reg(info) S_ISREG((info).type)
+#define j_file_is_dir(info) S_ISDIR((info).type)
+
+int j_file_query_info(const char *path, JFileInfo * info);
 
 
 

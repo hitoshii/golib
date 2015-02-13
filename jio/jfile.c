@@ -19,7 +19,6 @@
 #include "jfile.h"
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <jlib/jlib.h>
 
@@ -48,14 +47,14 @@ char *j_file_readall(const char *path)
     return j_string_free(string, 0);
 }
 
-/*
- * Checks to see if path is a existing normal file
- */
-int j_file_exists(const char *path)
+int j_file_query_info(const char *path, JFileInfo * info)
 {
-    struct stat buf;
-    if (stat(path, &buf) != 0) {
+    struct stat statbuf;
+    if (stat(path, &statbuf)) {
         return 0;
     }
-    return S_ISREG(buf.st_mode);
+    if (info) {
+        info->type = statbuf.st_mode;
+    }
+    return 1;
 }

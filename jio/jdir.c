@@ -15,11 +15,4 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_IO_H__
-#define __J_IO_H__
-
-#include "jfile.h"
 #include "jdir.h"
-
-
-#endif

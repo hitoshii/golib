@@ -123,7 +123,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jiosubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjio_la_DEPENDENCIES =
-am_libjio_la_OBJECTS = jfile.lo
+am_libjio_la_OBJECTS = jfile.lo jdir.lo
 libjio_la_OBJECTS = $(am_libjio_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -326,11 +326,16 @@ AM_CFLAGS = \
 	 -g
 
 lib_LTLIBRARIES = libjio.la
-libjio_la_SOURCES = jfile.c
+libjio_la_SOURCES = \
+	jfile.c \
+	jdir.c
+
 libjio_la_LDFLAGS = 
 libjio_la_LIBADD = 
 jiosubincludedir = $(jlib_includedir)/jio
-jiosubinclude_HEADERS = jfile.h \
+jiosubinclude_HEADERS = \
+	jfile.h \
+	jdir.h \
 	jio.h
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -419,6 +424,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jdir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfile.Plo@am__quote@
 
 .c.o:

@@ -38,7 +38,7 @@ int j_path_is_absolute(const char *path)
  */
 char *j_path_realpath(const char *path)
 {
-    char *real = realpath(path,NULL);
+    char *real = realpath(path, NULL);
     return real;
 }
 
