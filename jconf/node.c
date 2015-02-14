@@ -32,11 +32,6 @@ const char *j_conf_node_get_name(JConfNode * n)
     return n->name;
 }
 
-JList *j_conf_node_get_arguments(JConfNode * n)
-{
-    return n->args;
-}
-
 JList *j_conf_node_get_children(JConfNode * n)
 {
     return n->children;
@@ -45,6 +40,25 @@ JList *j_conf_node_get_children(JConfNode * n)
 JConfNodeType j_conf_node_get_type(JConfNode * n)
 {
     return n->type;
+}
+
+JList *j_conf_node_get_arguments(JConfNode * n)
+{
+    return n->args;
+}
+
+unsigned int j_conf_node_get_arguments_count(JConfNode * n)
+{
+    return j_list_length(j_conf_node_get_arguments(n));
+}
+
+JConfData *j_conf_node_get_argument_first(JConfNode * n)
+{
+    JList *args = j_conf_node_get_arguments(n);
+    if (args) {
+        return j_list_data(args);
+    }
+    return NULL;
 }
 
 JConfNode *j_conf_node_new(JConfNodeType type, const char *name)
@@ -173,6 +187,35 @@ JList *j_conf_node_get_scope(JConfNode * n, const char *name)
     return scopes;
 }
 
+JList *j_conf_node_get_directive(JConfNode * n, const char *name)
+{
+    JList *scopes = NULL;
+    JList *ptr = n->children;
+    while (ptr) {
+        JConfNode *node = (JConfNode *) j_list_data(ptr);
+        if (j_conf_node_is_directive(node) &&
+            j_strcmp0(j_conf_node_get_name(node), name) == 0) {
+            scopes = j_list_append(scopes, node);
+        }
+        ptr = j_list_next(ptr);
+    }
+    return scopes;
+}
+
+JConfNode *j_conf_node_get_directive_last(JConfNode * n, const char *name)
+{
+    JConfNode *d = NULL;
+    JList *ptr = n->children;
+    while (ptr) {
+        JConfNode *node = (JConfNode *) j_list_data(ptr);
+        if (j_conf_node_is_directive(node) &&
+            j_strcmp0(j_conf_node_get_name(node), name) == 0) {
+            d = node;
+        }
+        ptr = j_list_next(ptr);
+    }
+    return d;
+}
 
 int j_conf_node_join(JConfNode * n1, JConfNode * n2)
 {

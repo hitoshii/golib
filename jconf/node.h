@@ -30,6 +30,9 @@ const char *j_conf_node_get_name(JConfNode * n);
 JList *j_conf_node_get_arguments(JConfNode * n);
 JList *j_conf_node_get_children(JConfNode * n);
 
+JConfData *j_conf_node_get_argument_first(JConfNode * n);
+unsigned int j_conf_node_get_arguments_count(JConfNode * n);
+
 
 typedef enum {
     J_CONF_NODE_DIRECTIVE,
@@ -54,9 +57,16 @@ void j_conf_node_append_child(JConfNode * n, JConfNode * child);
 
 
 /*
- * Gets children scopes
+ * Gets children
  */
 JList *j_conf_node_get_scope(JConfNode * n, const char *name);
+JList *j_conf_node_get_directive(JConfNode * n, const char *name);
+
+
+/*
+ * Gets the last JConfNode which has name
+ */
+JConfNode *j_conf_node_get_directive_last(JConfNode * n, const char *name);
 
 /*
  * Joins two nodes

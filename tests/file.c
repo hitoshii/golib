@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     }
     j_free(data);
 
-    if (!j_mkdir_with_parents("./hello-dir/world/linux/", 0755)) {
+    if (!j_mkdir_with_parents("./hello-dir/world/linux", 0755)) {
         perror("");
         return 1;
     }
