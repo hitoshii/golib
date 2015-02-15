@@ -58,3 +58,15 @@ int j_file_query_info(const char *path, JFileInfo * info)
     }
     return 1;
 }
+
+/*
+ * Checks to see if path is an existing regular file
+ */
+int j_file_exists(const char *path)
+{
+    JFileInfo info;
+    if (!j_file_query_info(path, &info)) {
+        return 0;
+    }
+    return j_file_is_reg(info);
+}

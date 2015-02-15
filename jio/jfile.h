@@ -44,6 +44,11 @@ typedef struct {
 #define j_file_is_reg(info) S_ISREG((info).type)
 #define j_file_is_dir(info) S_ISDIR((info).type)
 
+/*
+ * Checks to see if path is an existing regular file
+ */
+int j_file_exists(const char *path);
+
 int j_file_query_info(const char *path, JFileInfo * info);
 
 
