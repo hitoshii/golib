@@ -80,7 +80,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
-	test-conf$(EXEEXT) test-mod$(EXEEXT)
+	test-conf$(EXEEXT) test-mod$(EXEEXT) test-log$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -103,6 +103,9 @@ am__v_lt_1 =
 am_test_file_OBJECTS = test-file.$(OBJEXT)
 test_file_OBJECTS = $(am_test_file_OBJECTS)
 test_file_LDADD = $(LDADD)
+am_test_log_OBJECTS = test-log.$(OBJEXT)
+test_log_OBJECTS = $(am_test_log_OBJECTS)
+test_log_LDADD = $(LDADD)
 am_test_mod_OBJECTS = test-mod.$(OBJEXT)
 test_mod_OBJECTS = $(am_test_mod_OBJECTS)
 test_mod_LDADD = $(LDADD)
@@ -145,9 +148,9 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_mod_SOURCES) $(test_string_SOURCES)
+	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_string_SOURCES)
 DIST_SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_mod_SOURCES) $(test_string_SOURCES)
+	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -326,6 +329,9 @@ test_conf_SOURCES = \
 test_mod_SOURCES = \
 	test-mod.c
 
+test_log_SOURCES = \
+	test-log.c
+
 all: all-am
 
 .SUFFIXES:
@@ -378,6 +384,10 @@ test-file$(EXEEXT): $(test_file_OBJECTS) $(test_file_DEPENDENCIES) $(EXTRA_test_
 	@rm -f test-file$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_file_OBJECTS) $(test_file_LDADD) $(LIBS)
 
+test-log$(EXEEXT): $(test_log_OBJECTS) $(test_log_DEPENDENCIES) $(EXTRA_test_log_DEPENDENCIES) 
+	@rm -f test-log$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_log_OBJECTS) $(test_log_LDADD) $(LIBS)
+
 test-mod$(EXEEXT): $(test_mod_OBJECTS) $(test_mod_DEPENDENCIES) $(EXTRA_test_mod_DEPENDENCIES) 
 	@rm -f test-mod$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_mod_OBJECTS) $(test_mod_LDADD) $(LIBS)
@@ -394,6 +404,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-mod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-string.Po@am__quote@
 
@@ -636,7 +647,7 @@ all-local: module
 clean-local:
 	indent -kr -ts4 -nut *.c
 	rm -rf hello-dir
-	rm -f *~ *.so
+	rm -f *~ *.so log.test
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

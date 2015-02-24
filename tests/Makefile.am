@@ -23,7 +23,8 @@ noinst_PROGRAMS= \
 	test-string \
 	test-file \
 	test-conf \
-	test-mod
+	test-mod \
+	test-log
 
 noinst_SCRIPTS=runtest
 
@@ -39,6 +40,9 @@ test_conf_SOURCES = \
 test_mod_SOURCES = \
 	test-mod.c
 
+test_log_SOURCES = \
+	test-log.c
+
 module: module.c
 	gcc -shared -fPIC module.c -o module.so
 
@@ -48,4 +52,4 @@ all-local: module
 clean-local:
 	indent -kr -ts4 -nut *.c
 	rm -rf hello-dir
-	rm -f *~ *.so
+	rm -f *~ *.so log.test

@@ -27,10 +27,13 @@
  */
 int j_dir_exist(const char *path)
 {
+    int _errno = errno;
     JFileInfo info;
     if (!j_file_query_info(path, &info)) {
+        errno = _errno;
         return 0;
     }
+    errno = _errno;
     return j_file_is_dir(info);
 }
 
