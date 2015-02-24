@@ -343,7 +343,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = jlib jconf jio tests
+SUBDIRS = jlib jconf jio jmod tests
 dist_doc_DATA = \
 	README \
 	COPYING \
@@ -864,7 +864,7 @@ uninstall-local:
 	-rm -r $(docdir)
 
 install-exec-local:
-	ldconfig
+	-ldconfig
 
 runtest:
 	@cd $(top_builddir)/tests && ./runtest

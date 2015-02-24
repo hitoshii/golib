@@ -11421,7 +11421,7 @@ CC="$lt_save_CC"
 
 
 
-ac_config_files="$ac_config_files Makefile jlib/jlib-0.1.pc jlib/Makefile jconf/Makefile jconf/jconf-0.1.pc jio/Makefile jio/jio-0.1.pc tests/Makefile"
+ac_config_files="$ac_config_files Makefile jlib/jlib-0.1.pc jlib/Makefile jconf/Makefile jconf/jconf-0.1.pc jio/Makefile jio/jio-0.1.pc jmod/Makefile jmod/jmod-0.1.pc tests/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -12435,6 +12435,8 @@ do
     "jconf/jconf-0.1.pc") CONFIG_FILES="$CONFIG_FILES jconf/jconf-0.1.pc" ;;
     "jio/Makefile") CONFIG_FILES="$CONFIG_FILES jio/Makefile" ;;
     "jio/jio-0.1.pc") CONFIG_FILES="$CONFIG_FILES jio/jio-0.1.pc" ;;
+    "jmod/Makefile") CONFIG_FILES="$CONFIG_FILES jmod/Makefile" ;;
+    "jmod/jmod-0.1.pc") CONFIG_FILES="$CONFIG_FILES jmod/jmod-0.1.pc" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

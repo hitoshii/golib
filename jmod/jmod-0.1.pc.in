@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+includedir=@includedir@/jlib-0.1
+
+Name: libjmod
+Description: Sample library created by Anjuta project wizard.
+Version: @VERSION@
+Requires: jlib-0.1 jio-0.1
+Libs: -L${libdir} -ljmod
+Cflags: -I${includedir}
