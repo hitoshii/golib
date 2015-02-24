@@ -33,6 +33,11 @@ AC_SUBST(jio_INCLUDE)
 jio_ADD='-L$(top_builddir)/jio -ljio'
 AC_SUBST(jio_ADD)
 
+jmod_INCLUDE='-I$(top_builddir)'
+AC_SUBST(jmod_INCLUDE)
+jmod_ADD='-L$(top_builddir)/jmod -ljmod'
+AC_SUBST(jmod_ADD)
+
 
 LT_INIT
 

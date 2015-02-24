@@ -19,6 +19,7 @@
 #include <jlib/jlib.h>
 #include <jio/jio.h>
 #include <stdio.h>
+#include <dlfcn.h>
 
 
 static const char *get_module_path(const char *MODULE_LOCATION,
@@ -56,5 +57,14 @@ JModule *j_mod_load(const char *MODULE_LOCATION, const char *path)
     if (path == NULL) {
         return NULL;
     }
-    return (JModule *) 1;
+    void *dl = dlopen(path, RTLD_NOW);
+    if (dl == NULL) {
+        return NULL;
+    }
+    JModule *mod = (JModule *) dlsym(dl, "module_struct");
+    dlclose(dl);
+    if (mod == NULL) {
+        return NULL;
+    }
+    return mod;
 }

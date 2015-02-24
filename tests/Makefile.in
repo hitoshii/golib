@@ -80,7 +80,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
-	test-conf$(EXEEXT)
+	test-conf$(EXEEXT) test-mod$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -103,6 +103,9 @@ am__v_lt_1 =
 am_test_file_OBJECTS = file.$(OBJEXT)
 test_file_OBJECTS = $(am_test_file_OBJECTS)
 test_file_LDADD = $(LDADD)
+am_test_mod_OBJECTS = mod.$(OBJEXT)
+test_mod_OBJECTS = $(am_test_mod_OBJECTS)
+test_mod_LDADD = $(LDADD)
 am_test_string_OBJECTS = string.$(OBJEXT)
 test_string_OBJECTS = $(am_test_string_OBJECTS)
 test_string_LDADD = $(LDADD)
@@ -142,9 +145,9 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_string_SOURCES)
+	$(test_mod_SOURCES) $(test_string_SOURCES)
 DIST_SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_string_SOURCES)
+	$(test_mod_SOURCES) $(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -272,6 +275,8 @@ jio_INCLUDE = @jio_INCLUDE@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
 jlib_includedir = @jlib_includedir@
+jmod_ADD = @jmod_ADD@
+jmod_INCLUDE = @jmod_INCLUDE@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -305,7 +310,8 @@ AM_CFLAGS = \
 AM_LDFLAGS = \
 	$(jlib_ADD) \
 	$(jconf_ADD) \
-	$(jio_ADD)
+	$(jio_ADD) \
+	$(jmod_ADD)
 
 noinst_SCRIPTS = runtest
 test_string_SOURCES = \
@@ -316,6 +322,9 @@ test_file_SOURCES = \
 
 test_conf_SOURCES = \
 	conf.c
+
+test_mod_SOURCES = \
+	mod.c
 
 all: all-am
 
@@ -369,6 +378,10 @@ test-file$(EXEEXT): $(test_file_OBJECTS) $(test_file_DEPENDENCIES) $(EXTRA_test_
 	@rm -f test-file$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_file_OBJECTS) $(test_file_LDADD) $(LIBS)
 
+test-mod$(EXEEXT): $(test_mod_OBJECTS) $(test_mod_DEPENDENCIES) $(EXTRA_test_mod_DEPENDENCIES) 
+	@rm -f test-mod$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_mod_OBJECTS) $(test_mod_LDADD) $(LIBS)
+
 test-string$(EXEEXT): $(test_string_OBJECTS) $(test_string_DEPENDENCIES) $(EXTRA_test_string_DEPENDENCIES) 
 	@rm -f test-string$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_string_OBJECTS) $(test_string_LDADD) $(LIBS)
@@ -381,6 +394,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/string.Po@am__quote@
 
 .c.o:
@@ -494,7 +508,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS) $(SCRIPTS)
+all-am: Makefile $(PROGRAMS) $(SCRIPTS) all-local
 installdirs:
 install: install-am
 install-exec: install-exec-am
@@ -599,25 +613,30 @@ uninstall-am:
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-local clean-noinstPROGRAMS cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+.PHONY: CTAGS GTAGS TAGS all all-am all-local check check-am clean \
+	clean-generic clean-libtool clean-local clean-noinstPROGRAMS \
+	cscopelist-am ctags ctags-am distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am
 
 
+module: module.c
+	gcc -shared -fPIC module.c -o module.so
+
+all-local: module
+
 clean-local:
 	indent -kr -ts4 -nut *.c
 	rm -rf hello-dir
-	rm *~
+	rm -f *~ *.so
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

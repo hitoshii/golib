@@ -297,6 +297,8 @@ jio_INCLUDE = @jio_INCLUDE@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
 jlib_includedir = @jlib_includedir@
+jmod_ADD = @jmod_ADD@
+jmod_INCLUDE = @jmod_INCLUDE@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -331,7 +333,9 @@ lib_LTLIBRARIES = libjmod.la
 libjmod_la_SOURCES = \
 	jmod.c
 
-libjmod_la_LDFLAGS = 
+libjmod_la_LDFLAGS = \
+	-ldl
+
 libjmod_la_LIBADD = 
 jmodsubincludedir = $(jlib_includedir)/jmod
 jmodsubinclude_HEADERS = \

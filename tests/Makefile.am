@@ -16,12 +16,14 @@ AM_CFLAGS =\
 AM_LDFLAGS =\
 	$(jlib_ADD) \
 	$(jconf_ADD) \
-	$(jio_ADD)
+	$(jio_ADD) \
+	$(jmod_ADD)
 
 noinst_PROGRAMS= \
 	test-string \
 	test-file \
-	test-conf
+	test-conf \
+	test-mod
 
 noinst_SCRIPTS=runtest
 
@@ -34,9 +36,16 @@ test_file_SOURCES = \
 test_conf_SOURCES = \
 	conf.c
 
+test_mod_SOURCES = \
+	mod.c
+
+module: module.c
+	gcc -shared -fPIC module.c -o module.so
+
+all-local: module
 
 
 clean-local:
 	indent -kr -ts4 -nut *.c
 	rm -rf hello-dir
-	rm *~
+	rm -f *~ *.so

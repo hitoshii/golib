@@ -17,7 +17,8 @@ lib_LTLIBRARIES = libjmod.la
 libjmod_la_SOURCES = \
 	jmod.c
 
-libjmod_la_LDFLAGS =
+libjmod_la_LDFLAGS = \
+	-ldl
 
 libjmod_la_LIBADD =
 
