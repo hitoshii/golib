@@ -93,20 +93,20 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_test_conf_OBJECTS = conf.$(OBJEXT)
+am_test_conf_OBJECTS = test-conf.$(OBJEXT)
 test_conf_OBJECTS = $(am_test_conf_OBJECTS)
 test_conf_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_test_file_OBJECTS = file.$(OBJEXT)
+am_test_file_OBJECTS = test-file.$(OBJEXT)
 test_file_OBJECTS = $(am_test_file_OBJECTS)
 test_file_LDADD = $(LDADD)
-am_test_mod_OBJECTS = mod.$(OBJEXT)
+am_test_mod_OBJECTS = test-mod.$(OBJEXT)
 test_mod_OBJECTS = $(am_test_mod_OBJECTS)
 test_mod_LDADD = $(LDADD)
-am_test_string_OBJECTS = string.$(OBJEXT)
+am_test_string_OBJECTS = test-string.$(OBJEXT)
 test_string_OBJECTS = $(am_test_string_OBJECTS)
 test_string_LDADD = $(LDADD)
 SCRIPTS = $(noinst_SCRIPTS)
@@ -315,16 +315,16 @@ AM_LDFLAGS = \
 
 noinst_SCRIPTS = runtest
 test_string_SOURCES = \
-	string.c
+	test-string.c
 
 test_file_SOURCES = \
-	file.c
+	test-file.c
 
 test_conf_SOURCES = \
-	conf.c
+	test-conf.c
 
 test_mod_SOURCES = \
-	mod.c
+	test-mod.c
 
 all: all-am
 
@@ -392,10 +392,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/string.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-mod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-string.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

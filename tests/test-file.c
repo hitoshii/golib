@@ -6,7 +6,8 @@
 int main(int argc, char *argv[])
 {
     char *data =
-        j_file_readall("/home/wiky/Documents/CODE/Git/jlib/tests/file.c");
+        j_file_readall
+        ("/home/wiky/Documents/CODE/Git/jlib/tests/test-file.c");
     printf("%s", data);
     if (data == NULL) {
         return 1;

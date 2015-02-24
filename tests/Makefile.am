@@ -28,16 +28,16 @@ noinst_PROGRAMS= \
 noinst_SCRIPTS=runtest
 
 test_string_SOURCES = \
-	string.c
+	test-string.c
 
 test_file_SOURCES = \
-	file.c
+	test-file.c
 
 test_conf_SOURCES = \
-	conf.c
+	test-conf.c
 
 test_mod_SOURCES = \
-	mod.c
+	test-mod.c
 
 module: module.c
 	gcc -shared -fPIC module.c -o module.so

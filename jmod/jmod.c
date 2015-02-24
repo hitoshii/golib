@@ -57,7 +57,7 @@ JModule *j_mod_load(const char *MODULE_LOCATION, const char *path)
     if (path == NULL) {
         return NULL;
     }
-    void *dl = dlopen(path, RTLD_NOW);
+    void *dl = dlopen(path, RTLD_LAZY | RTLD_NODELETE);
     if (dl == NULL) {
         return NULL;
     }
