@@ -43,6 +43,10 @@ void j_logger_log(JLogger * logger, JLogLevel level, const char *message);
             j_logger_log(logger,J_LOG_LEVEL_WARNING,message)
 #define j_logger_error(logger,message)  \
             j_logger_log(logger,J_LOG_LEVEL_ERROR,message)
+#define j_logger_verbose(logger,message)    \
+            j_logger_log(logger,J_LOG_LEVEL_VERBOSE,message)
+#define j_logger_debug(logger,message)  \
+            j_logger_log(logger,J_LOG_LEVEL_DEBUG,message)
 
 void j_logger_close(JLogger * logger);
 

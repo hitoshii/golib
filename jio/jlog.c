@@ -46,7 +46,7 @@ static inline const char *j_logger_levelstr(JLogLevel level)
     case J_LOG_LEVEL_DEBUG:
         return "DEBUG";
     case J_LOG_LEVEL_VERBOSE:
-        return "VERBOSE";
+        return "INFO";
     case J_LOG_LEVEL_WARNING:
         return "WARNING";
     case J_LOG_LEVEL_ERROR:
@@ -66,6 +66,9 @@ static inline const char *j_logger_levelstr(JLogLevel level)
  */
 void j_logger_log(JLogger * logger, JLogLevel level, const char *message)
 {
+    if (logger == NULL) {
+        return;
+    }
     JString *buf = j_string_new();
     const char *ptr = logger->fmt;
     int flag = 0;
@@ -106,6 +109,9 @@ void j_logger_log(JLogger * logger, JLogLevel level, const char *message)
 
 void j_logger_close(JLogger * logger)
 {
+    if (logger == NULL) {
+        return;
+    }
     close(logger->fd);
     j_free(logger->fmt);
     j_free(logger);
