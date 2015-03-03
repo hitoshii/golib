@@ -18,6 +18,8 @@
 #ifndef __JIO_LOG_H__
 #define __JIO_LOG_H__
 
+#include <stdarg.h>
+
 typedef enum {
     J_LOG_LEVEL_DEBUG,
     J_LOG_LEVEL_VERBOSE,
@@ -38,15 +40,20 @@ typedef struct {
  */
 JLogger *j_logger_open(const char *path, const char *fmt);
 
-void j_logger_log(JLogger * logger, JLogLevel level, const char *message);
-#define j_logger_warning(logger,message)    \
-            j_logger_log(logger,J_LOG_LEVEL_WARNING,message)
-#define j_logger_error(logger,message)  \
-            j_logger_log(logger,J_LOG_LEVEL_ERROR,message)
-#define j_logger_verbose(logger,message)    \
-            j_logger_log(logger,J_LOG_LEVEL_VERBOSE,message)
-#define j_logger_debug(logger,message)  \
-            j_logger_log(logger,J_LOG_LEVEL_DEBUG,message)
+void j_logger_message(JLogger * logger, JLogLevel level,
+                      const char *message);
+void j_logger_vlog(JLogger * logger, JLogLevel level, const char *fmt,
+                   va_list ap);
+void j_logger_log(JLogger * logger, JLogLevel level, const char *fmt, ...);
+
+#define j_logger_warning(logger,fmt,...)    \
+            j_logger_log(logger,J_LOG_LEVEL_WARNING,fmt,##__VA_ARGS__)
+#define j_logger_error(logger,fmt,...)  \
+            j_logger_log(logger,J_LOG_LEVEL_ERROR,fmt,##__VA_ARGS__)
+#define j_logger_verbose(logger,fmt,...)    \
+            j_logger_log(logger,J_LOG_LEVEL_VERBOSE,fmt,##__VA_ARGS__)
+#define j_logger_debug(logger,fmt,...)  \
+            j_logger_log(logger,J_LOG_LEVEL_DEBUG,fmt,##__VA_ARGS__)
 
 void j_logger_close(JLogger * logger);
 

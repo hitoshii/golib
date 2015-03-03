@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <stdio.h>
 
 
 JLogger *j_logger_open(const char *path, const char *fmt)
@@ -64,7 +65,8 @@ static inline const char *j_logger_levelstr(JLogLevel level)
  *      %0 log date time
  *      %m log message
  */
-void j_logger_log(JLogger * logger, JLogLevel level, const char *message)
+void j_logger_message(JLogger * logger, JLogLevel level,
+                      const char *message)
 {
     if (logger == NULL) {
         return;
@@ -105,6 +107,22 @@ void j_logger_log(JLogger * logger, JLogLevel level, const char *message)
     char *data = j_string_free(buf, 0);
     write(logger->fd, data, len);
     j_free(data);
+}
+
+void j_logger_vlog(JLogger * logger, JLogLevel level,
+                   const char *fmt, va_list ap)
+{
+    char buf[4096];
+    vsnprintf(buf, sizeof(buf) / sizeof(char), fmt, ap);
+    j_logger_message(logger, level, buf);
+}
+
+void j_logger_log(JLogger * logger, JLogLevel level, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    j_logger_vlog(logger, level, fmt, ap);
+    va_end(ap);
 }
 
 void j_logger_close(JLogger * logger)
