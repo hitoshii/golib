@@ -17,7 +17,8 @@ lib_LTLIBRARIES = libjio.la
 libjio_la_SOURCES = \
 	jfile.c \
 	jdir.c \
-	jlog.c
+	jlog.c \
+	jsocket.c
 
 libjio_la_LDFLAGS =
 
@@ -30,7 +31,8 @@ jiosubinclude_HEADERS= \
 	jfile.h \
 	jdir.h \
 	jio.h \
-	jlog.h
+	jlog.h \
+	jsocket.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jio-0.1.pc

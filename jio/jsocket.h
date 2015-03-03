@@ -15,13 +15,16 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_IO_H__
-#define __J_IO_H__
+#ifndef __J_SOCKET_H__
+#define __J_SOCKET_H__
 
-#include "jfile.h"
-#include "jdir.h"
-#include "jlog.h"
-#include "jsocket.h"
+
+typedef struct _JSocket JSocket;
+
+/*
+ * Creates a negative socket which listens on port
+ */
+JSocket *j_socket_listen(unsigned short port, unsigned int backlog);
 
 
 #endif

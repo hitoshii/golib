@@ -123,7 +123,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jiosubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjio_la_DEPENDENCIES =
-am_libjio_la_OBJECTS = jfile.lo jdir.lo jlog.lo
+am_libjio_la_OBJECTS = jfile.lo jdir.lo jlog.lo jsocket.lo
 libjio_la_OBJECTS = $(am_libjio_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -331,7 +331,8 @@ lib_LTLIBRARIES = libjio.la
 libjio_la_SOURCES = \
 	jfile.c \
 	jdir.c \
-	jlog.c
+	jlog.c \
+	jsocket.c
 
 libjio_la_LDFLAGS = 
 libjio_la_LIBADD = 
@@ -340,7 +341,8 @@ jiosubinclude_HEADERS = \
 	jfile.h \
 	jdir.h \
 	jio.h \
-	jlog.h
+	jlog.h \
+	jsocket.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jio-0.1.pc
@@ -431,6 +433,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jdir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlog.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jsocket.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
