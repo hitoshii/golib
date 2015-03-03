@@ -21,10 +21,48 @@
 
 typedef struct _JSocket JSocket;
 
+
+typedef enum {
+    J_SOCKET_TYPE_SERVER,
+    J_SOCKET_TYPE_NEW,
+    J_SOCKET_TYPE_CONNECTED,
+} JSocketType;
+
+JSocketType j_socket_get_type(JSocket * jsock);
+
 /*
- * Creates a negative socket which listens on port
+ * Returns the UNIX file descriptor
+ */
+int j_socket_get_unix_fd(JSocket * jsock);
+
+
+/*
+ * Creates a negative/server socket which listens on port
  */
 JSocket *j_socket_listen(unsigned short port, unsigned int backlog);
+
+JSocket *j_socket_accept(JSocket * jsock);
+
+
+JSocket *j_socket_connect_to(const char *server, const char *service);
+
+/*
+ * Creates a client socket
+ */
+JSocket *j_socket_new(void);
+
+/*
+ * Connects to a server, server may be ip address or a domain
+ * jsock must be a client socket
+ */
+int j_socket_connect(JSocket * jsock, const char *server,
+                     const char *service);
+
+
+/*
+ * Closes a socket and frees all associated memory
+ */
+void j_socket_close(JSocket * jsock);
 
 
 #endif

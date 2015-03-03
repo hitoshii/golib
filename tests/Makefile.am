@@ -24,7 +24,8 @@ noinst_PROGRAMS= \
 	test-file \
 	test-conf \
 	test-mod \
-	test-log
+	test-log \
+	test-socket
 
 noinst_SCRIPTS=runtest
 
@@ -42,6 +43,9 @@ test_mod_SOURCES = \
 
 test_log_SOURCES = \
 	test-log.c
+
+test_socket_SOURCES = \
+	test-socket.c
 
 module: module.c
 	gcc -shared -fPIC module.c -o module.so

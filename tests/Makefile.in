@@ -80,7 +80,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
-	test-conf$(EXEEXT) test-mod$(EXEEXT) test-log$(EXEEXT)
+	test-conf$(EXEEXT) test-mod$(EXEEXT) test-log$(EXEEXT) \
+	test-socket$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -109,6 +110,9 @@ test_log_LDADD = $(LDADD)
 am_test_mod_OBJECTS = test-mod.$(OBJEXT)
 test_mod_OBJECTS = $(am_test_mod_OBJECTS)
 test_mod_LDADD = $(LDADD)
+am_test_socket_OBJECTS = test-socket.$(OBJEXT)
+test_socket_OBJECTS = $(am_test_socket_OBJECTS)
+test_socket_LDADD = $(LDADD)
 am_test_string_OBJECTS = test-string.$(OBJEXT)
 test_string_OBJECTS = $(am_test_string_OBJECTS)
 test_string_LDADD = $(LDADD)
@@ -148,9 +152,11 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_string_SOURCES)
+	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_socket_SOURCES) \
+	$(test_string_SOURCES)
 DIST_SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_string_SOURCES)
+	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_socket_SOURCES) \
+	$(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -332,6 +338,9 @@ test_mod_SOURCES = \
 test_log_SOURCES = \
 	test-log.c
 
+test_socket_SOURCES = \
+	test-socket.c
+
 all: all-am
 
 .SUFFIXES:
@@ -392,6 +401,10 @@ test-mod$(EXEEXT): $(test_mod_OBJECTS) $(test_mod_DEPENDENCIES) $(EXTRA_test_mod
 	@rm -f test-mod$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_mod_OBJECTS) $(test_mod_LDADD) $(LIBS)
 
+test-socket$(EXEEXT): $(test_socket_OBJECTS) $(test_socket_DEPENDENCIES) $(EXTRA_test_socket_DEPENDENCIES) 
+	@rm -f test-socket$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_socket_OBJECTS) $(test_socket_LDADD) $(LIBS)
+
 test-string$(EXEEXT): $(test_string_OBJECTS) $(test_string_DEPENDENCIES) $(EXTRA_test_string_DEPENDENCIES) 
 	@rm -f test-string$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_string_OBJECTS) $(test_string_LDADD) $(LIBS)
@@ -406,6 +419,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-mod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-string.Po@am__quote@
 
 .c.o:
