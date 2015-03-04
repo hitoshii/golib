@@ -18,6 +18,9 @@
 #ifndef __JIO_POLL_H__
 #define __JIO_POLL_H__
 
+/*
+ * EPoll wrapper
+ */
 
 #include "jsocket.h"
 #include <sys/epoll.h>
@@ -35,18 +38,35 @@ typedef enum {
     J_POLL_CTL_MOD
 } JPollOp;
 
-typedef enum {
-    J_POLLIN = EPOLLIN,
-    J_POLLOUT = EPOLLOUT,
-    J_POLLRDHUP = EPOLLRDHUP,
-    J_POLLPRI = EPOLLPRI,
-    J_POLLERR = EPOLLERR,
-    J_POLLHUP = EPOLLHUP,
-    J_POLLET = EPOLLET,
-    J_POLLONESHOT = EPOLLONESHOT,
+#define J_POLLIN EPOLLIN
+#define J_POLLOUT EPOLLOUT
+#define J_POLLRDHUP EPOLLRDHUP
+#define J_POLLPRI EPOLLPRI
+#define J_POLLERR EPOLLERR
+#define J_POLLHUP EPOLLHUP
+#define J_POLLET EPOLLET
+#define J_POLLONESHOT  EPOLLONESHOT
+
+typedef struct {
+    unsigned int events;
+    JSocket *socket;
 } JPollEvent;
 
-int j_poll_ctl(JPoll * poll, JPollOp op, unsigned int event,
+/*
+ * wrapper of epoll_ctl
+ */
+int j_poll_ctl(JPoll * poll, JPollOp op, unsigned int events,
                JSocket * jsock);
+/*
+ * wrapper of epoll_wait
+ * @timeout, milliseconds
+ */
+int j_poll_wait(JPoll * poll, JPollEvent * events,
+                unsigned int maxevents, int timeout);
+
+/*
+ * Closes a epoll and free all memory associated
+ */
+void j_poll_close(JPoll * poll);
 
 #endif

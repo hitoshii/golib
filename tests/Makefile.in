@@ -81,7 +81,7 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
 	test-conf$(EXEEXT) test-mod$(EXEEXT) test-log$(EXEEXT) \
-	test-socket$(EXEEXT)
+	test-socket$(EXEEXT) test-epoll$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -101,6 +101,9 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_epoll_OBJECTS = test-epoll.$(OBJEXT)
+test_epoll_OBJECTS = $(am_test_epoll_OBJECTS)
+test_epoll_LDADD = $(LDADD)
 am_test_file_OBJECTS = test-file.$(OBJEXT)
 test_file_OBJECTS = $(am_test_file_OBJECTS)
 test_file_LDADD = $(LDADD)
@@ -151,12 +154,12 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_socket_SOURCES) \
-	$(test_string_SOURCES)
-DIST_SOURCES = $(test_conf_SOURCES) $(test_file_SOURCES) \
-	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_socket_SOURCES) \
-	$(test_string_SOURCES)
+SOURCES = $(test_conf_SOURCES) $(test_epoll_SOURCES) \
+	$(test_file_SOURCES) $(test_log_SOURCES) $(test_mod_SOURCES) \
+	$(test_socket_SOURCES) $(test_string_SOURCES)
+DIST_SOURCES = $(test_conf_SOURCES) $(test_epoll_SOURCES) \
+	$(test_file_SOURCES) $(test_log_SOURCES) $(test_mod_SOURCES) \
+	$(test_socket_SOURCES) $(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -341,6 +344,9 @@ test_log_SOURCES = \
 test_socket_SOURCES = \
 	test-socket.c
 
+test_epoll_SOURCES = \
+	test-epoll.c
+
 all: all-am
 
 .SUFFIXES:
@@ -389,6 +395,10 @@ test-conf$(EXEEXT): $(test_conf_OBJECTS) $(test_conf_DEPENDENCIES) $(EXTRA_test_
 	@rm -f test-conf$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_conf_OBJECTS) $(test_conf_LDADD) $(LIBS)
 
+test-epoll$(EXEEXT): $(test_epoll_OBJECTS) $(test_epoll_DEPENDENCIES) $(EXTRA_test_epoll_DEPENDENCIES) 
+	@rm -f test-epoll$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_epoll_OBJECTS) $(test_epoll_LDADD) $(LIBS)
+
 test-file$(EXEEXT): $(test_file_OBJECTS) $(test_file_DEPENDENCIES) $(EXTRA_test_file_DEPENDENCIES) 
 	@rm -f test-file$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_file_OBJECTS) $(test_file_LDADD) $(LIBS)
@@ -416,6 +426,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-epoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-mod.Po@am__quote@

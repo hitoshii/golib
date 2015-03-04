@@ -3,7 +3,7 @@
 
 int main(int argc, char const *argv[])
 {
-    JSocket *jsock = j_socket_listen(12346, 32);
+    JSocket *jsock = j_socket_listen_on(12346, 32);
     if (jsock == NULL) {
         return 1;
     }

@@ -39,7 +39,7 @@ int j_socket_get_fd(JSocket * jsock);
 /*
  * Creates a negative/server socket which listens on port
  */
-JSocket *j_socket_listen(unsigned short port, unsigned int backlog);
+JSocket *j_socket_listen_on(unsigned short port, unsigned int backlog);
 
 JSocket *j_socket_accept(JSocket * jsock);
 

@@ -17,6 +17,7 @@
  */
 #include "jpoll.h"
 #include <stdlib.h>
+#include <unistd.h>
 #include <jlib/jlib.h>
 
 struct _JPoll {
@@ -61,6 +62,35 @@ int j_poll_ctl(JPoll * poll, JPollOp jop, unsigned int events,
         op = EPOLL_CTL_MOD;
     }
     return epoll_ctl(pfd, op, fd, &event) == 0;
+}
+
+int j_poll_wait(JPoll * poll, JPollEvent * events,
+                unsigned int maxevents, int timeout)
+{
+    struct epoll_event _events[4096];
+    if (maxevents > 4096) {
+        maxevents = 4096;
+    }
+    int efd = j_poll_get_fd(poll);
+    int n = epoll_wait(efd, _events, maxevents, timeout);
+    if (n <= 0) {
+        return n;
+    }
+    int i;
+    for (i = 0; i < n; i++) {
+        events[i].events = _events[i].events;
+        events[i].socket = (JSocket *) _events[i].data.ptr;
+    }
+    return n;
+}
+
+/*
+ * Closes a epoll and free all memory associated
+ */
+void j_poll_close(JPoll * poll)
+{
+    close(j_poll_get_fd(poll));
+    j_free(poll);
 }
 
 static inline JPoll *j_poll_alloc(int fd)

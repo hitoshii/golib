@@ -56,12 +56,18 @@ int j_socket_get_fd(JSocket * jsock)
 /*
  * Creates a negative socket which listens on port
  */
-JSocket *j_socket_listen(unsigned short port, unsigned int backlog)
+JSocket *j_socket_listen_on(unsigned short port, unsigned int backlog)
 {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
         return NULL;
     }
+    /*
+     * Re-use address
+     */
+    int opt = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
