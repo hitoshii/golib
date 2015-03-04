@@ -48,7 +48,7 @@ JSocketType j_socket_get_type(JSocket * jsock)
 /*
  * Returns the UNIX file descriptor
  */
-int j_socket_get_unix_fd(JSocket * jsock)
+int j_socket_get_fd(JSocket * jsock)
 {
     return jsock->fd;
 }
@@ -79,7 +79,7 @@ JSocket *j_socket_listen(unsigned short port, unsigned int backlog)
 
 JSocket *j_socket_accept(JSocket * jsock)
 {
-    int fd = j_socket_get_unix_fd(jsock);
+    int fd = j_socket_get_fd(jsock);
 
     int accfd = accept(fd, NULL, NULL);
     if (accfd < 0) {
@@ -124,7 +124,7 @@ int j_socket_connect(JSocket * jsock, const char *server,
     if (j_socket_get_type(jsock) != J_SOCKET_TYPE_NEW) {
         return 0;
     }
-    int fd = j_socket_get_unix_fd(jsock);
+    int fd = j_socket_get_fd(jsock);
 
     struct addrinfo *ailist, *aip;
     struct addrinfo hint;
