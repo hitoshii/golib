@@ -864,6 +864,7 @@ uninstall-am: uninstall-dist_docDATA uninstall-local
 # Remove doc directory on uninstall
 uninstall-local:
 	-rm -r $(docdir)
+	-rm -r $(jlib_includedir)
 
 install-exec-local:
 	-ldconfig
