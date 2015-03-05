@@ -34,6 +34,8 @@ JSocketType j_socket_get_type(JSocket * jsock);
  * Returns the UNIX file descriptor
  */
 int j_socket_get_fd(JSocket * jsock);
+int j_socket_get_extra(JSocket * jsock);
+void j_socket_set_extra(JSocket * jsock, int data);
 
 
 /*

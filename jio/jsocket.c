@@ -30,7 +30,19 @@ struct _JSocket {
     int fd;
 
     JSocketType type;
+
+    int extra;
 };
+
+int j_socket_get_extra(JSocket * jsock)
+{
+    return jsock->extra;
+}
+
+void j_socket_set_extra(JSocket * jsock, int data)
+{
+    jsock->extra = data;
+}
 
 static inline JSocket *j_socket_alloc(int fd, JSocketType type)
 {
