@@ -28,8 +28,10 @@
 
 struct _JSocket {
     int fd;
-
     JSocketType type;
+
+    char *sockname;
+    char *peername;
 
     int extra;
 };
@@ -49,6 +51,8 @@ static inline JSocket *j_socket_alloc(int fd, JSocketType type)
     JSocket *jsock = (JSocket *) j_malloc(sizeof(JSocket));
     jsock->fd = fd;
     jsock->type = type;
+    jsock->sockname = NULL;
+    jsock->peername = NULL;
     return jsock;
 }
 
@@ -63,6 +67,42 @@ JSocketType j_socket_get_type(JSocket * jsock)
 int j_socket_get_fd(JSocket * jsock)
 {
     return jsock->fd;
+}
+
+const char *j_socket_get_peer_name(JSocket * jsock)
+{
+    if (jsock->peername) {
+        return jsock->peername;
+    }
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    char buf[32];
+    if (getpeername(j_socket_get_fd(jsock),
+                    (struct sockaddr *) &addr, &addrlen) != 0 ||
+        inet_ntop(AF_INET, (const void *) &addr.sin_addr.s_addr, buf,
+                  sizeof(buf) / sizeof(char)) == NULL) {
+        return NULL;
+    }
+    jsock->peername = j_strdup_printf("%s:%u", buf, ntohs(addr.sin_port));
+    return jsock->peername;
+}
+
+const char *j_socket_get_socket_name(JSocket * jsock)
+{
+    if (jsock->sockname) {
+        return jsock->sockname;
+    }
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    char buf[32];
+    if (getsockname(j_socket_get_fd(jsock),
+                    (struct sockaddr *) &addr, &addrlen) != 0 ||
+        inet_ntop(AF_INET, (const void *) &addr.sin_addr.s_addr, buf,
+                  sizeof(buf) / sizeof(char)) == NULL) {
+        return NULL;
+    }
+    jsock->sockname = j_strdup_printf("%s:%u", buf, ntohs(addr.sin_port));
+    return jsock->sockname;
 }
 
 /*
@@ -175,5 +215,7 @@ int j_socket_connect(JSocket * jsock, const char *server,
 void j_socket_close(JSocket * jsock)
 {
     close(jsock->fd);
+    j_free(jsock->peername);
+    j_free(jsock->sockname);
     j_free(jsock);
 }

@@ -1,5 +1,6 @@
 #include <jio/jio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 int main(int argc, char const *argv[])
 {
@@ -9,6 +10,8 @@ int main(int argc, char const *argv[])
     }
     JSocket *client = j_socket_connect_to("127.0.0.1", "12346");
     JSocket *acc = j_socket_accept(jsock);
+    printf("%s\n", j_socket_get_peer_name(acc));
+    printf("%s\n", j_socket_get_socket_name(acc));
     if (client == NULL || acc == NULL) {
         return 1;
     }

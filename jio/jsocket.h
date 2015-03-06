@@ -38,6 +38,11 @@ int j_socket_get_extra(JSocket * jsock);
 void j_socket_set_extra(JSocket * jsock, int data);
 
 
+/* getpeername */
+const char *j_socket_get_peer_name(JSocket * jsock);
+/* getsockname */
+const char *j_socket_get_socket_name(JSocket * jsock);
+
 /*
  * Creates a negative/server socket which listens on port
  */
