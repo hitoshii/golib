@@ -155,3 +155,31 @@ int j_list_compare(JList * l1, JList * l2, JListCompare compare)
     }
     return l1 == l2;
 }
+
+
+/*
+ * Removes an element from a JList. 
+ * If two or more elements  contain the same data, only the first one is removed.
+ * If none of the elements contain the data, JList is unchanged.
+ */
+JList *j_list_remove(JList * l, void *data)
+{
+    if (l == NULL) {
+        return l;
+    }
+    JList *ptr = l;
+    while (ptr) {
+        JList *next = j_list_next(ptr);
+        if (j_list_data(ptr) == data) {
+            JList *prev = j_list_prev(ptr);
+            j_list_free1(ptr, NULL);
+            if (prev == NULL) {
+                return next;
+            }
+            prev->next = next;
+            return l;
+        }
+        ptr = next;
+    }
+    return l;
+}

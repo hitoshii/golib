@@ -15,15 +15,30 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_IO_H__
-#define __J_IO_H__
 
-#include "jfile.h"
-#include "jdir.h"
-#include "jlog.h"
+#ifndef __JIO_MAIN_LOOP_H__
+#define __JIO_MAIN_LOOP_H__
+
 #include "jsocket.h"
-#include "jpoll.h"
-#include "jmainloop.h"
+
+typedef struct _JMainLoop JMainLoop;
+
+
+/*
+ * Creates a new main loop
+ */
+JMainLoop *j_main_loop_new(void);
+
+/*
+ * Runs the main loop
+ */
+void j_main_loop_run(JMainLoop * loop);
+
+
+typedef void (*JSocketAcceptNotify) (JSocket * listen,
+                                     JSocket * client, void *user_data);
+void j_socket_accept_async(JSocket * sock, JSocketAcceptNotify notify,
+                           void *user_data);
 
 
 #endif

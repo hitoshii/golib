@@ -81,7 +81,8 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
 	test-conf$(EXEEXT) test-mod$(EXEEXT) test-log$(EXEEXT) \
-	test-socket$(EXEEXT) test-epoll$(EXEEXT)
+	test-socket$(EXEEXT) test-epoll$(EXEEXT) \
+	test-hashtable$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -107,6 +108,9 @@ test_epoll_LDADD = $(LDADD)
 am_test_file_OBJECTS = test-file.$(OBJEXT)
 test_file_OBJECTS = $(am_test_file_OBJECTS)
 test_file_LDADD = $(LDADD)
+am_test_hashtable_OBJECTS = test-hashtable.$(OBJEXT)
+test_hashtable_OBJECTS = $(am_test_hashtable_OBJECTS)
+test_hashtable_LDADD = $(LDADD)
 am_test_log_OBJECTS = test-log.$(OBJEXT)
 test_log_OBJECTS = $(am_test_log_OBJECTS)
 test_log_LDADD = $(LDADD)
@@ -155,11 +159,13 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_conf_SOURCES) $(test_epoll_SOURCES) \
-	$(test_file_SOURCES) $(test_log_SOURCES) $(test_mod_SOURCES) \
-	$(test_socket_SOURCES) $(test_string_SOURCES)
+	$(test_file_SOURCES) $(test_hashtable_SOURCES) \
+	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_socket_SOURCES) \
+	$(test_string_SOURCES)
 DIST_SOURCES = $(test_conf_SOURCES) $(test_epoll_SOURCES) \
-	$(test_file_SOURCES) $(test_log_SOURCES) $(test_mod_SOURCES) \
-	$(test_socket_SOURCES) $(test_string_SOURCES)
+	$(test_file_SOURCES) $(test_hashtable_SOURCES) \
+	$(test_log_SOURCES) $(test_mod_SOURCES) $(test_socket_SOURCES) \
+	$(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -347,6 +353,9 @@ test_socket_SOURCES = \
 test_epoll_SOURCES = \
 	test-epoll.c
 
+test_hashtable_SOURCES = \
+    test-hashtable.c
+
 all: all-am
 
 .SUFFIXES:
@@ -403,6 +412,10 @@ test-file$(EXEEXT): $(test_file_OBJECTS) $(test_file_DEPENDENCIES) $(EXTRA_test_
 	@rm -f test-file$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_file_OBJECTS) $(test_file_LDADD) $(LIBS)
 
+test-hashtable$(EXEEXT): $(test_hashtable_OBJECTS) $(test_hashtable_DEPENDENCIES) $(EXTRA_test_hashtable_DEPENDENCIES) 
+	@rm -f test-hashtable$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_hashtable_OBJECTS) $(test_hashtable_LDADD) $(LIBS)
+
 test-log$(EXEEXT): $(test_log_OBJECTS) $(test_log_DEPENDENCIES) $(EXTRA_test_log_DEPENDENCIES) 
 	@rm -f test-log$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_log_OBJECTS) $(test_log_LDADD) $(LIBS)
@@ -428,6 +441,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-epoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-mod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket.Po@am__quote@

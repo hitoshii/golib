@@ -44,21 +44,21 @@ JPoll *j_poll_new(void)
 }
 
 int j_poll_ctl(JPoll * poll, JPollOp jop, unsigned int events,
-               JSocket * jsock)
+               JSocket * jsock, void *user_data)
 {
     int pfd = j_poll_get_fd(poll);
     int fd = j_socket_get_fd(jsock);
 
     struct epoll_event event;
-    int op = J_POLL_CTL_DEL;
+    JPollOp op = J_POLL_CTL_DEL;
 
     if (jop == J_POLL_CTL_ADD) {
         event.events = events;
-        event.data.ptr = jsock;
+        event.data.ptr = user_data;
         op = EPOLL_CTL_ADD;
     } else if (jop == J_POLL_CTL_MOD) {
         event.events = events;
-        event.data.ptr = jsock;
+        event.data.ptr = user_data;
         op = EPOLL_CTL_MOD;
     }
     return epoll_ctl(pfd, op, fd, &event) == 0;

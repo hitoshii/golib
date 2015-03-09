@@ -94,5 +94,12 @@ void j_list_free1(JList * l, JListDestroy destroy);
  */
 int j_list_compare(JList * l1, JList * l2, JListCompare compare);
 
+/*
+ * Removes an element from a JList. 
+ * If two or more elements  contain the same data, only the first one is removed.
+ * If none of the elements contain the data, JList is unchanged.
+ */
+JList *j_list_remove(JList * l, void *data);
+
 
 #endif

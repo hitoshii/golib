@@ -56,7 +56,7 @@ typedef struct {
  * wrapper of epoll_ctl
  */
 int j_poll_ctl(JPoll * poll, JPollOp op, unsigned int events,
-               JSocket * jsock);
+               JSocket * jsock, void *user_data);
 /*
  * wrapper of epoll_wait
  * @timeout, milliseconds

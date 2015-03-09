@@ -23,6 +23,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <jlib/jlib.h>
 
 
@@ -218,4 +219,17 @@ void j_socket_close(JSocket * jsock)
     j_free(jsock->peername);
     j_free(jsock->sockname);
     j_free(jsock);
+}
+
+/*
+ * Makes the socket work in block/nonblock mode
+ */
+int j_socket_set_block(JSocket * jsock, int block)
+{
+    int fd = j_socket_get_fd(jsock);
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) {
+        return 0;
+    }
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0;
 }

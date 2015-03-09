@@ -13,7 +13,8 @@ int main(int argc, char const *argv[])
     if (listensock == NULL) {
         return 1;
     }
-    if (!j_poll_ctl(poll, J_POLL_CTL_ADD, J_POLLIN, listensock)) {
+    if (!j_poll_ctl
+        (poll, J_POLL_CTL_ADD, J_POLLIN, listensock, listensock)) {
         return 1;
     }
 

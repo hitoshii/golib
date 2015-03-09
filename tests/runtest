@@ -18,3 +18,4 @@ test ./test-mod
 test ./test-log
 test ./test-socket
 test ./test-epoll
+test ./test-hashtable

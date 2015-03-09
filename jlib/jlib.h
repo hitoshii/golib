@@ -26,6 +26,7 @@
 #include "jlist.h"
 #include "jstack.h"
 #include "jpath.h"
+#include "jhashtable.h"
 
 
 #endif

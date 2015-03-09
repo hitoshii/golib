@@ -124,7 +124,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjlib_la_DEPENDENCIES =
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
-	jstack.lo jpath.lo
+	jstack.lo jpath.lo jhashtable.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -335,7 +335,8 @@ libjlib_la_SOURCES = \
 	jstrfuncs.c \
 	jstring.c \
 	jstack.c \
-	jpath.c
+	jpath.c \
+	jhashtable.c
 
 libjlib_la_LDFLAGS = 
 libjlib_la_LIBADD = 
@@ -348,7 +349,8 @@ jlibsubinclude_HEADERS = \
 	jstrfuncs.h \
 	jstring.h \
 	jstack.h \
-	jpath.h
+	jpath.h \
+	jhashtable.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
@@ -436,6 +438,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jhashtable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmem.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jpath.Plo@am__quote@
