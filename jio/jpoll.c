@@ -79,7 +79,7 @@ int j_poll_wait(JPoll * poll, JPollEvent * events,
     int i;
     for (i = 0; i < n; i++) {
         events[i].events = _events[i].events;
-        events[i].socket = (JSocket *) _events[i].data.ptr;
+        events[i].data = (JSocket *) _events[i].data.ptr;
     }
     return n;
 }

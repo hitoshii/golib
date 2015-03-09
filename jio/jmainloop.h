@@ -30,10 +30,28 @@ typedef struct _JMainLoop JMainLoop;
 JMainLoop *j_main_loop_new(void);
 
 /*
+ * Gets the default main loop
+ */
+JMainLoop *j_main_loop_default(void);
+
+/*
  * Runs the main loop
  */
 void j_main_loop_run(JMainLoop * loop);
 
+
+void j_main_loop_quit(JMainLoop * loop);
+
+void j_main_loop_free(JMainLoop * loop);
+
+/*
+ * Runs the default main loop
+ */
+void j_main(void);
+/*
+ * Quits the default main loop
+ */
+void j_main_quit(void);
 
 typedef void (*JSocketAcceptNotify) (JSocket * listen,
                                      JSocket * client, void *user_data);

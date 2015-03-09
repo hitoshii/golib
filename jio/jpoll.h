@@ -49,7 +49,7 @@ typedef enum {
 
 typedef struct {
     unsigned int events;
-    JSocket *socket;
+    void *data;
 } JPollEvent;
 
 /*
