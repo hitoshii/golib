@@ -102,15 +102,21 @@ void j_main_loop_run(JMainLoop * loop)
             JSource *src = (JSource *) events[i].data;
             JSocket *socket = j_source_get_socket(src);
             void *user_data = j_source_get_user_data(src);
+            void *callback = j_source_get_callback(src);
+
+            JSocketAcceptNotify accept_callback =
+                (JSocketAcceptNotify) callback;
             switch (j_source_get_event(src)) {
             case J_SOCKET_EVENT_ACCEPT:
                 if (evnts & J_POLLIN) {
-                    JSocketAcceptNotify callback =
-                        (JSocketAcceptNotify) j_source_get_callback(src);
                     JSocket *conn = j_socket_accept(socket);
-                    callback(socket, conn, user_data);
+                    if (!accept_callback(socket, conn, user_data)) {
+                        j_main_loop_remove_source(loop, src);
+                    }
+                } else {
+                    accept_callback(socket, NULL, user_data);
+                    j_main_loop_remove_source(loop, src);
                 }
-                j_main_loop_remove_source(loop, src);
                 break;
             case J_SOCKET_EVENT_READ:
                 break;

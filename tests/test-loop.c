@@ -4,8 +4,8 @@
 
 static int result = 0;
 
-static void async_callback(JSocket * listen, JSocket * conn,
-                           void *user_data)
+static int async_callback(JSocket * listen, JSocket * conn,
+                          void *user_data)
 {
     if (conn == NULL) {
         printf("failed:%s\n", (char *) user_data);
@@ -15,6 +15,8 @@ static void async_callback(JSocket * listen, JSocket * conn,
         result = 0;
     }
     j_main_quit();
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -27,5 +29,8 @@ int main(int argc, char *argv[])
     JSocket *client = j_socket_connect_to("127.0.0.1", "22346");
 
     j_main();
+
+    j_socket_close(client);
+    j_socket_close(jsock);
     return result;
 }

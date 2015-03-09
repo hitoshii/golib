@@ -53,8 +53,8 @@ void j_main(void);
  */
 void j_main_quit(void);
 
-typedef void (*JSocketAcceptNotify) (JSocket * listen,
-                                     JSocket * client, void *user_data);
+typedef int (*JSocketAcceptNotify) (JSocket * listen,
+                                    JSocket * client, void *user_data);
 void j_socket_accept_async(JSocket * sock, JSocketAcceptNotify notify,
                            void *user_data);
 
