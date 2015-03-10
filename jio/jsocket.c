@@ -231,5 +231,21 @@ int j_socket_set_block(JSocket * jsock, int block)
     if (flags < 0) {
         return 0;
     }
-    return fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0;
+    if (!block) {
+        flags |= O_NONBLOCK;
+    } else {
+        flags &= ~O_NONBLOCK;
+    }
+    return fcntl(fd, F_SETFL, flags) == 0;
+}
+
+/*
+ * Sends data
+ * Returns the length of data that is send
+ */
+int j_socket_send(JSocket * jsock, const void *data, unsigned int count)
+{
+    int fd = j_socket_get_fd(jsock);
+    int n = write(fd, data, count);
+    return n;
 }

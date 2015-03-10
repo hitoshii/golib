@@ -53,10 +53,41 @@ void j_main(void);
  */
 void j_main_quit(void);
 
+
+/*
+ * Accepts a connection asynchronously
+ */
+
+/*
+ * @listen the listening socket
+ * @client the new connection accepted, or NULL on error
+ * @user_data the custom data
+ *
+ * returns 0 to stop accepting connection
+ */
 typedef int (*JSocketAcceptNotify) (JSocket * listen,
                                     JSocket * client, void *user_data);
 void j_socket_accept_async(JSocket * sock, JSocketAcceptNotify notify,
                            void *user_data);
+
+/*
+ * Sends data asynchronously
+ */
+
+/*
+ * @sock the socket that sends data
+ * @data the data to send
+ * @count the total length in byte of data
+ * @n the length in byte of data that is send
+ * @user_data the custom data
+ *
+ */
+typedef void (*JSocketSendNotify) (JSocket * sock, const void *data,
+                                   unsigned int count, unsigned int n,
+                                   void *user_data);
+void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
+                         const void *data, unsigned int count,
+                         void *user_data);
 
 
 #endif

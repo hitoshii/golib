@@ -77,4 +77,11 @@ void j_socket_close(JSocket * jsock);
 int j_socket_set_block(JSocket * jsock, int block);
 
 
+/*
+ * Sends data
+ * Returns the length of data that is send
+ */
+int j_socket_send(JSocket * jsock, const void *data, unsigned int count);
+
+
 #endif
