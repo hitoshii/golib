@@ -4,17 +4,32 @@
 
 static int result = 0;
 
+static void send_callback(JSocket * sock, const void *data,
+                          unsigned int count, unsigned int len,
+                          void *user_data)
+{
+    if (count == len) {
+        printf("send all: %u\n", len);
+        result = 0;
+    } else {
+        printf("send %u/%u\n", len, count);
+        result = 1;
+    }
+    j_socket_close(sock);
+    j_main_quit();
+}
+
 static int async_callback(JSocket * listen, JSocket * conn,
                           void *user_data)
 {
     if (conn == NULL) {
         printf("failed:%s\n", (char *) user_data);
         result = 1;
+        j_main_quit();
     } else {
         printf("accepted:%s\n", (char *) user_data);
-        result = 0;
+        j_socket_send_async(conn, send_callback, "hello world", 12, NULL);
     }
-    j_main_quit();
 
     return 0;
 }
