@@ -66,5 +66,19 @@ int main(int argc, char *argv[])
     if (j_strcmp0(basename, "")) {
         return 1;
     }
+
+    JString *string = j_string_new();
+    j_string_append(string, "hello");
+    if (j_strcmp0(string->data, "hello")) {
+        return 1;
+    }
+    j_string_append_len(string, "world", 4);
+    if (j_strcmp0(string->data, "helloworl")) {
+        return 1;
+    }
+    j_string_append_c(string, 'd');
+    if (j_strcmp0(string->data, "helloworld")) {
+        return 1;
+    }
     return 0;
 }

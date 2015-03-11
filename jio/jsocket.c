@@ -249,3 +249,28 @@ int j_socket_send(JSocket * jsock, const void *data, unsigned int count)
     int n = write(fd, data, count);
     return n;
 }
+
+/*
+ * Receives data
+ */
+JString *j_socket_recv(JSocket * jsock, unsigned int len)
+{
+    int fd = j_socket_get_fd(jsock);
+    JString *string = j_string_new();
+
+    if (len == 0) {
+        len = (unsigned int) -1;
+    }
+
+    char buf[4096];
+    while (len > 0) {
+        unsigned int count = len > 4096 ? 4096 : len;
+        int n = read(fd, buf, count);
+        if (n <= 0) {
+            break;
+        }
+        len -= n;
+        j_string_append_len(string, buf, n);
+    }
+    return string;
+}

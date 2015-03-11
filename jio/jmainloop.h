@@ -90,4 +90,12 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
                          void *user_data);
 
 
+/*
+ * Receives data asynchronously
+ */
+typedef void (*JSocketRecvNotify) (JSocket * sock, const void *data,
+                                   unsigned int count, void *user_data);
+void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
+                         void *user_data);
+
 #endif

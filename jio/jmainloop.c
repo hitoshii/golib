@@ -69,16 +69,21 @@ static inline JSocket *j_source_free(JSource * src);
 #define j_source_get_data(src)      (src)->data
 #define j_source_get_data_count(src)    (src)->count
 #define j_source_get_data_len(src)  (src)->len
+static inline unsigned int j_source_get_events(JSource * src)
+{
+    if (j_source_get_event(src) == J_SOCKET_EVENT_WRITE) {
+        return J_POLLOUT;
+    }
+    return J_POLLIN;
+}
 
 static inline JPoll *j_main_loop_get_poll(JMainLoop * loop);
 static inline int j_main_loop_append_source(JMainLoop * loop,
-                                            JSource * src,
-                                            unsigned int events);
+                                            JSource * src);
 static inline void j_main_loop_remove_source(JMainLoop * loop,
                                              JSource * src);
 static inline int j_main_loop_modify_source(JMainLoop * loop,
-                                            JSource * src,
-                                            unsigned int events);
+                                            JSource * src);
 
 /*
  * Allocates memory for JMainLoop structure
@@ -137,6 +142,8 @@ void j_main_loop_run(JMainLoop * loop)
                 }
                 break;
             case J_SOCKET_EVENT_READ:
+                if (evnts & J_POLLIN) {
+                }
                 break;
             case J_SOCKET_EVENT_WRITE:
                 if (evnts & J_POLLOUT) {
@@ -198,7 +205,7 @@ void j_socket_accept_async(JSocket * sock, JSocketAcceptNotify notify,
     JMainLoop *loop = j_main_loop_default();
     JSource *src =
         j_source_new(sock, J_SOCKET_EVENT_ACCEPT, user_data, notify);
-    if (!j_main_loop_append_source(loop, src, J_POLLIN)) {
+    if (!j_main_loop_append_source(loop, src)) {
         notify(sock, NULL, user_data);
     }
 }
@@ -213,8 +220,19 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
     src->data = j_memdup(data, count);
     src->count = count;
     src->len = 0;
-    if (!j_main_loop_append_source(loop, src, J_POLLOUT)) {
+    if (!j_main_loop_append_source(loop, src)) {
         notify(sock, data, count, 0, user_data);
+    }
+}
+
+void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
+                         void *user_data)
+{
+    JMainLoop *loop = j_main_loop_default();
+    JSource *src = j_source_new(sock, J_SOCKET_EVENT_READ,
+                                user_data, notify);
+    if (!j_main_loop_append_source(loop, src)) {
+        notify(sock, NULL, 0, user_data);
     }
 }
 
@@ -225,7 +243,7 @@ static inline JMainLoop *j_main_loop_alloc(JPoll * poll)
     ml->poll = poll;
     ml->sources =
         j_hash_table_new(20, j_direct_hash, j_direct_equal,
-                         (JKeyDestroyFunc) j_source_free, NULL);
+                         NULL, (JValueDestroyFunc) j_source_free);
     return ml;
 }
 
@@ -234,17 +252,25 @@ static inline JPoll *j_main_loop_get_poll(JMainLoop * loop)
     return loop->poll;
 }
 
+/*
+ * Appends a new source
+ * If the socket is already existing, modifies its events
+ */
 static inline int j_main_loop_append_source(JMainLoop * loop,
-                                            JSource * src,
-                                            unsigned int events)
+                                            JSource * src)
 {
     JPoll *poll = j_main_loop_get_poll(loop);
-    if (!j_poll_ctl
-        (poll, J_POLL_CTL_ADD, events, j_source_get_socket(src), src)) {
+
+    JPollOp op = J_POLL_CTL_ADD;
+    if (j_hash_table_find(loop->sources, j_source_get_socket(src))) {
+        op = J_POLL_CTL_MOD;
+    }
+    unsigned int events = j_source_get_events(src);
+    if (!j_poll_ctl(poll, op, events, j_source_get_socket(src), src)) {
         j_source_free(src);
         return 0;
     }
-    j_hash_table_insert(loop->sources, src, src);
+    j_hash_table_insert(loop->sources, j_source_get_socket(src), src);
     return 1;
 }
 
@@ -254,14 +280,16 @@ static inline void j_main_loop_remove_source(JMainLoop * loop,
     JPoll *poll = j_main_loop_get_poll(loop);
     j_poll_ctl(poll, J_POLL_CTL_DEL, J_POLLIN, j_source_get_socket(src),
                NULL);
-    j_hash_table_remove_full(loop->sources, src);
+    j_hash_table_remove_full(loop->sources, j_source_get_socket(src));
 }
 
 static inline int j_main_loop_modify_source(JMainLoop * loop,
-                                            JSource * src,
-                                            unsigned int events)
+                                            JSource * src)
 {
     JPoll *poll = j_main_loop_get_poll(loop);
+
+    unsigned int events = j_source_get_events(src);
+
     if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events,
                     j_source_get_socket(src), src)) {
         j_source_free(src);

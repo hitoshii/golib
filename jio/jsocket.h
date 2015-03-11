@@ -18,6 +18,7 @@
 #ifndef __J_SOCKET_H__
 #define __J_SOCKET_H__
 
+#include <jlib/jlib.h>
 
 typedef struct _JSocket JSocket;
 
@@ -82,6 +83,11 @@ int j_socket_set_block(JSocket * jsock, int block);
  * Returns the length of data that is send
  */
 int j_socket_send(JSocket * jsock, const void *data, unsigned int count);
+
+/*
+ * Receives data
+ */
+JString *j_socket_recv(JSocket * jsock, unsigned int len);
 
 
 #endif
