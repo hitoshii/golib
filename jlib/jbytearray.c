@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,18 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-#ifndef __J_LIB_H__
-#define __J_LIB_H__
-
-#include "jtypes.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jmem.h"
-#include "jlist.h"
-#include "jstack.h"
-#include "jpath.h"
-#include "jhashtable.h"
 #include "jbytearray.h"
+#include "jmem.h"
 
 
-#endif
+JByteArray *j_byte_array_new(void)
+{
+    JByteArray *ba = (JByteArray *) j_malloc(sizeof(JByteArray));
+    ba->total = 1024;
+    ba->len = 0;
+    ba->data = j_malloc(ba->total);
+    return ba;
+}
