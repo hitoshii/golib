@@ -33,9 +33,9 @@ JPoll *j_poll_new(void);
 int j_poll_get_fd(JPoll * p);
 
 typedef enum {
-    J_POLL_CTL_ADD,
-    J_POLL_CTL_DEL,
-    J_POLL_CTL_MOD
+    J_POLL_CTL_ADD = EPOLL_CTL_ADD,
+    J_POLL_CTL_DEL = EPOLL_CTL_DEL,
+    J_POLL_CTL_MOD = EPOLL_CTL_MOD
 } JPollOp;
 
 #define J_POLLIN EPOLLIN

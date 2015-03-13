@@ -35,7 +35,18 @@ struct _JSocket {
     char *peername;
 
     int extra;
+
+    /* properties */
+    int blocking;
 };
+
+/*
+ * Checks to see if the socket is in blocking mode
+ */
+int j_socket_is_blocking(JSocket * jsock)
+{
+    return jsock->blocking;
+}
 
 int j_socket_get_extra(JSocket * jsock)
 {
@@ -54,6 +65,8 @@ static inline JSocket *j_socket_alloc(int fd, JSocketType type)
     jsock->type = type;
     jsock->sockname = NULL;
     jsock->peername = NULL;
+
+    jsock->blocking = 1;
     return jsock;
 }
 
@@ -236,7 +249,11 @@ int j_socket_set_block(JSocket * jsock, int block)
     } else {
         flags &= ~O_NONBLOCK;
     }
-    return fcntl(fd, F_SETFL, flags) == 0;
+    if (fcntl(fd, F_SETFL, flags) == 0) {
+        jsock->blocking = block;
+        return 1;
+    }
+    return 0;
 }
 
 /*
@@ -250,12 +267,12 @@ int j_socket_send(JSocket * jsock, const void *data, unsigned int count)
     return n;
 }
 
-/*
- * Receives data
- */
-JByteArray *j_socket_recv(JSocket * jsock, unsigned int len)
+
+static inline JByteArray *j_socket_recv_with_flags(JSocket * sock,
+                                                   unsigned int len,
+                                                   int flags)
 {
-    int fd = j_socket_get_fd(jsock);
+    int fd = j_socket_get_fd(sock);
     JByteArray *array = j_byte_array_new();
 
     if (len == 0) {
@@ -265,7 +282,7 @@ JByteArray *j_socket_recv(JSocket * jsock, unsigned int len)
     char buf[4096];
     while (len > 0) {
         unsigned int count = len > 4096 ? 4096 : len;
-        int n = read(fd, buf, count);
+        int n = recv(fd, buf, count, flags);
         if (n <= 0) {
             break;
         }
@@ -273,4 +290,17 @@ JByteArray *j_socket_recv(JSocket * jsock, unsigned int len)
         j_byte_array_append(array, buf, n);
     }
     return array;
+}
+
+/*
+ * Receives data
+ */
+JByteArray *j_socket_recv(JSocket * jsock, unsigned int len)
+{
+    return j_socket_recv_with_flags(jsock, len, 0);
+}
+
+JByteArray *j_socket_recv_dontwait(JSocket * jsock, unsigned int len)
+{
+    return j_socket_recv_with_flags(jsock, len, MSG_DONTWAIT);
 }

@@ -32,6 +32,11 @@ typedef enum {
 JSocketType j_socket_get_type(JSocket * jsock);
 
 /*
+ * Checks to see if the socket is in blocking mode
+ */
+int j_socket_is_blocking(JSocket * jsock);
+
+/*
  * Returns the UNIX file descriptor
  */
 int j_socket_get_fd(JSocket * jsock);
@@ -88,6 +93,7 @@ int j_socket_send(JSocket * jsock, const void *data, unsigned int count);
  * Receives data
  */
 JByteArray *j_socket_recv(JSocket * jsock, unsigned int len);
+JByteArray *j_socket_recv_dontwait(JSocket * jsock, unsigned int len);
 
 
 #endif

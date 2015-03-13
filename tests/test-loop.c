@@ -4,6 +4,24 @@
 
 static int result = 0;
 
+
+static void recv_callback(JSocket * sock, const void *data,
+                          unsigned int count, void *user_data)
+{
+    if (count != 7) {
+        result = 1;
+        printf("recv fail!\n");
+    } else {
+        result = 0;
+        char buf[32];
+        snprintf(buf, 32, "%%%us\n", count);
+        printf(buf, data);
+        result = 0;
+    }
+    j_socket_close(sock);
+    j_main_quit();
+}
+
 static void send_callback(JSocket * sock, const void *data,
                           unsigned int count, unsigned int len,
                           void *user_data)
@@ -11,12 +29,13 @@ static void send_callback(JSocket * sock, const void *data,
     if (count == len) {
         printf("send all: %u\n", len);
         result = 0;
+        j_socket_recv_async(sock, recv_callback, user_data);
     } else {
         printf("send %u/%u\n", len, count);
         result = 1;
+        j_socket_close(sock);
+        j_main_quit();
     }
-    j_socket_close(sock);
-    j_main_quit();
 }
 
 static int async_callback(JSocket * listen, JSocket * conn,
@@ -42,6 +61,7 @@ int main(int argc, char *argv[])
     }
     j_socket_accept_async(jsock, async_callback, "nice");
     JSocket *client = j_socket_connect_to("127.0.0.1", "22346");
+    j_socket_send(client, "hello 111", 7);
 
     j_main();
 

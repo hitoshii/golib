@@ -143,13 +143,15 @@ void j_main_loop_run(JMainLoop * loop)
                 }
                 break;
             case J_SOCKET_EVENT_READ:
+                len = 0;
+                data = NULL;
                 if (evnts & J_POLLIN) {
-                    JByteArray *bytes = j_socket_recv(socket, 0);
-                    unsigned int len = j_byte_array_get_len(bytes);
-                    void *data = j_byte_array_get_data(bytes);
-                    j_main_loop_remove_source(loop, src);
-                    read_callback(socket, data, len, user_data);
+                    JByteArray *bytes = j_socket_recv_dontwait(socket, 0);
+                    len = j_byte_array_get_len(bytes);
+                    data = j_byte_array_free(bytes, 0);
                 }
+                j_main_loop_remove_source(loop, src);
+                read_callback(socket, data, len, user_data);
                 break;
             case J_SOCKET_EVENT_WRITE:
                 if (evnts & J_POLLOUT) {
@@ -258,6 +260,8 @@ static inline JPoll *j_main_loop_get_poll(JMainLoop * loop)
     return loop->poll;
 }
 
+#include <errno.h>
+#include <string.h>
 /*
  * Appends a new source
  * If the socket is already existing, modifies its events
