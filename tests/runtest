@@ -20,3 +20,4 @@ test ./test-socket
 test ./test-epoll
 test ./test-hashtable
 test ./test-loop
+test ./test-byte

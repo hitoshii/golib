@@ -82,7 +82,7 @@ host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
 	test-conf$(EXEEXT) test-mod$(EXEEXT) test-log$(EXEEXT) \
 	test-socket$(EXEEXT) test-epoll$(EXEEXT) \
-	test-hashtable$(EXEEXT) test-loop$(EXEEXT)
+	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-byte$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -95,13 +95,16 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_test_conf_OBJECTS = test-conf.$(OBJEXT)
-test_conf_OBJECTS = $(am_test_conf_OBJECTS)
-test_conf_LDADD = $(LDADD)
+am_test_byte_OBJECTS = test-byte.$(OBJEXT)
+test_byte_OBJECTS = $(am_test_byte_OBJECTS)
+test_byte_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_conf_OBJECTS = test-conf.$(OBJEXT)
+test_conf_OBJECTS = $(am_test_conf_OBJECTS)
+test_conf_LDADD = $(LDADD)
 am_test_epoll_OBJECTS = test-epoll.$(OBJEXT)
 test_epoll_OBJECTS = $(am_test_epoll_OBJECTS)
 test_epoll_LDADD = $(LDADD)
@@ -161,13 +164,15 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test_conf_SOURCES) $(test_epoll_SOURCES) \
-	$(test_file_SOURCES) $(test_hashtable_SOURCES) \
-	$(test_log_SOURCES) $(test_loop_SOURCES) $(test_mod_SOURCES) \
+SOURCES = $(test_byte_SOURCES) $(test_conf_SOURCES) \
+	$(test_epoll_SOURCES) $(test_file_SOURCES) \
+	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
+	$(test_loop_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES)
-DIST_SOURCES = $(test_conf_SOURCES) $(test_epoll_SOURCES) \
-	$(test_file_SOURCES) $(test_hashtable_SOURCES) \
-	$(test_log_SOURCES) $(test_loop_SOURCES) $(test_mod_SOURCES) \
+DIST_SOURCES = $(test_byte_SOURCES) $(test_conf_SOURCES) \
+	$(test_epoll_SOURCES) $(test_file_SOURCES) \
+	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
+	$(test_loop_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -362,6 +367,9 @@ test_hashtable_SOURCES = \
 test_loop_SOURCES = \
     test-loop.c
 
+test_byte_SOURCES = \
+	test-byte.c
+
 all: all-am
 
 .SUFFIXES:
@@ -406,6 +414,10 @@ clean-noinstPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+test-byte$(EXEEXT): $(test_byte_OBJECTS) $(test_byte_DEPENDENCIES) $(EXTRA_test_byte_DEPENDENCIES) 
+	@rm -f test-byte$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_byte_OBJECTS) $(test_byte_LDADD) $(LIBS)
+
 test-conf$(EXEEXT): $(test_conf_OBJECTS) $(test_conf_DEPENDENCIES) $(EXTRA_test_conf_DEPENDENCIES) 
 	@rm -f test-conf$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_conf_OBJECTS) $(test_conf_LDADD) $(LIBS)
@@ -448,6 +460,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-byte.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-epoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@

@@ -28,7 +28,8 @@ noinst_PROGRAMS= \
 	test-socket \
 	test-epoll \
 	test-hashtable \
-	test-loop
+	test-loop \
+	test-byte
 
 noinst_SCRIPTS=runtest
 
@@ -58,6 +59,9 @@ test_hashtable_SOURCES = \
 
 test_loop_SOURCES = \
     test-loop.c
+
+test_byte_SOURCES = \
+	test-byte.c
 
 module: module.c
 	gcc -shared -fPIC module.c -o module.so

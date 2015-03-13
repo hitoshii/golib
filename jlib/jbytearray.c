@@ -18,6 +18,17 @@
 
 #include "jbytearray.h"
 #include "jmem.h"
+#include <string.h>
+
+
+#define j_byte_array_
+
+static inline JByteArray *j_byte_array_realloc(JByteArray * ba)
+{
+    ba->total = ba->total < 1;
+    ba->data = j_realloc(ba->data, ba->total);
+    return ba;
+}
 
 
 JByteArray *j_byte_array_new(void)
@@ -27,4 +38,29 @@ JByteArray *j_byte_array_new(void)
     ba->len = 0;
     ba->data = j_malloc(ba->total);
     return ba;
+}
+
+void j_byte_array_append(JByteArray * ba, const void *data,
+                         unsigned int len)
+{
+    if (len == 0) {
+        return;
+    }
+
+    while (j_byte_array_get_total(ba) < len + j_byte_array_get_len(ba)) {
+        ba = j_byte_array_realloc(ba);
+    }
+    memcpy(ba->data + ba->len, data, len);
+    ba->len += len;
+}
+
+void *j_byte_array_free(JByteArray * ba, int f)
+{
+    void *data = j_byte_array_get_data(ba);
+    j_free(ba);
+    if (f) {
+        j_free(data);
+        return NULL;
+    }
+    return data;
 }

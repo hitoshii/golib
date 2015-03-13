@@ -23,10 +23,19 @@ typedef struct {
     void *data;
     unsigned int len;
 
+    /* private */
     unsigned int total;
 } JByteArray;
+#define j_byte_array_get_data(ba)   (ba)->data
+#define j_byte_array_get_len(ba)    (ba)->len
+#define j_byte_array_get_total(ba)  (ba)->total
 
 
 JByteArray *j_byte_array_new(void);
+
+void j_byte_array_append(JByteArray * ba, const void *data,
+                         unsigned int len);
+
+void *j_byte_array_free(JByteArray * ba, int f);
 
 #endif
