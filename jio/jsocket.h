@@ -87,7 +87,7 @@ int j_socket_send(JSocket * jsock, const void *data, unsigned int count);
 /*
  * Receives data
  */
-JString *j_socket_recv(JSocket * jsock, unsigned int len);
+JByteArray *j_socket_recv(JSocket * jsock, unsigned int len);
 
 
 #endif

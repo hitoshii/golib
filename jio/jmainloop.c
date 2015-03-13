@@ -129,6 +129,7 @@ void j_main_loop_run(JMainLoop * loop)
                 (JSocketAcceptNotify) callback;
             JSocketSendNotify write_callback =
                 (JSocketSendNotify) callback;
+            JSocketRecvNotify read_callback = (JSocketRecvNotify) callback;
             switch (j_source_get_event(src)) {
             case J_SOCKET_EVENT_ACCEPT:
                 if (evnts & J_POLLIN) {
@@ -143,6 +144,11 @@ void j_main_loop_run(JMainLoop * loop)
                 break;
             case J_SOCKET_EVENT_READ:
                 if (evnts & J_POLLIN) {
+                    JByteArray *bytes = j_socket_recv(socket, 0);
+                    unsigned int len = j_byte_array_get_len(bytes);
+                    void *data = j_byte_array_get_data(bytes);
+                    j_main_loop_remove_source(loop, src);
+                    read_callback(socket, data, len, user_data);
                 }
                 break;
             case J_SOCKET_EVENT_WRITE:

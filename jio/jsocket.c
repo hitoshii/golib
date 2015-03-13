@@ -253,10 +253,10 @@ int j_socket_send(JSocket * jsock, const void *data, unsigned int count)
 /*
  * Receives data
  */
-JString *j_socket_recv(JSocket * jsock, unsigned int len)
+JByteArray *j_socket_recv(JSocket * jsock, unsigned int len)
 {
     int fd = j_socket_get_fd(jsock);
-    JString *string = j_string_new();
+    JByteArray *array = j_byte_array_new();
 
     if (len == 0) {
         len = (unsigned int) -1;
@@ -270,7 +270,7 @@ JString *j_socket_recv(JSocket * jsock, unsigned int len)
             break;
         }
         len -= n;
-        j_string_append_len(string, buf, n);
+        j_byte_array_append(array, buf, n);
     }
-    return string;
+    return array;
 }
