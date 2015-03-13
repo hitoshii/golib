@@ -89,8 +89,33 @@ int j_socket_send_dontwait(JSocket * jsock, const void *data,
 /*
  * Receives data
  */
-JByteArray *j_socket_recv(JSocket * jsock, unsigned int len);
-JByteArray *j_socket_recv_dontwait(JSocket * jsock, unsigned int len);
+
+typedef enum {
+    J_SOCKET_RECV_NORMAL,
+    J_SOCKET_RECV_EOF,
+    J_SOCKET_RECV_ERR,
+} JSocketRecvResultType;
+
+typedef struct {
+    void *data;
+    unsigned int len;
+    JSocketRecvResultType type;
+} JSocketRecvResult;
+#define j_socket_recv_result_get_data(res)  (res)->data
+#define j_socket_recv_result_get_len(res)   (res)->len
+#define j_socket_recv_result_get_type(res)  (res)->type;
+#define j_socket_recv_result_is_normal(res) \
+            (j_socket_recv_result_get_type(res)==J_SOCKET_RECV_NORMAL)
+#define j_socket_recv_result_is_eof(res) \
+            (j_socket_recv_result_get_type(res)==J_SOCKET_RECV_EOF)
+#define j_socket_recv_result_is_error(res) \
+            (j_socket_recv_result_get_type(res)==J_SOCKET_RECV_ERR)
+
+void j_socket_recv_result_free(JSocketRecvResult * res);
+
+JSocketRecvResult *j_socket_recv(JSocket * jsock, unsigned int len);
+JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
+                                          unsigned int len);
 
 
 #endif

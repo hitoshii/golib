@@ -143,15 +143,15 @@ void j_main_loop_run(JMainLoop * loop)
                 }
                 break;
             case J_SOCKET_EVENT_RECV:
-                len = 0;
-                data = NULL;
-                if (evnts & J_POLLIN) {
-                    JByteArray *bytes = j_socket_recv_dontwait(socket, 0);
-                    len = j_byte_array_get_len(bytes);
-                    data = j_byte_array_free(bytes, 0);
-                }
                 j_main_loop_remove_source(loop, src);
-                read_callback(socket, data, len, user_data);
+                if (evnts & J_POLLIN) {
+                    JSocketRecvResult *res =
+                        j_socket_recv_dontwait(socket, 0);
+                    read_callback(socket, res, user_data);
+                    j_socket_recv_result_free(res);
+                } else {
+                    read_callback(socket, NULL, user_data);
+                }
                 break;
             case J_SOCKET_EVENT_SEND:
                 if (evnts & J_POLLOUT) {
@@ -240,7 +240,7 @@ void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
     JSource *src = j_source_new(sock, J_SOCKET_EVENT_RECV,
                                 user_data, notify);
     if (!j_main_loop_append_source(loop, src)) {
-        notify(sock, NULL, 0, user_data);
+        notify(sock, NULL, user_data);
     }
 }
 

@@ -265,12 +265,47 @@ int j_socket_send_dontwait(JSocket * jsock, const void *data,
 }
 
 
-static inline JByteArray *j_socket_recv_with_flags(JSocket * sock,
-                                                   unsigned int len,
-                                                   int flags)
+/********************** JSocketRecvResult ***********************/
+
+static inline JSocketRecvResult *j_socket_recv_result_new(void *data,
+                                                          unsigned int len,
+                                                          JSocketRecvResultType
+                                                          type)
+{
+    JSocketRecvResult *res =
+        (JSocketRecvResult *) j_malloc(sizeof(JSocketRecvResult));
+    res->data = data;
+    res->len = len;
+    res->type = type;
+    return res;
+}
+
+static inline JSocketRecvResult
+    * j_socket_recv_result_new_from_bytes(JByteArray * array,
+                                          JSocketRecvResultType type)
+{
+    unsigned int len = j_byte_array_get_len(array);
+    void *data = j_byte_array_free(array, 0);
+    return j_socket_recv_result_new(data, len, type);
+}
+
+void j_socket_recv_result_free(JSocketRecvResult * res)
+{
+    j_free(res->data);
+    j_free(res);
+}
+
+
+/**************************************************************/
+
+
+static inline JSocketRecvResult *j_socket_recv_with_flags(JSocket * sock,
+                                                          unsigned int len,
+                                                          int flags)
 {
     int fd = j_socket_get_fd(sock);
     JByteArray *array = j_byte_array_new();
+    JSocketRecvResultType type = J_SOCKET_RECV_NORMAL;
 
     if (len == 0) {
         len = (unsigned int) -1;
@@ -281,23 +316,26 @@ static inline JByteArray *j_socket_recv_with_flags(JSocket * sock,
         unsigned int count = len > 4096 ? 4096 : len;
         int n = recv(fd, buf, count, flags);
         if (n <= 0) {
+            type = (n == 0) ? J_SOCKET_RECV_EOF : J_SOCKET_RECV_ERR;
             break;
         }
         len -= n;
         j_byte_array_append(array, buf, n);
     }
-    return array;
+
+    return j_socket_recv_result_new_from_bytes(array, type);
 }
 
 /*
  * Receives data
  */
-JByteArray *j_socket_recv(JSocket * jsock, unsigned int len)
+JSocketRecvResult *j_socket_recv(JSocket * jsock, unsigned int len)
 {
     return j_socket_recv_with_flags(jsock, len, 0);
 }
 
-JByteArray *j_socket_recv_dontwait(JSocket * jsock, unsigned int len)
+JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
+                                          unsigned int len)
 {
     return j_socket_recv_with_flags(jsock, len, MSG_DONTWAIT);
 }
