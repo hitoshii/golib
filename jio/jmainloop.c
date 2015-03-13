@@ -43,8 +43,8 @@ JMainLoop *j_main_loop_default(void)
 
 typedef enum {
     J_SOCKET_EVENT_ACCEPT,
-    J_SOCKET_EVENT_WRITE,
-    J_SOCKET_EVENT_READ,
+    J_SOCKET_EVENT_SEND,
+    J_SOCKET_EVENT_RECV,
 } JSocketEventType;
 
 typedef struct {
@@ -71,7 +71,7 @@ static inline JSocket *j_source_free(JSource * src);
 #define j_source_get_data_len(src)  (src)->len
 static inline unsigned int j_source_get_events(JSource * src)
 {
-    if (j_source_get_event(src) == J_SOCKET_EVENT_WRITE) {
+    if (j_source_get_event(src) == J_SOCKET_EVENT_SEND) {
         return J_POLLOUT;
     }
     return J_POLLIN;
@@ -142,7 +142,7 @@ void j_main_loop_run(JMainLoop * loop)
                     j_main_loop_remove_source(loop, src);
                 }
                 break;
-            case J_SOCKET_EVENT_READ:
+            case J_SOCKET_EVENT_RECV:
                 len = 0;
                 data = NULL;
                 if (evnts & J_POLLIN) {
@@ -153,7 +153,7 @@ void j_main_loop_run(JMainLoop * loop)
                 j_main_loop_remove_source(loop, src);
                 read_callback(socket, data, len, user_data);
                 break;
-            case J_SOCKET_EVENT_WRITE:
+            case J_SOCKET_EVENT_SEND:
                 if (evnts & J_POLLOUT) {
                     int n = j_socket_send(socket, data + len, count - len);
                     if (n > 0) {
@@ -224,7 +224,7 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
 {
     JMainLoop *loop = j_main_loop_default();
     JSource *src =
-        j_source_new(sock, J_SOCKET_EVENT_WRITE, user_data, notify);
+        j_source_new(sock, J_SOCKET_EVENT_SEND, user_data, notify);
     src->data = j_memdup(data, count);
     src->count = count;
     src->len = 0;
@@ -237,7 +237,7 @@ void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
                          void *user_data)
 {
     JMainLoop *loop = j_main_loop_default();
-    JSource *src = j_source_new(sock, J_SOCKET_EVENT_READ,
+    JSource *src = j_source_new(sock, J_SOCKET_EVENT_RECV,
                                 user_data, notify);
     if (!j_main_loop_append_source(loop, src)) {
         notify(sock, NULL, 0, user_data);

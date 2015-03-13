@@ -35,18 +35,7 @@ struct _JSocket {
     char *peername;
 
     int extra;
-
-    /* properties */
-    int blocking;
 };
-
-/*
- * Checks to see if the socket is in blocking mode
- */
-int j_socket_is_blocking(JSocket * jsock)
-{
-    return jsock->blocking;
-}
 
 int j_socket_get_extra(JSocket * jsock)
 {
@@ -65,8 +54,6 @@ static inline JSocket *j_socket_alloc(int fd, JSocketType type)
     jsock->type = type;
     jsock->sockname = NULL;
     jsock->peername = NULL;
-
-    jsock->blocking = 1;
     return jsock;
 }
 
@@ -237,7 +224,7 @@ void j_socket_close(JSocket * jsock)
 /*
  * Makes the socket work in block/nonblock mode
  */
-int j_socket_set_block(JSocket * jsock, int block)
+int j_socket_set_blocking(JSocket * jsock, int block)
 {
     int fd = j_socket_get_fd(jsock);
     int flags = fcntl(fd, F_GETFL, 0);
@@ -249,22 +236,32 @@ int j_socket_set_block(JSocket * jsock, int block)
     } else {
         flags &= ~O_NONBLOCK;
     }
-    if (fcntl(fd, F_SETFL, flags) == 0) {
-        jsock->blocking = block;
-        return 1;
-    }
-    return 0;
+    return fcntl(fd, F_SETFL, flags) == 0;
 }
 
 /*
  * Sends data
  * Returns the length of data that is send
  */
-int j_socket_send(JSocket * jsock, const void *data, unsigned int count)
+
+static inline int j_socket_send_with_flags(JSocket * jsock,
+                                           const void *data,
+                                           unsigned int count, int flags)
 {
     int fd = j_socket_get_fd(jsock);
-    int n = write(fd, data, count);
+    int n = send(fd, data, count, flags);
     return n;
+}
+
+int j_socket_send(JSocket * jsock, const void *data, unsigned int count)
+{
+    return j_socket_send_with_flags(jsock, data, count, 0);
+}
+
+int j_socket_send_dontwait(JSocket * jsock, const void *data,
+                           unsigned int count)
+{
+    return j_socket_send_with_flags(jsock, data, count, MSG_DONTWAIT);
 }
 
 
