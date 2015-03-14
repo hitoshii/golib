@@ -13,14 +13,14 @@ static void recv_callback(JSocket * sock, JSocketRecvResult * res,
     } else {
         unsigned int count = j_socket_recv_result_get_len(res);
         void *data = j_socket_recv_result_get_data(res);
-        if (count != 7) {
+        if (count != 4) {
             result = 1;
             printf("recv fail!\n");
         } else {
             result = 0;
-            char buf[32];
-            snprintf(buf, 32, "%%%us\n", count);
-            printf(buf, data);
+            char *buf = j_strndup(data, count);
+            printf("%s\n", buf);
+            j_free(buf);
             result = 0;
         }
     }
@@ -35,7 +35,7 @@ static void send_callback(JSocket * sock, const void *data,
     if (count == len) {
         printf("send all: %u\n", len);
         result = 0;
-        j_socket_recv_async(sock, recv_callback, user_data);
+        j_socket_recv_len_async(sock, recv_callback, 4, user_data);
     } else {
         printf("send %u/%u\n", len, count);
         result = 1;

@@ -98,5 +98,7 @@ typedef void (*JSocketRecvNotify) (JSocket * sock,
                                    void *user_data);
 void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
                          void *user_data);
+void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
+                             unsigned int len, void *user_data);
 
 #endif

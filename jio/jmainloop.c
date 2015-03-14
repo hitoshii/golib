@@ -53,9 +53,11 @@ typedef struct {
     void *user_data;
     void *callback;
 
+    /* send */
     void *data;
     unsigned int count;
-    unsigned int len;
+    unsigned int len;           /* recv len */
+
 } JSource;
 
 static inline JSource *j_source_new(JSocket * socket,
@@ -146,7 +148,7 @@ void j_main_loop_run(JMainLoop * loop)
                 j_main_loop_remove_source(loop, src);
                 if (evnts & J_POLLIN) {
                     JSocketRecvResult *res =
-                        j_socket_recv_dontwait(socket, 0);
+                        j_socket_recv_dontwait(socket, len);
                     read_callback(socket, res, user_data);
                     j_socket_recv_result_free(res);
                 } else {
@@ -236,9 +238,16 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
 void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
                          void *user_data)
 {
+    j_socket_recv_len_async(sock, notify, 0, user_data);
+}
+
+void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
+                             unsigned int len, void *user_data)
+{
     JMainLoop *loop = j_main_loop_default();
     JSource *src = j_source_new(sock, J_SOCKET_EVENT_RECV,
                                 user_data, notify);
+    src->len = len;
     if (!j_main_loop_append_source(loop, src)) {
         notify(sock, NULL, user_data);
     }
