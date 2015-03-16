@@ -30,7 +30,6 @@
 
 struct _JSocket {
     int fd;
-    JSocketType type;
 
     char *sockname;
     char *peername;
@@ -50,20 +49,14 @@ void j_socket_set_extra(JSocket * jsock, int data)
     jsock->extra = data;
 }
 
-static inline JSocket *j_socket_alloc(int fd, JSocketType type)
+static inline JSocket *j_socket_alloc(int fd)
 {
     JSocket *jsock = (JSocket *) j_malloc(sizeof(JSocket));
     jsock->fd = fd;
-    jsock->type = type;
     jsock->sockname = NULL;
     jsock->peername = NULL;
     jsock->recv_result = NULL;
     return jsock;
-}
-
-JSocketType j_socket_get_type(JSocket * jsock)
-{
-    return jsock->type;
 }
 
 /*
@@ -137,7 +130,7 @@ JSocket *j_socket_listen_on(unsigned short port, unsigned int backlog)
         close(fd);
         return NULL;
     }
-    return j_socket_alloc(fd, J_SOCKET_TYPE_SERVER);
+    return j_socket_alloc(fd);
 }
 
 JSocket *j_socket_accept(JSocket * jsock)
@@ -149,7 +142,7 @@ JSocket *j_socket_accept(JSocket * jsock)
         return NULL;
     }
 
-    return j_socket_alloc(accfd, J_SOCKET_TYPE_CONNECTED);
+    return j_socket_alloc(accfd);
 }
 
 JSocket *j_socket_connect_to(const char *server, const char *service)
@@ -174,7 +167,7 @@ JSocket *j_socket_new(void)
     if (fd < 0) {
         return NULL;
     }
-    return j_socket_alloc(fd, J_SOCKET_TYPE_NEW);
+    return j_socket_alloc(fd);
 }
 
 /*
@@ -184,9 +177,6 @@ JSocket *j_socket_new(void)
 int j_socket_connect(JSocket * jsock, const char *server,
                      const char *service)
 {
-    if (j_socket_get_type(jsock) != J_SOCKET_TYPE_NEW) {
-        return 0;
-    }
     int fd = j_socket_get_fd(jsock);
 
     struct addrinfo *ailist, *aip;
@@ -206,7 +196,6 @@ int j_socket_connect(JSocket * jsock, const char *server,
     for (aip = ailist; aip != NULL; aip = aip->ai_next) {
         if (connect(fd, aip->ai_addr, sizeof(struct sockaddr_in)) == 0) {
             freeaddrinfo(ailist);
-            jsock->type = J_SOCKET_TYPE_CONNECTED;
             return 1;
         }
     }
@@ -285,9 +274,9 @@ static inline JSocketRecvResult *j_socket_recv_result_new(void *data,
 }
 
 static inline JSocketRecvResult
-    *j_socket_recv_result_append(JSocketRecvResult * res,
-                                 JByteArray * array,
-                                 JSocketRecvResultType type)
+    * j_socket_recv_result_append(JSocketRecvResult * res,
+                                  JByteArray * array,
+                                  JSocketRecvResultType type)
 {
     j_byte_array_preppend(array, res->data, res->len);
     res->len = j_byte_array_get_len(array);

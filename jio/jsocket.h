@@ -22,15 +22,6 @@
 
 typedef struct _JSocket JSocket;
 
-
-typedef enum {
-    J_SOCKET_TYPE_SERVER,
-    J_SOCKET_TYPE_NEW,
-    J_SOCKET_TYPE_CONNECTED,
-} JSocketType;
-
-JSocketType j_socket_get_type(JSocket * jsock);
-
 /*
  * Returns the UNIX file descriptor
  */
