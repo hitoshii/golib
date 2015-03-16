@@ -145,19 +145,28 @@ void j_main_loop_run(JMainLoop * loop)
                 }
                 break;
             case J_SOCKET_EVENT_RECV:
-                j_main_loop_remove_source(loop, src);
                 if (evnts & J_POLLIN) {
                     JSocketRecvResult *res =
                         j_socket_recv_dontwait(socket, len);
+                    if (count > 0
+                        && j_socket_recv_result_get_len(res) < count
+                        && j_socket_recv_result_is_normal(res)) {
+                        src->len =
+                            count - j_socket_recv_result_get_len(res);
+                        break;
+                    }
+                    j_main_loop_remove_source(loop, src);
                     read_callback(socket, res, user_data);
-                    j_socket_recv_result_free(res);
                 } else {
+                    j_main_loop_remove_source(loop, src);
                     read_callback(socket, NULL, user_data);
                 }
+                j_socket_remove_recv_result(socket);
                 break;
             case J_SOCKET_EVENT_SEND:
                 if (evnts & J_POLLOUT) {
-                    int n = j_socket_send(socket, data + len, count - len);
+                    int n = j_socket_send_dontwait(socket, data + len,
+                                                   count - len);
                     if (n > 0) {
                         len += n;
                         if (len < count) {
@@ -247,7 +256,9 @@ void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
     JMainLoop *loop = j_main_loop_default();
     JSource *src = j_source_new(sock, J_SOCKET_EVENT_RECV,
                                 user_data, notify);
+    j_socket_set_recv_result(sock);
     src->len = len;
+    src->count = len;
     if (!j_main_loop_append_source(loop, src)) {
         notify(sock, NULL, user_data);
     }
@@ -269,8 +280,6 @@ static inline JPoll *j_main_loop_get_poll(JMainLoop * loop)
     return loop->poll;
 }
 
-#include <errno.h>
-#include <string.h>
 /*
  * Appends a new source
  * If the socket is already existing, modifies its events
@@ -280,12 +289,9 @@ static inline int j_main_loop_append_source(JMainLoop * loop,
 {
     JPoll *poll = j_main_loop_get_poll(loop);
 
-    JPollOp op = J_POLL_CTL_ADD;
-    if (j_hash_table_find(loop->sources, j_source_get_socket(src))) {
-        op = J_POLL_CTL_MOD;
-    }
     unsigned int events = j_source_get_events(src);
-    if (!j_poll_ctl(poll, op, events, j_source_get_socket(src), src)) {
+    if (!j_poll_ctl
+        (poll, J_POLL_CTL_ADD, events, j_source_get_socket(src), src)) {
         j_source_free(src);
         return 0;
     }

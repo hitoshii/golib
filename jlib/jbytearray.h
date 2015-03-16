@@ -35,6 +35,8 @@ JByteArray *j_byte_array_new(void);
 
 void j_byte_array_append(JByteArray * ba, const void *data,
                          unsigned int len);
+void j_byte_array_preppend(JByteArray * ba, const void *data,
+                           unsigned int len);
 
 void *j_byte_array_free(JByteArray * ba, int f);
 

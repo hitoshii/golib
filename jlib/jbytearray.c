@@ -30,6 +30,15 @@ static inline JByteArray *j_byte_array_realloc(JByteArray * ba)
     return ba;
 }
 
+static inline JByteArray *j_byte_array_realloc_len(JByteArray * ba,
+                                                   unsigned int len)
+{
+    while (j_byte_array_get_total(ba) < len + j_byte_array_get_len(ba)) {
+        ba = j_byte_array_realloc(ba);
+    }
+    return ba;
+}
+
 
 JByteArray *j_byte_array_new(void)
 {
@@ -47,10 +56,20 @@ void j_byte_array_append(JByteArray * ba, const void *data,
         return;
     }
 
-    while (j_byte_array_get_total(ba) < len + j_byte_array_get_len(ba)) {
-        ba = j_byte_array_realloc(ba);
-    }
+    j_byte_array_realloc_len(ba, len);
     memcpy(ba->data + ba->len, data, len);
+    ba->len += len;
+}
+
+void j_byte_array_preppend(JByteArray * ba, const void *data,
+                           unsigned int len)
+{
+    if (len == 0) {
+        return;
+    }
+    j_byte_array_realloc_len(ba, len);
+    memmove(ba->data + len, ba->data, ba->len);
+    memcpy(ba->data, data, len);
     ba->len += len;
 }
 

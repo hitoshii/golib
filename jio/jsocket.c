@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <jlib/jlib.h>
+#include <errno.h>
 
 
 struct _JSocket {
@@ -35,6 +36,8 @@ struct _JSocket {
     char *peername;
 
     int extra;
+
+    JSocketRecvResult *recv_result;
 };
 
 int j_socket_get_extra(JSocket * jsock)
@@ -54,6 +57,7 @@ static inline JSocket *j_socket_alloc(int fd, JSocketType type)
     jsock->type = type;
     jsock->sockname = NULL;
     jsock->peername = NULL;
+    jsock->recv_result = NULL;
     return jsock;
 }
 
@@ -281,6 +285,19 @@ static inline JSocketRecvResult *j_socket_recv_result_new(void *data,
 }
 
 static inline JSocketRecvResult
+    *j_socket_recv_result_append(JSocketRecvResult * res,
+                                 JByteArray * array,
+                                 JSocketRecvResultType type)
+{
+    j_byte_array_preppend(array, res->data, res->len);
+    res->len = j_byte_array_get_len(array);
+    j_free(res->data);
+    res->data = j_byte_array_free(array, 0);
+    res->type = type;
+    return res;
+}
+
+static inline JSocketRecvResult
     * j_socket_recv_result_new_from_bytes(JByteArray * array,
                                           JSocketRecvResultType type)
 {
@@ -316,14 +333,25 @@ static inline JSocketRecvResult *j_socket_recv_with_flags(JSocket * sock,
         unsigned int count = len > 4096 ? 4096 : len;
         int n = recv(fd, buf, count, flags);
         if (n <= 0) {
-            type = (n == 0) ? J_SOCKET_RECV_EOF : J_SOCKET_RECV_ERR;
+            if (n == 0) {
+                type = J_SOCKET_RECV_EOF;
+            } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                type = J_SOCKET_RECV_ERR;
+            }
             break;
         }
         len -= n;
         j_byte_array_append(array, buf, n);
     }
 
-    return j_socket_recv_result_new_from_bytes(array, type);
+    JSocketRecvResult *res = sock->recv_result;
+    if (res) {
+        sock->recv_result = j_socket_recv_result_append(res, array, type);
+    } else {
+        res = j_socket_recv_result_new_from_bytes(array, type);
+    }
+
+    return res;
 }
 
 /*
@@ -338,4 +366,21 @@ JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
                                           unsigned int len)
 {
     return j_socket_recv_with_flags(jsock, len, MSG_DONTWAIT);
+}
+
+void j_socket_set_recv_result(JSocket * jsock)
+{
+    if (jsock->recv_result) {
+        j_socket_recv_result_free(jsock->recv_result);
+    }
+    jsock->recv_result =
+        j_socket_recv_result_new(NULL, 0, J_SOCKET_RECV_NORMAL);
+}
+
+void j_socket_remove_recv_result(JSocket * jsock)
+{
+    if (jsock->recv_result) {
+        j_socket_recv_result_free(jsock->recv_result);
+        jsock->recv_result = NULL;
+    }
 }

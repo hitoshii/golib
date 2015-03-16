@@ -103,7 +103,7 @@ typedef struct {
 } JSocketRecvResult;
 #define j_socket_recv_result_get_data(res)  (res)->data
 #define j_socket_recv_result_get_len(res)   (res)->len
-#define j_socket_recv_result_get_type(res)  (res)->type;
+#define j_socket_recv_result_get_type(res)  (res)->type
 #define j_socket_recv_result_is_normal(res) \
             (j_socket_recv_result_get_type(res)==J_SOCKET_RECV_NORMAL)
 #define j_socket_recv_result_is_eof(res) \
@@ -116,5 +116,9 @@ void j_socket_recv_result_free(JSocketRecvResult * res);
 JSocketRecvResult *j_socket_recv(JSocket * jsock, unsigned int len);
 JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
                                           unsigned int len);
+
+void j_socket_set_recv_result(JSocket * jsock);
+void j_socket_remove_recv_result(JSocket * jsock);
+
 
 #endif
