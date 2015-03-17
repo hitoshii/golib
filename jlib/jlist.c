@@ -173,6 +173,9 @@ JList *j_list_remove(JList * l, void *data)
         if (j_list_data(ptr) == data) {
             JList *prev = j_list_prev(ptr);
             j_list_free1(ptr, NULL);
+            if (next) {
+                next->prev = prev;
+            }
             if (prev == NULL) {
                 return next;
             }

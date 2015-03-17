@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jhashtable.h"
+#include <jlib/jlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -279,18 +280,17 @@ static void j_hash_table_free_internal(JHashTable * h,
     for (i = 0; i < h->size; i++) {
         JList *list = h->buckets[i];
         if (list) {
-            JList *lp = j_list_next(list);
-            while (list) {
-                lp = j_list_next(list);
+            do {
+                JList *next = j_list_next(list);
                 j_hash_table_node_free(list->data, key_func, value_func);
-                free(list);
-                list = lp;
-            }
+                j_list_free1(list, NULL);
+                list = next;
+            } while (list);
         }
     }
-    free(h->buckets);
+    j_free(h->buckets);
     j_list_free(h->keys);
-    free(h);
+    j_free(h);
 }
 
 void j_hash_table_free_full(JHashTable * h)

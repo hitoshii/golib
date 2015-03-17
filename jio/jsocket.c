@@ -211,6 +211,7 @@ void j_socket_close(JSocket * jsock)
     close(jsock->fd);
     j_free(jsock->peername);
     j_free(jsock->sockname);
+    j_socket_remove_recv_result(jsock);
     j_free(jsock);
 }
 
@@ -359,9 +360,7 @@ JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
 
 void j_socket_set_recv_result(JSocket * jsock)
 {
-    if (jsock->recv_result) {
-        j_socket_recv_result_free(jsock->recv_result);
-    }
+    j_socket_remove_recv_result(jsock);
     jsock->recv_result =
         j_socket_recv_result_new(NULL, 0, J_SOCKET_RECV_NORMAL);
 }
