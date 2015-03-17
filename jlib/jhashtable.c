@@ -196,6 +196,9 @@ int j_hash_table_insert(JHashTable * h, void *key, void *value)
     if (h->value_func) {        /* free old value */
         h->value_func(node->value);
     }
+    if (h->key_func) {
+        h->key_func(key);
+    }
     node->value = value;
     return 1;
 }

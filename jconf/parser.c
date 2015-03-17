@@ -225,7 +225,7 @@ int j_conf_parser_parse(JConfParser * parser, const char *filepath,
     int ret = 0;
     char *data = j_file_readall(filepath);
     if (data == NULL) {
-        return j_conf_parser_error(errstr, j_strdup(strerror(errno)));
+        return j_conf_parser_error(errstr, "%s", strerror(errno));
     }
     data = j_conf_parser_preprocess(parser, data);
     char **lines = j_strsplit_c(data, '\n', -1);
@@ -472,7 +472,7 @@ int j_conf_parser_parse(JConfParser * parser, const char *filepath,
             goto OUT;
             break;
         case J_CONF_PARSER_STATE_SCOPE_START_END:
-            node = j_conf_node_new(J_CONF_NODE_SCOPE, name);
+            node = j_conf_node_new_take(J_CONF_NODE_SCOPE, name);
             name = NULL;
             if (value) {
                 if (!j_conf_node_set_arguments_take(node, value)) {

@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    j_socket_connect_to("127.0.0.1", "23456");
+    JSocket *client = j_socket_connect_to("127.0.0.1", "23456");
 
     JPollEvent events[16];
     int n = j_poll_wait(poll, events, 16, -1);
@@ -29,5 +29,9 @@ int main(int argc, char const *argv[])
     if (conn == NULL) {
         return 1;
     }
+    j_socket_close(conn);
+    j_poll_close(poll);
+    j_socket_close(client);
+    j_socket_close(listensock);
     return 0;
 }

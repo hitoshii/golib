@@ -1,4 +1,5 @@
 #include <jconf/jconf.h>
+#include <jlib/jlib.h>
 #include <stdio.h>
 
 
@@ -61,6 +62,8 @@ int main(int argc, char *argv[])
     char *error = NULL;
     if (!j_conf_parser_parse(p, "./test.conf", &error)) {
         printf("%s\n", error);
+        j_conf_parser_free(p);
+        j_free(error);
         return 1;
     }
     print_node(j_conf_parser_get_root(p), 0);
