@@ -8,7 +8,7 @@ int main(int argc, char const *argv[])
     if (logger == NULL) {
         return 1;
     }
-    j_logger_log(logger, J_LOG_LEVEL_VERBOSE, "what's ok");
+    j_logger_log(logger, J_LOG_LEVEL_INFO, "what's ok");
     j_logger_warning(logger, "what the fuck");
     j_logger_error(logger, "easy, just an error");
     j_logger_close(logger);

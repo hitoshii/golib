@@ -21,10 +21,10 @@
 #include <stdarg.h>
 
 typedef enum {
-    J_LOG_LEVEL_DEBUG,
-    J_LOG_LEVEL_VERBOSE,
-    J_LOG_LEVEL_WARNING,
-    J_LOG_LEVEL_ERROR,
+    J_LOG_LEVEL_DEBUG = 0,
+    J_LOG_LEVEL_INFO = 1,
+    J_LOG_LEVEL_WARNING = 2,
+    J_LOG_LEVEL_ERROR = 3,
 } JLogLevel;
 
 typedef struct {
@@ -51,7 +51,7 @@ void j_logger_log(JLogger * logger, JLogLevel level, const char *fmt, ...);
 #define j_logger_error(logger,fmt,...)  \
             j_logger_log(logger,J_LOG_LEVEL_ERROR,fmt,##__VA_ARGS__)
 #define j_logger_verbose(logger,fmt,...)    \
-            j_logger_log(logger,J_LOG_LEVEL_VERBOSE,fmt,##__VA_ARGS__)
+            j_logger_log(logger,J_LOG_LEVEL_INFO,fmt,##__VA_ARGS__)
 #define j_logger_debug(logger,fmt,...)  \
             j_logger_log(logger,J_LOG_LEVEL_DEBUG,fmt,##__VA_ARGS__)
 

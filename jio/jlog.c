@@ -46,7 +46,7 @@ static inline const char *j_logger_levelstr(JLogLevel level)
     switch (level) {
     case J_LOG_LEVEL_DEBUG:
         return "DEBUG";
-    case J_LOG_LEVEL_VERBOSE:
+    case J_LOG_LEVEL_INFO:
         return "INFO";
     case J_LOG_LEVEL_WARNING:
         return "WARNING";
