@@ -19,13 +19,19 @@
 #define __J_MOD_H__
 
 #include "struct.h"
-
+#include <jio/jio.h>
+#include <stdarg.h>
 
 /*
  * Loads a module from path
  * Returns NULL on error
  */
 JModule *j_mod_load(const char *location, const char *path);
+
+
+typedef void (*JModuleVLog) (JLogLevel level, const char *fmt, va_list ap);
+void j_mod_set_log_func(JModuleVLog func);
+void j_mod_log(JLogLevel level, const char *fmt, ...);
 
 
 #endif

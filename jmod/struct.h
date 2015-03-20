@@ -19,13 +19,19 @@
 #define __JMOD_STRUCT_H__
 
 
+#include <jconf/jconf.h>
 
-typedef void (*JModuleRegister) (void);
+typedef void (*JModuleInit) (void);
+typedef void (*JModuleLoadConfig) (JConfNode * root);
+typedef void (*JModuleServerInit) (int pid, const char *name,
+                                   unsigned short port);
 
 typedef struct {
     char *name;                 /* module name */
 
-    JModuleRegister init;
+    JModuleInit init;           /* 当模块载入时执行 */
+    JModuleLoadConfig config;   /* 读取配置文件 */
+    JModuleServerInit server_init;  /* 服务器开始时执行 */
 } JModule;
 
 
