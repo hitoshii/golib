@@ -34,20 +34,21 @@ struct _JSocket {
     char *sockname;
     char *peername;
 
-    int extra;
-
     JSocketRecvResult *recv_result;
+
+    void *data;
 };
 
-int j_socket_get_extra(JSocket * jsock)
+void *j_socket_get_data(JSocket * sock)
 {
-    return jsock->extra;
+    return sock->data;
 }
 
-void j_socket_set_extra(JSocket * jsock, int data)
+void j_socket_set_data(JSocket * sock, void *data)
 {
-    jsock->extra = data;
+    sock->data = data;
 }
+
 
 static inline JSocket *j_socket_alloc(int fd)
 {

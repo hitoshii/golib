@@ -22,12 +22,15 @@
 
 typedef struct _JSocket JSocket;
 
+
+
+void *j_socket_get_data(JSocket * sock);
+void j_socket_set_data(JSocket * sock, void *data);
+
 /*
  * Returns the UNIX file descriptor
  */
 int j_socket_get_fd(JSocket * jsock);
-int j_socket_get_extra(JSocket * jsock);
-void j_socket_set_extra(JSocket * jsock, int data);
 
 
 /* getpeername */
