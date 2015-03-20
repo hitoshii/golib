@@ -16,7 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jmod.h"
-#include <jlib/jlib.h>
 #include <jio/jio.h>
 #include <stdio.h>
 #include <dlfcn.h>
