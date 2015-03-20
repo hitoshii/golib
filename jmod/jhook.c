@@ -15,23 +15,43 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_MOD_H__
-#define __J_MOD_H__
-
-#include "struct.h"
 #include "jhook.h"
-#include <jio/jio.h>
-#include <stdarg.h>
+#include <jlib/jlib.h>
+
+static JList *accept_hooks = NULL;
+static JList *recv_hooks = NULL;
+static JList *send_hooks = NULL;
 
 /*
- * Loads a module from path
- * Returns NULL on error
+ * 获取相应的回调函数列表
  */
-JModule *j_mod_load(const char *location, const char *path);
+JList *j_mod_get_hooks(JModuleHookType type)
+{
+    switch (type) {
+    case J_HOOK_ACCEPT:
+        return accept_hooks;
+    case J_HOOK_RECV:
+        return recv_hooks;
+    case J_HOOK_SEND:
+        return send_hooks;
+    }
+    return NULL;
+}
 
-
-typedef void (*JModuleVLog) (JLogLevel level, const char *fmt, va_list ap);
-void j_mod_set_log_func(JModuleVLog func);
-void j_mod_log(JLogLevel level, const char *fmt, ...);
-
-#endif
+/*
+ * 注册回调函数
+ */
+void j_mod_register_hook(JModuleHookType type, void *hook)
+{
+    switch (type) {
+    case J_HOOK_ACCEPT:
+        accept_hooks = j_list_append(accept_hooks, hook);
+        break;
+    case J_HOOK_RECV:
+        recv_hooks = j_list_append(recv_hooks, hook);
+        break;
+    case J_HOOK_SEND:
+        send_hooks = j_list_append(send_hooks, hook);
+        break;
+    }
+}

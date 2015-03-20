@@ -15,7 +15,8 @@ lib_LTLIBRARIES = libjmod.la
 
 
 libjmod_la_SOURCES = \
-	jmod.c
+	jmod.c \
+	jhook.c
 
 libjmod_la_LDFLAGS = \
 	-ldl
@@ -28,7 +29,8 @@ jmodsubincludedir=$(jlib_includedir)/jmod
 
 jmodsubinclude_HEADERS= \
 	jmod.h \
-	struct.h
+	struct.h \
+	jhook.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jmod-0.1.pc
