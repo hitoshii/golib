@@ -19,6 +19,8 @@
 #define __J_MOD_HOOK_H__
 
 #include <jio/jio.h>
+#include <jlib/jlib.h>
+
 
 typedef enum {
     J_HOOK_ACCEPT,
@@ -32,10 +34,11 @@ typedef enum {
 typedef int (*JModuleAcceptHook) (JSocket * conn);
 
 
-#define J_RECV_OK   0
-#define J_RECV_DROP 1
-typedef int (*JModuleRecvHook) (JSocket * conn, const char *data,
-                                unsigned int len);
+#define J_RECV_IGNORE   0
+#define J_RECV_DROP     1
+#define J_RECV_RESPONSE 2
+typedef int (*JModuleRecvHook) (JSocket * conn, JByteArray * req,
+                                JByteArray * rep);
 
 #define J_SEND_OK   0
 #define J_SEND_DROP 1
