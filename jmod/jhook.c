@@ -55,3 +55,17 @@ void j_mod_register_hook(JModuleHookType type, void *hook)
         break;
     }
 }
+
+JModuleAccept *j_module_accept_new(void)
+{
+    JModuleAccept *acc = (JModuleAccept *) j_malloc(sizeof(JModuleAccept));
+    acc->array = j_byte_array_new();
+    acc->act = J_MODULE_ACCEPT_RECV;
+    return acc;
+}
+
+void j_module_accept_free(JModuleAccept * acc)
+{
+    j_byte_array_free(acc->array, 1);
+    j_free(acc);
+}

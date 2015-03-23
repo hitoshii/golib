@@ -29,9 +29,36 @@ typedef enum {
 } JModuleHookType;
 
 
-#define J_ACCEPT_OK 0
-#define J_ACCEPT_DROP   1       /* 丢弃连接 */
-typedef int (*JModuleAcceptHook) (JSocket * conn);
+/**************************** ACCEPT ******************************/
+typedef enum {
+    J_MODULE_ACCEPT_DROP,
+    J_MODULE_ACCEPT_SEND,
+    J_MODULE_ACCEPT_RECV,
+} JModuleAcceptAct;
+
+typedef struct {
+    JByteArray *array;
+    JModuleAcceptAct act;
+} JModuleAccept;
+#define j_module_accept_get_data(acc)   \
+                j_byte_array_get_data((acc)->array)
+#define j_module_accept_get_len(acc)    \
+                j_byte_array_get_len((acc)->array)
+#define j_module_accept_get_action(acc) \
+                ((acc)->act)
+#define j_module_accept_is_drop(acc)    \
+                j_module_accept_get_action(acc)==J_MODULE_ACCEPT_DROP
+#define j_module_accept_is_send(acc)    \
+                j_module_accept_get_action(acc)==J_MODULE_ACCEPT_SEND
+#define j_module_accept_is_recv(acc)    \
+                j_module_accept_get_action(acc)==J_MODULE_ACCEPT_RECV
+
+typedef void (*JModuleAcceptHook) (JSocket * conn, JModuleAccept * acc);
+
+JModuleAccept *j_module_accept_new(void);
+void j_module_accept_free(JModuleAccept * acc);
+
+/*************************END of ACCEPT *************************/
 
 
 #define J_RECV_IGNORE   0
