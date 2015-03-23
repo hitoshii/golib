@@ -40,12 +40,15 @@ typedef struct {
     JByteArray *array;
     JModuleAcceptAct act;
 } JModuleAccept;
+#define j_module_accept_get_byte_array(acc) \
+                (acc)->array
 #define j_module_accept_get_data(acc)   \
-                j_byte_array_get_data((acc)->array)
+                j_byte_array_get_data(j_module_accept_get_byte_array(acc))
 #define j_module_accept_get_len(acc)    \
-                j_byte_array_get_len((acc)->array)
+                j_byte_array_get_len(j_module_accept_get_byte_array(acc))
 #define j_module_accept_get_action(acc) \
                 ((acc)->act)
+#define j_module_accept_set_action(acc,action) (acc)->act=action
 #define j_module_accept_is_drop(acc)    \
                 j_module_accept_get_action(acc)==J_MODULE_ACCEPT_DROP
 #define j_module_accept_is_send(acc)    \
@@ -58,14 +61,45 @@ typedef void (*JModuleAcceptHook) (JSocket * conn, JModuleAccept * acc);
 JModuleAccept *j_module_accept_new(void);
 void j_module_accept_free(JModuleAccept * acc);
 
-/*************************END of ACCEPT *************************/
+/************************* END of ACCEPT *************************/
+
+/************************* RECV **********************************/
+
+typedef enum {
+    J_MODULE_RECV_DROP = 0,
+    J_MODULE_RECV_SEND = 1,
+    J_MODULE_RECV_RECV = 2,
+    J_MODULE_RECV_IGNORE = 2,
+} JModuleRecvAct;
+
+typedef struct {
+    JByteArray *array;
+    JModuleRecvAct act;
+} JModuleRecv;
+#define j_module_recv_get_byte_array(r) (r)->array
+#define j_module_recv_get_data(r)   \
+                j_byte_array_get_data(j_module_recv_get_byte_array(r))
+#define j_module_recv_get_len(r)    \
+                j_byte_array_get_len(j_module_recv_get_byte_array(r))
+#define j_module_recv_get_action(r) (r)->act
+#define j_module_recv_set_action(r,action) (r)->act=action
+#define j_module_recv_is_recv(r)    \
+                j_module_recv_get_action(r)==J_MODULE_RECV_RECV
+#define j_module_recv_is_send(r)    \
+                j_module_recv_get_action(r)==J_MODULE_RECV_SEND
+#define j_module_recv_is_drop(r)    \
+                j_module_recv_get_action(r)==J_MODULE_RECV_DROP
+
+JModuleRecv *j_module_recv_new(void);
+void j_module_recv_free(JModuleRecv * r);
+
+typedef void (*JModuleRecvHook) (JSocket * conn, const void *data,
+                                 unsigned int len,
+                                 JSocketRecvResultType type,
+                                 JModuleRecv * recv);
 
 
-#define J_RECV_IGNORE   0
-#define J_RECV_DROP     1
-#define J_RECV_RESPONSE 2
-typedef int (*JModuleRecvHook) (JSocket * conn, JByteArray * req,
-                                JByteArray * rep);
+/*********************** END of RECV *****************************/
 
 #define J_SEND_OK   0
 #define J_SEND_DROP 1

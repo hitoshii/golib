@@ -69,3 +69,17 @@ void j_module_accept_free(JModuleAccept * acc)
     j_byte_array_free(acc->array, 1);
     j_free(acc);
 }
+
+JModuleRecv *j_module_recv_new(void)
+{
+    JModuleRecv *r = (JModuleRecv *) j_malloc(sizeof(JModuleRecv));
+    r->array = j_byte_array_new();
+    r->act = J_MODULE_RECV_IGNORE;
+    return r;
+}
+
+void j_module_recv_free(JModuleRecv * r)
+{
+    j_byte_array_free(r->array, 1);
+    j_free(r);
+}
