@@ -24,8 +24,11 @@
 
 typedef enum {
     J_HOOK_ACCEPT,
+    J_HOOK_ACCEPT_ERROR,
     J_HOOK_RECV,
+    J_HOOK_RECV_ERROR,
     J_HOOK_SEND,
+    J_HOOK_SEND_ERROR,
 } JModuleHookType;
 
 
@@ -34,6 +37,8 @@ typedef enum {
     J_MODULE_ACCEPT_DROP = 0,
     J_MODULE_ACCEPT_SEND,
     J_MODULE_ACCEPT_RECV,
+    J_MODULE_ACCEPT_KEEP,       /* 不监听事件，单纯保持该连接 */
+    J_MODULE_ACCEPT_TAKE,       /* 由模块管理该JSocket */
 } JModuleAcceptAct;
 
 typedef struct {
@@ -61,15 +66,19 @@ typedef void (*JModuleAcceptHook) (JSocket * conn, JModuleAccept * acc);
 JModuleAccept *j_module_accept_new(void);
 void j_module_accept_free(JModuleAccept * acc);
 
+
+typedef void (*JModuleAcceptErrorHook) (void);
+
 /************************* END of ACCEPT *************************/
 
 /************************* RECV **********************************/
 
 typedef enum {
     J_MODULE_RECV_DROP = 0,
-    J_MODULE_RECV_SEND = 1,
-    J_MODULE_RECV_RECV = 2,
-    J_MODULE_RECV_IGNORE = 2,
+    J_MODULE_RECV_SEND,
+    J_MODULE_RECV_RECV,
+    J_MODULE_RECV_KEEP,         /* 不监听事件，单纯保持该连接 */
+    J_MODULE_RECV_TAKE,         /* 由模块管理该JSocket */
 } JModuleRecvAct;
 
 typedef struct {
@@ -98,6 +107,9 @@ typedef void (*JModuleRecvHook) (JSocket * conn, const void *data,
                                  JSocketRecvResultType type,
                                  JModuleRecv * recv);
 
+typedef void (*JModuleRecvErrorHook) (JSocket * conn, const void *data,
+                                      unsigned int len,
+                                      JSocketRecvResultType type);
 
 /*********************** END of RECV *****************************/
 
@@ -106,6 +118,8 @@ typedef enum {
     J_MODULE_SEND_DROP = 0,
     J_MODULE_SEND_SEND,
     J_MODULE_SEND_RECV,
+    J_MODULE_SEND_KEEP,         /* 不监听事件，单纯保持该连接 */
+    J_MODULE_SEND_TAKE,         /* 由模块管理该JSocket */
 } JModuleSendAct;
 
 typedef struct {
@@ -130,9 +144,13 @@ typedef struct {
 JModuleSend *j_module_send_new(void);
 void j_module_send_free(JModuleSend * s);
 
-typedef int (*JModuleSendHook) (JSocket * conn, const char *data,
-                                unsigned int count, unsigned int len,
-                                JModuleSend * send);
+typedef void (*JModuleSendHook) (JSocket * conn, const char *data,
+                                 unsigned int count, unsigned int len,
+                                 JModuleSend * send);
+
+typedef void (*JModuleSendErrorHook) (JSocket * conn, const char *data,
+                                      unsigned int count,
+                                      unsigned int len);
 
 /*********************** END of SEND ******************************/
 
