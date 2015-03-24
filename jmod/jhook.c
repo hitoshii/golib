@@ -83,3 +83,17 @@ void j_module_recv_free(JModuleRecv * r)
     j_byte_array_free(r->array, 1);
     j_free(r);
 }
+
+JModuleSend *j_module_send_new(void)
+{
+    JModuleSend *s = (JModuleSend *) j_malloc(sizeof(JModuleSend));
+    s->array = j_byte_array_new();
+    s->act = J_MODULE_SEND_RECV;
+    return s;
+}
+
+void j_module_send_free(JModuleSend * s)
+{
+    j_byte_array_free(s->array, 1);
+    j_free(s);
+}
