@@ -111,8 +111,5 @@ JSocketRecvResult *j_socket_recv(JSocket * jsock, unsigned int len);
 JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
                                           unsigned int len);
 
-void j_socket_set_recv_result(JSocket * jsock);
-void j_socket_remove_recv_result(JSocket * jsock);
-
 
 #endif

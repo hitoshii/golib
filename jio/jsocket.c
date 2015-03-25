@@ -34,8 +34,6 @@ struct _JSocket {
     char *sockname;
     char *peername;
 
-    JSocketRecvResult *recv_result;
-
     void *data;
 };
 
@@ -56,7 +54,6 @@ static inline JSocket *j_socket_alloc(int fd)
     jsock->fd = fd;
     jsock->sockname = NULL;
     jsock->peername = NULL;
-    jsock->recv_result = NULL;
     return jsock;
 }
 
@@ -212,7 +209,6 @@ void j_socket_close(JSocket * jsock)
     close(jsock->fd);
     j_free(jsock->peername);
     j_free(jsock->sockname);
-    j_socket_remove_recv_result(jsock);
     j_free(jsock);
 }
 
@@ -276,19 +272,6 @@ static inline JSocketRecvResult *j_socket_recv_result_new(void *data,
 }
 
 static inline JSocketRecvResult
-    * j_socket_recv_result_append(JSocketRecvResult * res,
-                                  JByteArray * array,
-                                  JSocketRecvResultType type)
-{
-    j_byte_array_preppend(array, res->data, res->len);
-    res->len = j_byte_array_get_len(array);
-    j_free(res->data);
-    res->data = j_byte_array_free(array, 0);
-    res->type = type;
-    return res;
-}
-
-static inline JSocketRecvResult
     * j_socket_recv_result_new_from_bytes(JByteArray * array,
                                           JSocketRecvResultType type)
 {
@@ -335,12 +318,9 @@ static inline JSocketRecvResult *j_socket_recv_with_flags(JSocket * sock,
         j_byte_array_append(array, buf, n);
     }
 
-    JSocketRecvResult *res = sock->recv_result;
-    if (res) {
-        sock->recv_result = j_socket_recv_result_append(res, array, type);
-    } else {
-        res = j_socket_recv_result_new_from_bytes(array, type);
-    }
+
+    JSocketRecvResult *res =
+        j_socket_recv_result_new_from_bytes(array, type);
 
     return res;
 }
@@ -357,19 +337,4 @@ JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
                                           unsigned int len)
 {
     return j_socket_recv_with_flags(jsock, len, MSG_DONTWAIT);
-}
-
-void j_socket_set_recv_result(JSocket * jsock)
-{
-    j_socket_remove_recv_result(jsock);
-    jsock->recv_result =
-        j_socket_recv_result_new(NULL, 0, J_SOCKET_RECV_NORMAL);
-}
-
-void j_socket_remove_recv_result(JSocket * jsock)
-{
-    if (jsock->recv_result) {
-        j_socket_recv_result_free(jsock->recv_result);
-        jsock->recv_result = NULL;
-    }
 }

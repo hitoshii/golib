@@ -5,14 +5,14 @@
 static int result = 0;
 
 
-static void recv_callback(JSocket * sock, JSocketRecvResult * res,
-                          void *user_data)
+static void recv_callback(JSocket * sock, const char *data,
+                          unsigned int count,
+                          JSocketRecvResultType type, void *user_data)
 {
-    if (res == NULL) {
+    if (type == J_SOCKET_RECV_ERR || data == NULL || count == 0) {
         result = 1;
+        printf("recv error!\n");
     } else {
-        unsigned int count = j_socket_recv_result_get_len(res);
-        void *data = j_socket_recv_result_get_data(res);
         if (count != 7) {
             result = 1;
             printf("recv fail!\n");

@@ -94,7 +94,9 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
  * Receives data asynchronously
  */
 typedef void (*JSocketRecvNotify) (JSocket * sock,
-                                   JSocketRecvResult * res,
+                                   const char *data,
+                                   unsigned int len,
+                                   JSocketRecvResultType type,
                                    void *user_data);
 void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
                          void *user_data);
