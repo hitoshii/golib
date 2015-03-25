@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 static int result = 0;
+static int send = 0;
 
 
 static void recv_callback(JSocket * sock, const char *data,
@@ -24,8 +25,12 @@ static void recv_callback(JSocket * sock, const char *data,
             result = 0;
         }
     }
-    j_socket_close(sock);
-    j_main_quit();
+    if (send == 1) {
+        j_socket_close(sock);
+        send = 2;
+    } else {
+        send = 1;
+    }
 }
 
 static void send_callback(JSocket * sock, const void *data,
@@ -35,7 +40,12 @@ static void send_callback(JSocket * sock, const void *data,
     if (count == len) {
         printf("send all: %u\n", len);
         result = 0;
-        j_socket_recv_len_async(sock, recv_callback, 7, user_data);
+        if (send == 1) {
+            j_socket_close(sock);
+            send = 2;
+        } else {
+            send = 1;
+        }
     } else {
         printf("send %u/%u\n", len, count);
         result = 1;
@@ -53,10 +63,27 @@ static int async_callback(JSocket * listen, JSocket * conn,
         j_main_quit();
     } else {
         printf("accepted:%s\n", (char *) user_data);
-        j_socket_send_async(conn, send_callback, "hello world", 12, NULL);
+        j_socket_send_async(conn, send_callback, "hello world", 11, NULL);
+        j_socket_send_async(conn, send_callback, "hello world", 5, NULL);
+        j_socket_recv_len_async(conn, recv_callback, 7, user_data);
     }
 
     return 0;
+}
+
+static void client_recv_callback(JSocket * sock, const char *data,
+                                 unsigned int count,
+                                 JSocketRecvResultType type,
+                                 void *user_data)
+{
+    if (count > 0) {
+        char *buf = j_strndup(data, count);
+        printf("client: %s!\n", buf);
+        j_free(buf);
+    } else {
+        result = 1;
+    }
+    j_main_quit();
 }
 
 int main(int argc, char *argv[])
@@ -68,6 +95,7 @@ int main(int argc, char *argv[])
     j_socket_accept_async(jsock, async_callback, "nice");
     JSocket *client = j_socket_connect_to("127.0.0.1", "22346");
     j_socket_send(client, "hello 111", 7);
+    j_socket_recv_len_async(client, client_recv_callback, 13, NULL);
 
     j_main();
 
