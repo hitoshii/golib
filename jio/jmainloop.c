@@ -41,17 +41,13 @@ JMainLoop *j_main_loop_default(void)
     return main_loop;
 }
 
-typedef enum {
-    J_SOCKET_EVENT_ACCEPT,
-    J_SOCKET_EVENT_SEND,
-    J_SOCKET_EVENT_RECV,
-    J_SOCKET_EVENT_SEND_RECV,
-    J_SOCKET_EVENT_KEEP,
-} JSocketEventType;
+#define J_SOCKET_EVENT_ACCEPT 0x01
+#define J_SOCKET_EVENT_SEND   0x02
+#define J_SOCKET_EVENT_RECV   0x04
 
 typedef struct {
     JSocket *socket;
-    JSocketEventType event;
+    unsigned int event;
     void *user_data;
     /* callback */
     JSocketAcceptNotify accept_callback;
@@ -77,23 +73,21 @@ typedef struct {
 #define j_source_get_recv_len(src)  (src)->recv_len
 
 static inline JSource *j_source_new(JSocket * socket,
-                                    JSocketEventType event, void *data,
+                                    unsigned int event, void *data,
                                     void *callback);
 static inline JSocket *j_source_free(JSource * src);
 
 
 static inline unsigned int j_source_get_events(JSource * src)
 {
-    if (j_source_get_event(src) == J_SOCKET_EVENT_SEND) {
-        return J_POLLOUT;
-    } else if (j_source_get_event(src) == J_SOCKET_EVENT_RECV) {
-        return J_POLLIN;
-    } else if (j_source_get_event(src) == J_SOCKET_EVENT_SEND_RECV) {
-        return J_POLLIN | J_POLLOUT;
-    } else if (j_source_get_event(src) == J_SOCKET_EVENT_ACCEPT) {
-        return J_POLLIN;
+    unsigned int events = J_POLLERR | J_POLLHUP;
+    if (j_source_get_event(src) & J_SOCKET_EVENT_SEND) {
+        events = events | J_POLLOUT;
+    } else if (j_source_get_event(src) & J_SOCKET_EVENT_RECV ||
+               j_source_get_event(src) & J_SOCKET_EVENT_ACCEPT) {
+        events = events | J_POLLIN;
     }
-    return J_POLLERR;
+    return events;
 }
 
 static inline JPoll *j_main_loop_get_poll(JMainLoop * loop);
@@ -103,6 +97,9 @@ static inline void j_main_loop_remove_source(JMainLoop * loop,
                                              JSource * src);
 static inline void j_main_loop_update_source(JMainLoop * loop,
                                              JSource * src);
+/* */
+static inline void j_main_loop_clean_recv(JMainLoop * loop, JSource * src);
+static inline void j_main_loop_clean_send(JMainLoop * loop, JSource * src);
 
 /*
  * Allocates memory for JMainLoop structure
@@ -154,46 +151,13 @@ void j_main_loop_run(JMainLoop * loop)
             unsigned int recv_len = j_source_get_recv_len(src);
             JByteArray *recv_data = j_source_get_recv_data(src);
 
-
-            switch (j_source_get_event(src)) {
-            case J_SOCKET_EVENT_ACCEPT:    /* Accept */
-                if (evnts & J_POLLIN) {
+            if (evnts & J_POLLIN) { /* 接受数据 */
+                if (j_source_get_event(src) == J_SOCKET_EVENT_ACCEPT) {
                     JSocket *conn = j_socket_accept(socket);
                     if (!accept_callback(socket, conn, user_data)) {
                         j_main_loop_remove_source(loop, src);
                     }
                 } else {
-                    accept_callback(socket, NULL, user_data);
-                    j_main_loop_remove_source(loop, src);
-                }
-                break;
-            case J_SOCKET_EVENT_KEEP:  /* Keep */
-            case J_SOCKET_EVENT_SEND:
-            case J_SOCKET_EVENT_RECV:
-            case J_SOCKET_EVENT_SEND_RECV:
-                if (evnts & J_POLLOUT) {
-                    int n = j_socket_send_dontwait(socket,
-                                                   send_data + send_len,
-                                                   send_count - send_len);
-                    if (n > 0) {
-                        send_len += n;
-                        if (send_len < send_count) {
-                            src->send_len = send_len;
-                        } else {
-                            src->send_data = NULL;
-                            if (src->event == J_SOCKET_EVENT_SEND_RECV) {
-                                src->event = J_SOCKET_EVENT_RECV;
-                                j_main_loop_update_source(loop, src);
-                            } else {
-                                j_main_loop_remove_source(loop, src);
-                            }
-                            send_callback(socket, send_data, send_count,
-                                          send_len, user_data);
-                            j_byte_array_free(send_bytes, 1);
-                        }
-                    }
-                }
-                if (evnts & J_POLLIN) {
                     JSocketRecvResult *res =
                         j_socket_recv_dontwait(socket, recv_len);
                     j_byte_array_append(recv_data,
@@ -204,12 +168,7 @@ void j_main_loop_run(JMainLoop * loop)
                         src->recv_len -= j_socket_recv_result_get_len(res);
                     } else {
                         src->recv_data = NULL;
-                        if (src->event == J_SOCKET_EVENT_SEND_RECV) {
-                            src->event = J_SOCKET_EVENT_SEND;
-                            j_main_loop_update_source(loop, src);
-                        } else {
-                            j_main_loop_remove_source(loop, src);
-                        }
+                        j_main_loop_clean_recv(loop, src);
                         read_callback(socket,
                                       j_byte_array_get_data(recv_data),
                                       j_byte_array_get_len(recv_data),
@@ -219,20 +178,36 @@ void j_main_loop_run(JMainLoop * loop)
                     }
                     j_socket_recv_result_free(res);
                 }
-                if (evnts & J_POLLHUP || evnts & J_POLLERR) {
-                    src->send_data = NULL;
-                    j_main_loop_remove_source(loop, src);
-                    if (read_callback) {
-                        read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
-                                      user_data);
-                    }
-                    if (send_callback) {
+            }
+            if (evnts & J_POLLOUT) {    /* 发送数据 */
+                int n = j_socket_send_dontwait(socket,
+                                               send_data + send_len,
+                                               send_count - send_len);
+                if (n > 0) {
+                    send_len += n;
+                    if (send_len < send_count) {
+                        src->send_len = send_len;
+                    } else {
+                        src->send_data = NULL;
+                        j_main_loop_clean_send(loop, src);
                         send_callback(socket, send_data, send_count,
                                       send_len, user_data);
+                        j_byte_array_free(send_bytes, 1);
                     }
-                    j_byte_array_free(send_data, 1);
                 }
-                break;
+            }
+            if (evnts & J_POLLHUP || evnts & J_POLLERR) {   /* 监听出错 */
+                src->send_data = NULL;
+                j_main_loop_remove_source(loop, src);
+                if (read_callback) {
+                    read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
+                                  user_data);
+                }
+                if (send_callback) {
+                    send_callback(socket, send_data, send_count,
+                                  send_len, user_data);
+                }
+                j_byte_array_free(send_data, 1);
             }
         }
     }
@@ -319,6 +294,8 @@ void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
 }
 
 
+/************************ Mainloop ****************************/
+
 static inline JMainLoop *j_main_loop_alloc(JPoll * poll)
 {
     JMainLoop *ml = (JMainLoop *) j_malloc(sizeof(JMainLoop));
@@ -355,66 +332,33 @@ static inline int j_main_loop_append_source(JMainLoop * loop,
         return 1;
     }
 
-    unsigned int origin_event = j_source_get_event(origin);
-    unsigned int event = j_source_get_event(src);
-
-    if (origin_event == J_SOCKET_EVENT_ACCEPT
-        || event == J_SOCKET_EVENT_ACCEPT) {
-        j_source_free(src);
-        return 0;
-    } else if (event == J_SOCKET_EVENT_KEEP) {
-        j_source_free(src);
-        return 1;
-    } else if (origin_event == J_SOCKET_EVENT_KEEP) {
-        j_main_loop_remove_source(loop, origin);
-        return j_main_loop_append_source(loop, src);
-    } else if (origin_event == event) {
-        if (event == J_SOCKET_EVENT_RECV) {
-            j_source_free(src);
-            return 1;
-        } else if (event == J_SOCKET_EVENT_SEND) {
+    /* 合并两个source事件 */
+    if (src->event & J_SOCKET_EVENT_SEND) {
+        if (origin->send_data) {
             j_byte_array_append(origin->send_data,
                                 j_byte_array_get_data(src->send_data),
                                 j_byte_array_get_len(src->send_data));
-            j_source_free(src);
-            return 1;
+        } else {
+            origin->send_data = src->send_data;
+            src->send_data = NULL;
+            origin->send_len = 0;
         }
-    } else if (origin_event == J_SOCKET_EVENT_RECV) {
-        origin->event = J_SOCKET_EVENT_SEND_RECV;
-        origin->send_data = src->send_data;
-        origin->send_len = src->send_len;
         origin->send_callback = src->send_callback;
-        src->send_data = NULL;
-        j_source_free(src);
-
-        unsigned int events = j_source_get_events(origin);
-        if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events, sock, origin)) {
-            j_main_loop_remove_source(loop, origin);
-            return 0;
-        }
-    } else if (origin_event == J_SOCKET_EVENT_SEND) {
-        origin->event = J_SOCKET_EVENT_SEND_RECV;
+    }
+    if (src->event & J_SOCKET_EVENT_RECV
+        && !(origin->event & J_SOCKET_EVENT_RECV)) {
         origin->recv_data = src->recv_data;
         origin->recv_len = src->recv_len;
         origin->recv_callback = src->recv_callback;
         src->recv_data = NULL;
-        j_source_free(src);
+    }
+    origin->event = origin->event | src->event;
+    j_source_free(src);
 
-        unsigned int events = j_source_get_events(origin);
-        if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events, sock, origin)) {
-            j_main_loop_remove_source(loop, origin);
-            return 0;
-        }
-    } else if (origin_event == J_SOCKET_EVENT_SEND_RECV) {
-        if (event == J_SOCKET_EVENT_RECV) {
-            j_source_free(src);
-            return 1;
-        }
-        j_byte_array_append(origin->send_data,
-                            j_byte_array_get_data(src->send_data),
-                            j_byte_array_get_len(src->send_data));
-        j_source_free(src);
-        return 1;
+    unsigned int events = j_source_get_events(origin);
+    if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events, sock, origin)) {
+        j_main_loop_remove_source(loop, origin);
+        return 0;
     }
     return 1;
 }
@@ -429,10 +373,16 @@ static inline void j_main_loop_update_source(JMainLoop * loop,
     JPoll *poll = j_main_loop_get_poll(loop);
 
     unsigned int events = j_source_get_events(src);
-    if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events, sock, src)) {
+
+    if (j_source_get_event(src)) {
+        if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events, sock, src)) {
+            j_main_loop_remove_source(loop, src);
+        }
+    } else {
         j_main_loop_remove_source(loop, src);
     }
 }
+
 
 static inline void j_main_loop_remove_source(JMainLoop * loop,
                                              JSource * src)
@@ -443,8 +393,21 @@ static inline void j_main_loop_remove_source(JMainLoop * loop,
     j_hash_table_remove_full(loop->sources, j_source_get_socket(src));
 }
 
+/* */
+static inline void j_main_loop_clean_recv(JMainLoop * loop, JSource * src)
+{
+    src->event &= ~J_SOCKET_EVENT_RECV;
+    j_main_loop_update_source(loop, src);
+}
+
+static inline void j_main_loop_clean_send(JMainLoop * loop, JSource * src)
+{
+    src->event &= ~J_SOCKET_EVENT_SEND;
+    j_main_loop_update_source(loop, src);
+}
+
 static inline JSource *j_source_new(JSocket * socket,
-                                    JSocketEventType event,
+                                    unsigned int event,
                                     void *user_data, void *callback)
 {
     JSource *src = (JSource *) j_malloc(sizeof(JSource));

@@ -68,6 +68,7 @@ static int async_callback(JSocket * listen, JSocket * conn,
         j_socket_recv_len_async(conn, recv_callback, 7, user_data);
     }
 
+    j_socket_close(listen);
     return 0;
 }
 
@@ -100,6 +101,5 @@ int main(int argc, char *argv[])
     j_main();
 
     j_socket_close(client);
-    j_socket_close(jsock);
     return result;
 }
