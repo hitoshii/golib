@@ -38,7 +38,6 @@ typedef enum {
     J_MODULE_ACCEPT_SEND,
     J_MODULE_ACCEPT_RECV,
     J_MODULE_ACCEPT_KEEP,       /* 不监听事件，单纯保持该连接 */
-    J_MODULE_ACCEPT_TAKE,       /* 由模块管理该JSocket */
 } JModuleAcceptAct;
 
 typedef struct {
@@ -78,7 +77,6 @@ typedef enum {
     J_MODULE_RECV_SEND,
     J_MODULE_RECV_RECV,
     J_MODULE_RECV_KEEP,         /* 不监听事件，单纯保持该连接 */
-    J_MODULE_RECV_TAKE,         /* 由模块管理该JSocket */
 } JModuleRecvAct;
 
 typedef struct {
@@ -119,7 +117,6 @@ typedef enum {
     J_MODULE_SEND_SEND,
     J_MODULE_SEND_RECV,
     J_MODULE_SEND_KEEP,         /* 不监听事件，单纯保持该连接 */
-    J_MODULE_SEND_TAKE,         /* 由模块管理该JSocket */
 } JModuleSendAct;
 
 typedef struct {

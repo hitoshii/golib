@@ -17,6 +17,7 @@
  */
 
 #include "jsocket.h"
+#include "jmainloop.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -337,4 +338,155 @@ JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
                                           unsigned int len)
 {
     return j_socket_recv_with_flags(jsock, len, MSG_DONTWAIT);
+}
+
+/*
+ * data必须为四个字节
+ * 解析四个字节的二进制数组
+ * 返回长度
+ */
+static inline unsigned int parse_length(const char *data);
+
+/*
+ * 生成四个字节的数组，表示长度len
+ */
+static inline const void *generate_length(unsigned int len);
+
+/* 中间数据 */
+typedef struct {
+    void *notify;
+    void *user_data;
+    unsigned int len;
+} JSocketPackageData;
+
+static inline JSocketPackageData
+    * j_socket_package_data_new(void *notify, void *user_data)
+{
+    JSocketPackageData *data =
+        (JSocketPackageData *) j_malloc(sizeof(JSocketPackageData));
+    data->notify = notify;
+    data->user_data = user_data;
+    return data;
+}
+
+static inline void j_socket_package_data_free(JSocketPackageData * data)
+{
+    j_free(data);
+}
+
+
+/*
+ * 获取消息内容的回调函数
+ */
+static void recv_package_callback(JSocket * sock, const char *buf,
+                                  unsigned int count,
+                                  JSocketRecvResultType type, void *udata)
+{
+    JSocketPackageData *data = (JSocketPackageData *) udata;
+    JSocketRecvPackageNotify notify =
+        (JSocketRecvPackageNotify) data->notify;
+    void *user_data = data->user_data;
+    unsigned int len = data->len;
+
+    if (buf == NULL || type == J_SOCKET_RECV_ERR) {
+        notify(sock, NULL, 0, J_SOCKET_RECV_ERR, user_data);
+    } else if (count != len) {
+        notify(sock, NULL, 0, type, user_data);
+    } else {
+        notify(sock, buf, len, type, user_data);
+    }
+    j_socket_package_data_free(data);
+}
+
+/*
+ * 获取消息长度的回调函数
+ */
+static void recv_package_len_callback(JSocket * sock,
+                                      const char *buf,
+                                      unsigned int count,
+                                      JSocketRecvResultType type,
+                                      void *udata)
+{
+    JSocketPackageData *data = (JSocketPackageData *) udata;
+    JSocketRecvPackageNotify notify =
+        (JSocketRecvPackageNotify) data->notify;
+    void *user_data = data->user_data;
+    if (type == J_SOCKET_RECV_ERR || buf == NULL) {
+        notify(sock, NULL, 0, J_SOCKET_RECV_ERR, user_data);
+        j_socket_package_data_free(data);
+        return;
+    }
+    unsigned int len = parse_length((const char *) buf);
+    if (count != 4 || type != J_SOCKET_RECV_NORMAL || len == 0) {
+        notify(sock, NULL, 0, type, user_data);
+        j_socket_package_data_free(data);
+        return;
+    }
+    data->len = len;
+    j_socket_recv_len_async(sock, recv_package_callback, len, data);
+}
+
+void j_socket_recv_package(JSocket * sock, JSocketRecvPackageNotify notify,
+                           void *user_data)
+{
+    JSocketPackageData *data =
+        j_socket_package_data_new(notify, user_data);
+    j_socket_recv_len_async(sock, recv_package_len_callback, 4, data);
+}
+
+
+/********************** 发送消息 ************************************/
+
+static void send_package_callback(JSocket * sock, const void *data,
+                                  unsigned int count, unsigned int n,
+                                  void *udata)
+{
+    JSocketPackageData *pdata = (JSocketPackageData *) udata;
+    JSocketSendPackageNotify notify =
+        (JSocketSendPackageNotify) pdata->notify;
+    void *user_data = pdata->user_data;
+
+    notify(sock, data, count, n, user_data);
+
+    j_socket_package_data_free(pdata);
+}
+
+void j_socket_send_package(JSocket * sock, JSocketSendPackageNotify notify,
+                           const void *data, unsigned int len,
+                           void *user_data)
+{
+    if (len == 0) {
+        return;
+    }
+    JSocketPackageData *pdata =
+        j_socket_package_data_new(notify, user_data);
+    const void *buf = generate_length(len);
+    JByteArray *array = j_byte_array_new();
+    j_byte_array_append(array, buf, 4);
+    j_byte_array_append(array, data, len);
+    j_socket_send_async(sock, send_package_callback,
+                        j_byte_array_get_data(array),
+                        j_byte_array_get_len(array), pdata);
+    j_byte_array_free(array, 1);
+}
+
+
+static inline unsigned int parse_length(const char *data)
+{
+    unsigned int sum = 0;
+    sum += data[0] << 24;
+    sum += data[1] << 16;
+    sum += data[2] << 8;
+    sum += data[3];
+    return sum;
+}
+
+static inline const void *generate_length(unsigned int len)
+{
+    static char buf[4];
+    buf[0] = len / (1 << 24);
+    buf[1] = len % (1 << 24) / (1 << 16);
+    buf[2] = len % (1 << 16) / (1 << 8);
+    buf[3] = len % (1 << 8);
+    return (const void *) buf;
 }
