@@ -41,10 +41,6 @@ JMainLoop *j_main_loop_default(void)
     return main_loop;
 }
 
-#define J_SOCKET_EVENT_ACCEPT 0x01
-#define J_SOCKET_EVENT_SEND   0x02
-#define J_SOCKET_EVENT_RECV   0x04
-
 typedef struct {
     JSocket *socket;
     unsigned int event;
@@ -404,6 +400,33 @@ static inline void j_main_loop_clean_send(JMainLoop * loop, JSource * src)
 {
     src->event &= ~J_SOCKET_EVENT_SEND;
     j_main_loop_update_source(loop, src);
+}
+
+/*
+ * 遍历所有的socket
+ */
+typedef struct {
+    JMainLoopForeach func;
+    void *user_data;
+} ForeachData;
+static int hash_table_foreach(void *key, void *value, void *user_data)
+{
+    ForeachData *data = (ForeachData *) user_data;
+    JMainLoopForeach func = data->func;
+    JSocket *socket = (JSocket *) key;
+    JSource *src = (JSource *) value;
+    func(socket, j_source_get_event(src), data->user_data);
+    return 1;
+}
+
+void j_main_loop_foreach_socket(JMainLoop * loop, JMainLoopForeach foreach,
+                                void *user_data)
+{
+    ForeachData data = {
+        foreach,
+        user_data
+    };
+    j_hash_table_foreach(loop->sources, hash_table_foreach, &data);
 }
 
 static inline JSource *j_source_new(JSocket * socket,

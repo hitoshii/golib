@@ -44,6 +44,17 @@ void j_main_loop_quit(JMainLoop * loop);
 
 void j_main_loop_free(JMainLoop * loop);
 
+#define J_SOCKET_EVENT_ACCEPT 0x01
+#define J_SOCKET_EVENT_SEND   0x02
+#define J_SOCKET_EVENT_RECV   0x04
+typedef void (*JMainLoopForeach) (JSocket * sock, unsigned int events,
+                                  void *user_data);
+/*
+ * 遍历所有的socket
+ */
+void j_main_loop_foreach_socket(JMainLoop * loop, JMainLoopForeach foreach,
+                                void *user_data);
+
 /*
  * Runs the default main loop
  */
