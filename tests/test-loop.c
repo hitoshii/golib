@@ -6,9 +6,9 @@ static int result = 0;
 static int send = 0;
 
 
-static void recv_callback(JSocket * sock, const char *data,
-                          unsigned int count,
-                          JSocketRecvResultType type, void *user_data)
+static int recv_callback(JSocket * sock, const char *data,
+                         unsigned int count,
+                         JSocketRecvResultType type, void *user_data)
 {
     if (type == J_SOCKET_RECV_ERR || data == NULL || count == 0) {
         result = 1;
@@ -31,6 +31,7 @@ static void recv_callback(JSocket * sock, const char *data,
     } else {
         send = 1;
     }
+    return 0;
 }
 
 static void send_callback(JSocket * sock, const void *data,
@@ -72,10 +73,10 @@ static int async_callback(JSocket * listen, JSocket * conn,
     return 0;
 }
 
-static void client_recv_callback(JSocket * sock, const char *data,
-                                 unsigned int count,
-                                 JSocketRecvResultType type,
-                                 void *user_data)
+static int client_recv_callback(JSocket * sock, const char *data,
+                                unsigned int count,
+                                JSocketRecvResultType type,
+                                void *user_data)
 {
     if (count > 0) {
         char *buf = j_strndup(data, count);
@@ -85,6 +86,7 @@ static void client_recv_callback(JSocket * sock, const char *data,
         result = 1;
     }
     j_main_quit();
+    return 0;
 }
 
 int main(int argc, char *argv[])

@@ -40,4 +40,6 @@ void j_byte_array_preppend(JByteArray * ba, const void *data,
 
 void *j_byte_array_free(JByteArray * ba, int f);
 
+void j_byte_array_clear(JByteArray * ba);
+
 #endif

@@ -9,6 +9,7 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS =\
 	 -Wall\
+	 -O0 \
 	 -g
 
 lib_LTLIBRARIES = libjio.la

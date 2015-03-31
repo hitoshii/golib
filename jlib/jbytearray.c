@@ -73,6 +73,11 @@ void j_byte_array_preppend(JByteArray * ba, const void *data,
     ba->len += len;
 }
 
+void j_byte_array_clear(JByteArray * ba)
+{
+    ba->len = 0;
+}
+
 void *j_byte_array_free(JByteArray * ba, int f)
 {
     void *data = j_byte_array_get_data(ba);

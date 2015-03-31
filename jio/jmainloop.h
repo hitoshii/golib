@@ -44,9 +44,6 @@ void j_main_loop_quit(JMainLoop * loop);
 
 void j_main_loop_free(JMainLoop * loop);
 
-#define J_SOCKET_EVENT_ACCEPT 0x01
-#define J_SOCKET_EVENT_SEND   0x02
-#define J_SOCKET_EVENT_RECV   0x04
 typedef void (*JMainLoopForeach) (JSocket * sock, unsigned int events,
                                   void *user_data);
 /*
@@ -104,11 +101,11 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
 /*
  * Receives data asynchronously
  */
-typedef void (*JSocketRecvNotify) (JSocket * sock,
-                                   const char *data,
-                                   unsigned int len,
-                                   JSocketRecvResultType type,
-                                   void *user_data);
+typedef int (*JSocketRecvNotify) (JSocket * sock,
+                                  const char *data,
+                                  unsigned int len,
+                                  JSocketRecvResultType type,
+                                  void *user_data);
 void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
                          void *user_data);
 void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
