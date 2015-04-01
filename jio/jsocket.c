@@ -207,6 +207,8 @@ int j_socket_connect(JSocket * jsock, const char *server,
  */
 void j_socket_close(JSocket * jsock)
 {
+    JMainLoop *loop = j_main_loop_default();
+    j_main_loop_remove_socket(loop, jsock);
     close(jsock->fd);
     j_free(jsock->peername);
     j_free(jsock->sockname);
@@ -378,9 +380,9 @@ static inline void j_socket_package_data_free(JSocketPackageData * data)
 /*
  * 获取消息内容的回调函数
  */
-static int recv_package_callback(JSocket * sock, const char *buf,
-                                 unsigned int count,
-                                 JSocketRecvResultType type, void *udata)
+static void recv_package_callback(JSocket * sock, const char *buf,
+                                  unsigned int count,
+                                  JSocketRecvResultType type, void *udata)
 {
     JSocketPackageData *data = (JSocketPackageData *) udata;
     JSocketRecvPackageNotify notify =
@@ -396,17 +398,16 @@ static int recv_package_callback(JSocket * sock, const char *buf,
         notify(sock, buf, len, type, user_data);
     }
     j_socket_package_data_free(data);
-    return 0;
 }
 
 /*
  * 获取消息长度的回调函数
  */
-static int recv_package_len_callback(JSocket * sock,
-                                     const char *buf,
-                                     unsigned int count,
-                                     JSocketRecvResultType type,
-                                     void *udata)
+static void recv_package_len_callback(JSocket * sock,
+                                      const char *buf,
+                                      unsigned int count,
+                                      JSocketRecvResultType type,
+                                      void *udata)
 {
     JSocketPackageData *data = (JSocketPackageData *) udata;
     JSocketRecvPackageNotify notify =
@@ -415,17 +416,16 @@ static int recv_package_len_callback(JSocket * sock,
     if (type == J_SOCKET_RECV_ERR || buf == NULL) {
         notify(sock, NULL, 0, J_SOCKET_RECV_ERR, user_data);
         j_socket_package_data_free(data);
-        return 0;
+        return;
     }
     unsigned int len = parse_length((const char *) buf);
     if (count != 4 || type != J_SOCKET_RECV_NORMAL || len == 0) {
         notify(sock, NULL, 0, type, user_data);
         j_socket_package_data_free(data);
-        return 0;
+        return;
     }
     data->len = len;
     j_socket_recv_len_async(sock, recv_package_callback, len, data);
-    return 1;
 }
 
 void j_socket_recv_package(JSocket * sock, JSocketRecvPackageNotify notify,

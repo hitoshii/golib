@@ -6,13 +6,13 @@ static int result = 0;
 static int send = 0;
 
 
-static int recv_callback(JSocket * sock, const char *data,
-                         unsigned int count,
-                         JSocketRecvResultType type, void *user_data)
+static void recv_callback(JSocket * sock, const char *data,
+                          unsigned int count,
+                          JSocketRecvResultType type, void *user_data)
 {
     if (type == J_SOCKET_RECV_ERR || data == NULL || count == 0) {
         result = 1;
-        printf("recv error!\n");
+        printf("recv error! %d, %d\n", type, count);
     } else {
         if (count != 7) {
             result = 1;
@@ -31,7 +31,6 @@ static int recv_callback(JSocket * sock, const char *data,
     } else {
         send = 1;
     }
-    return 0;
 }
 
 static void send_callback(JSocket * sock, const void *data,
@@ -55,8 +54,8 @@ static void send_callback(JSocket * sock, const void *data,
     }
 }
 
-static int async_callback(JSocket * listen, JSocket * conn,
-                          void *user_data)
+static void async_callback(JSocket * listen, JSocket * conn,
+                           void *user_data)
 {
     if (conn == NULL) {
         printf("failed:%s\n", (char *) user_data);
@@ -70,13 +69,12 @@ static int async_callback(JSocket * listen, JSocket * conn,
     }
 
     j_socket_close(listen);
-    return 0;
 }
 
-static int client_recv_callback(JSocket * sock, const char *data,
-                                unsigned int count,
-                                JSocketRecvResultType type,
-                                void *user_data)
+static void client_recv_callback(JSocket * sock, const char *data,
+                                 unsigned int count,
+                                 JSocketRecvResultType type,
+                                 void *user_data)
 {
     if (count > 0) {
         char *buf = j_strndup(data, count);
@@ -85,8 +83,8 @@ static int client_recv_callback(JSocket * sock, const char *data,
     } else {
         result = 1;
     }
+    j_socket_close(sock);
     j_main_quit();
-    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -102,6 +100,5 @@ int main(int argc, char *argv[])
 
     j_main();
 
-    j_socket_close(client);
     return result;
 }

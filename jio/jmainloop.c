@@ -150,15 +150,29 @@ void j_main_loop_run(JMainLoop * loop)
             unsigned int recv_len = j_source_get_recv_len(src);
             JByteArray *recv_data = j_source_get_recv_data(src);
 
+            if (evnts & J_POLLHUP || evnts & J_POLLERR) {   /* 监听出错 */
+/*                src->send_data = NULL;*/
+                j_main_loop_remove_source(loop, src);
+                continue;
+/*                if (read_callback) {*/
+/*                    read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,*/
+/*                                  recv_udata);*/
+/*                }*/
+/*                if (send_callback) {*/
+/*                    send_callback(socket, send_data, send_count,*/
+/*                                  send_len, send_udata);*/
+/*                }*/
+/*                j_byte_array_free(send_data, 1);*/
+            }
+
             if (evnts & J_POLLIN) { /* 接受数据 */
                 if (j_source_is_accept(src)) {
                     JSocket *conn = j_socket_accept(socket);
-                    if (!accept_callback(socket, conn, accept_udata)) {
-                        j_main_loop_remove_source(loop, src);
-                    }
+                    accept_callback(socket, conn, accept_udata);
                 } else {
                     JSocketRecvResult *res =
                         j_socket_recv_dontwait(socket, recv_len);
+
                     j_byte_array_append(recv_data,
                                         j_socket_recv_result_get_data(res),
                                         j_socket_recv_result_get_len(res));
@@ -166,16 +180,21 @@ void j_main_loop_run(JMainLoop * loop)
                         && j_socket_recv_result_is_normal(res)) {
                         src->recv_len -= j_socket_recv_result_get_len(res);
                     } else {
-                        if (!read_callback(socket,
-                                           j_byte_array_get_data
-                                           (recv_data),
-                                           j_byte_array_get_len(recv_data),
-                                           j_socket_recv_result_get_type
-                                           (res), recv_udata)) {
-                            j_main_loop_clean_recv(loop, src);
-                        } else {
-                            j_source_clear_recv(src);
+                        unsigned int count =
+                            j_byte_array_get_len(recv_data);
+                        void *data = NULL;
+                        if (count) {
+                            data =
+                                j_memdup(j_byte_array_get_data(recv_data),
+                                         count);
                         }
+                        j_main_loop_clean_recv(loop, src);
+                        read_callback(socket,
+                                      data,
+                                      count,
+                                      j_socket_recv_result_get_type
+                                      (res), recv_udata);
+                        j_free(data);
                     }
                     j_socket_recv_result_free(res);
                 }
@@ -195,20 +214,9 @@ void j_main_loop_run(JMainLoop * loop)
                                       send_len, send_udata);
                         j_free(data);
                     }
+                } else {        /* 出错 TODO */
+
                 }
-            }
-            if (evnts & J_POLLHUP || evnts & J_POLLERR) {   /* 监听出错 */
-                src->send_data = NULL;
-                j_main_loop_remove_source(loop, src);
-                if (read_callback) {
-                    read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
-                                  recv_udata);
-                }
-                if (send_callback) {
-                    send_callback(socket, send_data, send_count,
-                                  send_len, send_udata);
-                }
-                j_byte_array_free(send_data, 1);
             }
         }
     }
@@ -437,6 +445,19 @@ void j_main_loop_foreach_socket(JMainLoop * loop, JMainLoopForeach foreach,
         user_data
     };
     j_hash_table_foreach(loop->sources, hash_table_foreach, &data);
+}
+
+/*
+ * 移除指定的socket
+ * 如果不存在，则没有任何效果
+ */
+void j_main_loop_remove_socket(JMainLoop * loop, JSocket * sock)
+{
+    JSource *src = j_main_loop_find_source(loop, sock);
+    if (src == NULL) {
+        return;
+    }
+    j_main_loop_remove_source(loop, src);
 }
 
 static inline JSource *j_source_new(JSocket * socket)

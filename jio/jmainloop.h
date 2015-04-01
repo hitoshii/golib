@@ -53,6 +53,12 @@ void j_main_loop_foreach_socket(JMainLoop * loop, JMainLoopForeach foreach,
                                 void *user_data);
 
 /*
+ * 移除指定的socket
+ * 如果不存在，则没有任何效果
+ */
+void j_main_loop_remove_socket(JMainLoop * loop, JSocket * sock);
+
+/*
  * Runs the default main loop
  */
 void j_main(void);
@@ -73,8 +79,8 @@ void j_main_quit(void);
  *
  * returns 0 to stop accepting connection
  */
-typedef int (*JSocketAcceptNotify) (JSocket * listen,
-                                    JSocket * client, void *user_data);
+typedef void (*JSocketAcceptNotify) (JSocket * listen,
+                                     JSocket * client, void *user_data);
 void j_socket_accept_async(JSocket * sock, JSocketAcceptNotify notify,
                            void *user_data);
 
@@ -101,11 +107,11 @@ void j_socket_send_async(JSocket * sock, JSocketSendNotify notify,
 /*
  * Receives data asynchronously
  */
-typedef int (*JSocketRecvNotify) (JSocket * sock,
-                                  const char *data,
-                                  unsigned int len,
-                                  JSocketRecvResultType type,
-                                  void *user_data);
+typedef void (*JSocketRecvNotify) (JSocket * sock,
+                                   const char *data,
+                                   unsigned int len,
+                                   JSocketRecvResultType type,
+                                   void *user_data);
 void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
                          void *user_data);
 void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
