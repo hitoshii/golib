@@ -138,14 +138,18 @@ void j_socket_recv_package(JSocket * sock, JSocketRecvPackageNotify notify,
 
 /*
  * count 为数据包的长度
- * len 为成功发送出去的长度
- * len == count 表示发送成功
  */
 typedef void (*JSocketSendPackageNotify) (JSocket * sock, const char *data,
                                           unsigned int count,
-                                          unsigned int len,
                                           void *user_data);
+/*
+ * len为成功发送的长度
+ */
+typedef void (*JSocketSendErrorNotify) (JSocket * sock, const char *data,
+                                        unsigned int count,
+                                        unsigned int len, void *user_data);
 void j_socket_send_package(JSocket * sock, JSocketSendPackageNotify notify,
+                           JSocketSendErrorNotify error_notify,
                            const void *data, unsigned int len,
                            void *user_data);
 

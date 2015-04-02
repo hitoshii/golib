@@ -452,14 +452,21 @@ static void send_package_callback(JSocket * sock, const void *data,
     JSocketPackageData *pdata = (JSocketPackageData *) udata;
     JSocketSendPackageNotify notify =
         (JSocketSendPackageNotify) pdata->notify;
+    JSocketSendErrorNotify error_notify =
+        (JSocketSendErrorNotify) pdata->error_notify;
     void *user_data = pdata->user_data;
 
-    notify(sock, data, count, n, user_data);
+    if (count != n) {
+        error_notify(sock, data, count, n, user_data);
+    } else {
+        notify(sock, data, count, user_data);
+    }
 
     j_socket_package_data_free(pdata);
 }
 
 void j_socket_send_package(JSocket * sock, JSocketSendPackageNotify notify,
+                           JSocketSendErrorNotify error_notify,
                            const void *data, unsigned int len,
                            void *user_data)
 {
@@ -467,7 +474,7 @@ void j_socket_send_package(JSocket * sock, JSocketSendPackageNotify notify,
         return;
     }
     JSocketPackageData *pdata =
-        j_socket_package_data_new(notify, NULL, user_data);
+        j_socket_package_data_new(notify, error_notify, user_data);
     const void *buf = generate_length(len);
     JByteArray *array = j_byte_array_new();
     j_byte_array_append(array, buf, 4);

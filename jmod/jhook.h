@@ -139,8 +139,7 @@ JModuleSend *j_module_send_new(void);
 void j_module_send_free(JModuleSend * s);
 
 typedef void (*JModuleSendHook) (JSocket * conn, const char *data,
-                                 unsigned int count, unsigned int len,
-                                 JModuleSend * send);
+                                 unsigned int count, JModuleSend * send);
 
 typedef void (*JModuleSendErrorHook) (JSocket * conn, const char *data,
                                       unsigned int count,
