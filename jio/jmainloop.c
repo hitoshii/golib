@@ -151,18 +151,19 @@ void j_main_loop_run(JMainLoop * loop)
             JByteArray *recv_data = j_source_get_recv_data(src);
 
             if (evnts & J_POLLHUP || evnts & J_POLLERR) {   /* 监听出错 */
-/*                src->send_data = NULL;*/
+                src->send_data = NULL;
+                /* FIXME */
                 j_main_loop_remove_source(loop, src);
+                if (read_callback) {
+                    read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
+                                  recv_udata);
+                }
+                if (send_callback) {
+                    send_callback(socket, send_data, send_count,
+                                  send_len, send_udata);
+                }
+                j_byte_array_free(send_data, 1);
                 continue;
-/*                if (read_callback) {*/
-/*                    read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,*/
-/*                                  recv_udata);*/
-/*                }*/
-/*                if (send_callback) {*/
-/*                    send_callback(socket, send_data, send_count,*/
-/*                                  send_len, send_udata);*/
-/*                }*/
-/*                j_byte_array_free(send_data, 1);*/
             }
 
             if (evnts & J_POLLIN) { /* 接受数据 */
@@ -207,16 +208,17 @@ void j_main_loop_run(JMainLoop * loop)
                     send_len += n;
                     if (send_len < send_count) {
                         src->send_len = send_len;
-                    } else {
-                        void *data = j_memdup(send_data, send_count);
-                        j_main_loop_clean_send(loop, src);
-                        send_callback(socket, data, send_count,
-                                      send_len, send_udata);
-                        j_free(data);
+                        continue;
                     }
-                } else {        /* 出错 TODO */
-
                 }
+
+                /* 出错或者读取完成 */
+                void *data = j_memdup(send_data, send_len);
+                j_main_loop_clean_send(loop, src);
+                send_callback(socket, data, send_count, send_len,
+                              send_udata);
+                j_free(data);
+
             }
         }
     }

@@ -66,6 +66,7 @@ int j_socket_connect(JSocket * jsock, const char *server,
  */
 void j_socket_close(JSocket * jsock);
 
+
 /*
  * Makes the socket work in block/nonblock mode
  */
