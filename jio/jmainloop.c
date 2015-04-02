@@ -122,7 +122,7 @@ void j_main_loop_run(JMainLoop * loop)
     JPoll *poll = j_main_loop_get_poll(loop);
     JPollEvent events[1024];
     int n;
-    while ((n = j_poll_wait(poll, events, 1024, 100)) >= 0 && loop->running) {  /* 100 miliseconds */
+    while (loop->running && (n = j_poll_wait(poll, events, 1024, 100)) >= 0) {  /* 100 miliseconds */
         int i;
         for (i = 0; i < n; i++) {
             unsigned int evnts = events[i].events;
@@ -157,12 +157,11 @@ void j_main_loop_run(JMainLoop * loop)
                 if (read_callback) {
                     read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
                                   recv_udata);
-                }
-                if (send_callback) {
+                } else if (send_callback) {
                     send_callback(socket, send_data, send_count,
                                   send_len, send_udata);
                 }
-                j_byte_array_free(send_data, 1);
+                j_byte_array_free(send_bytes, 1);
                 continue;
             }
 
@@ -198,6 +197,11 @@ void j_main_loop_run(JMainLoop * loop)
                         j_free(data);
                     }
                     j_socket_recv_result_free(res);
+
+                    if (j_main_loop_find_source(loop, socket) == NULL) {
+                        /* 检查socket是否已经被删除 */
+                        continue;
+                    }
                 }
             }
             if (evnts & J_POLLOUT) {    /* 发送数据 */

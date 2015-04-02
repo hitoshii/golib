@@ -101,13 +101,10 @@ JModuleRecv *j_module_recv_new(void);
 void j_module_recv_free(JModuleRecv * r);
 
 typedef void (*JModuleRecvHook) (JSocket * conn, const void *data,
-                                 unsigned int len,
-                                 JSocketRecvResultType type,
-                                 JModuleRecv * recv);
+                                 unsigned int len, JModuleRecv * recv);
 
 typedef void (*JModuleRecvErrorHook) (JSocket * conn, const void *data,
-                                      unsigned int len,
-                                      JSocketRecvResultType type);
+                                      unsigned int len);
 
 /*********************** END of RECV *****************************/
 

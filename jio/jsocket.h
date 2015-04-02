@@ -123,9 +123,12 @@ JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
 typedef void (*JSocketRecvPackageNotify) (JSocket * sock,
                                           const void *data,
                                           unsigned int len,
-                                          JSocketRecvResultType type,
                                           void *user_data);
+typedef void (*JSocketRecvErrorNotify) (JSocket * sock,
+                                        const void *data,
+                                        unsigned int len, void *user_data);
 void j_socket_recv_package(JSocket * sock, JSocketRecvPackageNotify notify,
+                           JSocketRecvErrorNotify error_notify,
                            void *user_data);
 
 

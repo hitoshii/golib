@@ -357,16 +357,19 @@ static inline const void *generate_length(unsigned int len);
 /* 中间数据 */
 typedef struct {
     void *notify;
+    void *error_notify;
     void *user_data;
     unsigned int len;
 } JSocketPackageData;
 
 static inline JSocketPackageData
-    * j_socket_package_data_new(void *notify, void *user_data)
+    * j_socket_package_data_new(void *notify, void *error_notify,
+                                void *user_data)
 {
     JSocketPackageData *data =
         (JSocketPackageData *) j_malloc(sizeof(JSocketPackageData));
     data->notify = notify;
+    data->error_notify = error_notify;
     data->user_data = user_data;
     return data;
 }
@@ -387,15 +390,17 @@ static void recv_package_callback(JSocket * sock, const char *buf,
     JSocketPackageData *data = (JSocketPackageData *) udata;
     JSocketRecvPackageNotify notify =
         (JSocketRecvPackageNotify) data->notify;
+    JSocketRecvErrorNotify error_notify =
+        (JSocketRecvErrorNotify) data->error_notify;
     void *user_data = data->user_data;
     unsigned int len = data->len;
 
     if (buf == NULL || type == J_SOCKET_RECV_ERR) {
-        notify(sock, NULL, 0, J_SOCKET_RECV_ERR, user_data);
+        error_notify(sock, NULL, 0, user_data);
     } else if (count != len) {
-        notify(sock, NULL, 0, type, user_data);
+        error_notify(sock, NULL, 0, user_data);
     } else {
-        notify(sock, buf, len, type, user_data);
+        notify(sock, buf, len, user_data);
     }
     j_socket_package_data_free(data);
 }
@@ -410,17 +415,17 @@ static void recv_package_len_callback(JSocket * sock,
                                       void *udata)
 {
     JSocketPackageData *data = (JSocketPackageData *) udata;
-    JSocketRecvPackageNotify notify =
-        (JSocketRecvPackageNotify) data->notify;
+    JSocketRecvErrorNotify error_notify =
+        (JSocketRecvErrorNotify) data->error_notify;
     void *user_data = data->user_data;
     if (type == J_SOCKET_RECV_ERR || buf == NULL) {
-        notify(sock, NULL, 0, J_SOCKET_RECV_ERR, user_data);
+        error_notify(sock, NULL, 0, user_data);
         j_socket_package_data_free(data);
         return;
     }
     unsigned int len = parse_length((const char *) buf);
     if (count != 4 || type != J_SOCKET_RECV_NORMAL || len == 0) {
-        notify(sock, NULL, 0, type, user_data);
+        error_notify(sock, NULL, 0, user_data);
         j_socket_package_data_free(data);
         return;
     }
@@ -429,10 +434,11 @@ static void recv_package_len_callback(JSocket * sock,
 }
 
 void j_socket_recv_package(JSocket * sock, JSocketRecvPackageNotify notify,
+                           JSocketRecvErrorNotify error_notify,
                            void *user_data)
 {
     JSocketPackageData *data =
-        j_socket_package_data_new(notify, user_data);
+        j_socket_package_data_new(notify, error_notify, user_data);
     j_socket_recv_len_async(sock, recv_package_len_callback, 4, data);
 }
 
@@ -461,7 +467,7 @@ void j_socket_send_package(JSocket * sock, JSocketSendPackageNotify notify,
         return;
     }
     JSocketPackageData *pdata =
-        j_socket_package_data_new(notify, user_data);
+        j_socket_package_data_new(notify, NULL, user_data);
     const void *buf = generate_length(len);
     JByteArray *array = j_byte_array_new();
     j_byte_array_append(array, buf, 4);
