@@ -44,11 +44,20 @@ void j_main_loop_quit(JMainLoop * loop);
 
 void j_main_loop_free(JMainLoop * loop);
 
-typedef void (*JMainLoopForeach) (JSocket * sock, unsigned int events,
-                                  void *user_data);
+
+/*
+ * 查找指定的socket
+ */
+typedef int (*JMainLoopFind) (JSocket * socket, void *user_data);
+JSocket *j_main_loop_find_socket(JMainLoop * loop, JMainLoopFind find,
+                                 void *user_data);
+
+
 /*
  * 遍历所有的socket
  */
+typedef void (*JMainLoopForeach) (JSocket * sock, unsigned int events,
+                                  void *user_data);
 void j_main_loop_foreach_socket(JMainLoop * loop, JMainLoopForeach foreach,
                                 void *user_data);
 

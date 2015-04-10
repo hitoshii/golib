@@ -152,7 +152,7 @@ void j_main_loop_run(JMainLoop * loop)
 
             if (evnts & J_POLLHUP || evnts & J_POLLERR) {   /* 监听出错 */
                 src->send_data = NULL;
-                /* FIXME */
+                /* XXX 只会调用一个回调函数 */
                 j_main_loop_remove_source(loop, src);
                 if (read_callback) {
                     read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
@@ -451,6 +451,24 @@ void j_main_loop_foreach_socket(JMainLoop * loop, JMainLoopForeach foreach,
         user_data
     };
     j_hash_table_foreach(loop->sources, hash_table_foreach, &data);
+}
+
+
+/*
+ * Finds a socket
+ */
+JSocket *j_main_loop_find_socket(JMainLoop * loop, JMainLoopFind find,
+                                 void *user_data)
+{
+    JList *keys = j_hash_table_get_keys(loop->sources);
+    while (keys) {
+        JSocket *socket = (JSocket *) j_list_data(keys);
+        if (find(socket, user_data)) {
+            return socket;
+        }
+        keys = j_list_next(keys);
+    }
+    return NULL;
 }
 
 /*
