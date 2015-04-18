@@ -81,13 +81,15 @@ host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
 	test-mod$(EXEEXT) test-log$(EXEEXT) test-socket$(EXEEXT) \
 	test-epoll$(EXEEXT) test-hashtable$(EXEEXT) test-loop$(EXEEXT) \
-	test-byte$(EXEEXT)
+	test-byte$(EXEEXT) test-conf$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-file$(EXEEXT) test-mod$(EXEEXT) \
 	test-log$(EXEEXT) test-socket$(EXEEXT) test-epoll$(EXEEXT) \
-	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-byte$(EXEEXT)
+	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-byte$(EXEEXT) \
+	test-conf$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(top_srcdir)/depcomp $(top_srcdir)/test-driver
+	$(top_srcdir)/depcomp $(dist_check_DATA) \
+	$(top_srcdir)/test-driver
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -104,6 +106,9 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_conf_OBJECTS = test-conf.$(OBJEXT)
+test_conf_OBJECTS = $(am_test_conf_OBJECTS)
+test_conf_LDADD = $(LDADD)
 am_test_epoll_OBJECTS = test-epoll.$(OBJEXT)
 test_epoll_OBJECTS = $(am_test_epoll_OBJECTS)
 test_epoll_LDADD = $(LDADD)
@@ -162,13 +167,15 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test_byte_SOURCES) $(test_epoll_SOURCES) \
-	$(test_file_SOURCES) $(test_hashtable_SOURCES) \
-	$(test_log_SOURCES) $(test_loop_SOURCES) $(test_mod_SOURCES) \
+SOURCES = $(test_byte_SOURCES) $(test_conf_SOURCES) \
+	$(test_epoll_SOURCES) $(test_file_SOURCES) \
+	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
+	$(test_loop_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES)
-DIST_SOURCES = $(test_byte_SOURCES) $(test_epoll_SOURCES) \
-	$(test_file_SOURCES) $(test_hashtable_SOURCES) \
-	$(test_log_SOURCES) $(test_loop_SOURCES) $(test_mod_SOURCES) \
+DIST_SOURCES = $(test_byte_SOURCES) $(test_conf_SOURCES) \
+	$(test_epoll_SOURCES) $(test_file_SOURCES) \
+	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
+	$(test_loop_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -527,6 +534,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
+	-DPACKAGE_TEST_DIR=\""$(top_srcdir)/tests"\" \
 	$(jlib_INCLUDE)
 
 AM_CFLAGS = \
@@ -538,6 +546,12 @@ AM_LDFLAGS = \
 	$(jconf_ADD) \
 	$(jio_ADD) \
 	$(jmod_ADD)
+
+dist_check_DATA = \
+    test.conf
+
+test_conf_SOURCES = \
+    test-conf.c
 
 test_string_SOURCES = \
 	test-string.c
@@ -614,6 +628,10 @@ test-byte$(EXEEXT): $(test_byte_OBJECTS) $(test_byte_DEPENDENCIES) $(EXTRA_test_
 	@rm -f test-byte$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_byte_OBJECTS) $(test_byte_LDADD) $(LIBS)
 
+test-conf$(EXEEXT): $(test_conf_OBJECTS) $(test_conf_DEPENDENCIES) $(EXTRA_test_conf_DEPENDENCIES) 
+	@rm -f test-conf$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_conf_OBJECTS) $(test_conf_LDADD) $(LIBS)
+
 test-epoll$(EXEEXT): $(test_epoll_OBJECTS) $(test_epoll_DEPENDENCIES) $(EXTRA_test_epoll_DEPENDENCIES) 
 	@rm -f test-epoll$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_epoll_OBJECTS) $(test_epoll_LDADD) $(LIBS)
@@ -653,6 +671,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-byte.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-epoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
@@ -871,7 +890,7 @@ check-TESTS:
 	log_list=`echo $$log_list`; trs_list=`echo $$trs_list`; \
 	$(MAKE) $(AM_MAKEFLAGS) $(TEST_SUITE_LOG) TEST_LOGS="$$log_list"; \
 	exit $$?;
-recheck: all 
+recheck: all $(dist_check_DATA)
 	@test -z "$(TEST_SUITE_LOG)" || rm -f $(TEST_SUITE_LOG)
 	@set +e; $(am__set_TESTS_bases); \
 	bases=`for i in $$bases; do echo $$i; done \
@@ -945,6 +964,13 @@ test-byte.log: test-byte$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-conf.log: test-conf$(EXEEXT)
+	@p='test-conf$(EXEEXT)'; \
+	b='test-conf'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -991,6 +1017,7 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(dist_check_DATA)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
 all-am: Makefile $(PROGRAMS) all-local

@@ -56,6 +56,9 @@ struct _JConfNode {
 #define j_conf_node_is_number(n)    (j_conf_node_is_int(n)||j_conf_node_is_float(n))
 #define j_conf_node_get_name(n) ((n)->name)
 
+void j_conf_node_append_child(JConfNode * node, JConfNode * child);
+JList *j_conf_node_get_children(JConfNode * node);
+
 
 JConfNode *j_conf_node_create_object(void);
 JConfNode *j_conf_node_create_array(void);
@@ -67,13 +70,23 @@ JConfNode *j_conf_node_create_true(void);
 JConfNode *j_conf_node_create_false(void);
 JConfNode *j_conf_node_create_null(void);
 
+/*
+ * 获取最后一个名为name的节点
+ */
+JConfNode *j_conf_object_get(JConfNode * node, const char *name);
+int64_t j_conf_int_get(JConfNode * node);
+double j_conf_float_get(JConfNode * node);
+const char *j_conf_string_get(JConfNode * node);
+
+
+
 void j_conf_node_set_name(JConfNode * node, const char *name);
 void j_conf_node_set_name_take(JConfNode * node, char *name);
 
 void j_conf_node_free(JConfNode * node);
 
 typedef struct {
-    JList *children;
+    JList *children;            /* JConfNode */
     char *name;                 /* file name */
 } JConfRoot;
 #define j_conf_root_get_children(r) ((r)->children)
@@ -81,6 +94,7 @@ typedef struct {
 
 JConfRoot *j_conf_root_new(const char *name);
 void j_conf_root_free(JConfRoot * root);
+void j_conf_root_append(JConfRoot * root, JConfNode * node);
 
 
 #endif

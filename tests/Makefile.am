@@ -7,6 +7,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
+	-DPACKAGE_TEST_DIR=\""$(top_srcdir)/tests"\" \
 	$(jlib_INCLUDE)
 
 AM_CFLAGS =\
@@ -28,7 +29,8 @@ noinst_PROGRAMS= \
 	test-epoll \
 	test-hashtable \
 	test-loop \
-	test-byte
+	test-byte \
+	test-conf
 
 TESTS=\
     test-string \
@@ -39,7 +41,14 @@ TESTS=\
     test-epoll \
     test-hashtable \
     test-loop \
-    test-byte
+    test-byte \
+    test-conf
+
+dist_check_DATA = \
+    test.conf
+
+test_conf_SOURCES = \
+    test-conf.c
 
 test_string_SOURCES = \
 	test-string.c

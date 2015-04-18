@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "struct.h"
+#include <string.h>
 
 static inline JConfNode *j_conf_node_alloc(JConfNodeType type);
 
@@ -87,6 +88,9 @@ void j_conf_node_set_name_take(JConfNode * node, char *name)
 
 void j_conf_node_free(JConfNode * node)
 {
+    if (node == NULL) {
+        return;
+    }
     if (j_conf_node_is_array(node) || j_conf_node_is_object(node)) {
         j_list_free_full(node->data.children,
                          (JListDestroy) j_conf_node_free);
@@ -97,6 +101,22 @@ void j_conf_node_free(JConfNode * node)
     j_free(node);
 }
 
+void j_conf_node_append_child(JConfNode * node, JConfNode * child)
+{
+    if (!j_conf_node_is_array(node) && !j_conf_node_is_object(node)) {
+        return;
+    }
+    node->data.children = j_list_append(node->data.children, child);
+}
+
+JList *j_conf_node_get_children(JConfNode * node)
+{
+    if (!j_conf_node_is_array(node) && !j_conf_node_is_object(node)) {
+        return NULL;
+    }
+    return node->data.children;
+}
+
 
 static inline JConfNode *j_conf_node_alloc(JConfNodeType type)
 {
@@ -104,6 +124,47 @@ static inline JConfNode *j_conf_node_alloc(JConfNodeType type)
     node->type = type;
     node->name = NULL;
     return node;
+}
+
+/*
+ * 获取最后一个名为name的节点
+ */
+JConfNode *j_conf_object_get(JConfNode * obj, const char *name)
+{
+    JConfNode *child = NULL;
+    JList *children = j_conf_node_get_children(obj);
+    while (children) {
+        JConfNode *node = (JConfNode *) j_list_data(children);
+        if (strcmp(name, j_conf_node_get_name(node)) == 0) {
+            child = node;
+        }
+        children = j_list_next(children);
+    }
+    return child;
+}
+
+int64_t j_conf_int_get(JConfNode * node)
+{
+    if (!j_conf_node_is_int(node)) {
+        return 0;
+    }
+    return node->data.integer;
+}
+
+double j_conf_float_get(JConfNode * node)
+{
+    if (!j_conf_node_is_float(node)) {
+        return 0.0;
+    }
+    return node->data.floating;
+}
+
+const char *j_conf_string_get(JConfNode * node)
+{
+    if (!j_conf_node_is_string(node)) {
+        return NULL;
+    }
+    return node->data.string;
 }
 
 
@@ -119,4 +180,10 @@ void j_conf_root_free(JConfRoot * root)
 {
     j_free(root->name);
     j_list_free_full(root->children, (JListDestroy) j_conf_node_free);
+    j_free(root);
+}
+
+void j_conf_root_append(JConfRoot * root, JConfNode * node)
+{
+    root->children = j_list_append(root->children, node);
 }
