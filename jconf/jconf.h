@@ -18,10 +18,17 @@
 #ifndef __J_CONF_H__
 #define __J_CONF_H__
 
-#include "type.h"
-#include "node.h"
-#include "parser.h"
+#include "struct.h"
 
+/*
+ * 从一个文件中载入配置
+ */
+JConfRoot *j_conf_load_from_file(const char *path);
+
+/*
+ * 获取错误说明
+ */
+const char *j_conf_get_error(void);
 
 
 #endif

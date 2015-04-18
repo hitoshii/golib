@@ -123,7 +123,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jconfsubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjconf_la_LIBADD =
-am_libjconf_la_OBJECTS = jconf.lo node.lo type.lo parser.lo
+am_libjconf_la_OBJECTS = jconf.lo struct.lo
 libjconf_la_OBJECTS = $(am_libjconf_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -329,15 +329,12 @@ AM_CFLAGS = \
 lib_LTLIBRARIES = libjconf.la
 libjconf_la_SOURCES = \
 	jconf.c \
-	node.c \
-	type.c \
-	parser.c
+	struct.c
 
 jconfsubincludedir = $(jlib_includedir)/jconf
-jconfsubinclude_HEADERS = jconf.h \
-	node.h \
-	type.h \
-	parser.h
+jconfsubinclude_HEADERS = \
+    jconf.h \
+    struct.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jconf-0.1.pc
@@ -426,9 +423,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jconf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/type.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/struct.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

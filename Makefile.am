@@ -20,6 +20,3 @@ uninstall-local:
 
 install-exec-local:
 	-ldconfig
-
-runtest:
-	@cd $(top_builddir)/tests && ./runtest

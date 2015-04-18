@@ -2,11 +2,13 @@ This document describes the format of JConf.
 
 JConf is a format for configuration file. Below is a sample
 
-1 ListenPort 12345
-2 # This is a comment
-3
-4 OpenIt   # this is another comment
-5 <Module A>
-6   Log "${LogLocation}/log"
-7 </Module>
-8
+1 ListenPort: 12345
+2 
+3 # This a comment
+4 OpenIt  # And this is another comment
+5 
+6 VirtualAPP:{
+7     name: "UNIX"
+8     MaxPending: 234;ErrorLog:"nice"
+      IDS:[1,2,3,4]
+9 }

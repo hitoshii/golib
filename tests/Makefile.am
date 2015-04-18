@@ -22,7 +22,6 @@ AM_LDFLAGS =\
 noinst_PROGRAMS= \
 	test-string \
 	test-file \
-	test-conf \
 	test-mod \
 	test-log \
 	test-socket \
@@ -31,16 +30,22 @@ noinst_PROGRAMS= \
 	test-loop \
 	test-byte
 
-noinst_SCRIPTS=runtest
+TESTS=\
+    test-string \
+    test-file \
+    test-mod \
+    test-log \
+    test-socket \
+    test-epoll \
+    test-hashtable \
+    test-loop \
+    test-byte
 
 test_string_SOURCES = \
 	test-string.c
 
 test_file_SOURCES = \
 	test-file.c
-
-test_conf_SOURCES = \
-	test-conf.c
 
 test_mod_SOURCES = \
 	test-mod.c

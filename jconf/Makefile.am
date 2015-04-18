@@ -17,16 +17,13 @@ lib_LTLIBRARIES = libjconf.la
 
 libjconf_la_SOURCES =  \
 	jconf.c \
-	node.c \
-	type.c \
-	parser.c
+	struct.c
 
 
 jconfsubincludedir=$(jlib_includedir)/jconf
-jconfsubinclude_HEADERS= jconf.h \
-	node.h \
-	type.h \
-	parser.h
+jconfsubinclude_HEADERS= \
+    jconf.h \
+    struct.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jconf-0.1.pc
