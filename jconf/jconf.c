@@ -50,23 +50,92 @@ static inline void j_conf_set_error(int errcode, const char *fmt, ...)
     va_end(ap);
 }
 
+/*
+ * 设置错误码，出错说明中添加文件名和行号
+ */
+static inline void j_conf_root_set_error(JConfRoot * root, int errcode,
+                                         const char *fmt, ...)
+{
+    j_errno = errcode;
+    va_list ap;
+    va_start(ap, fmt);
+    int n =
+        snprintf(g_strerror, sizeof(g_strerror) / sizeof(char), "[%s:%u] ",
+                 j_conf_root_get_name(root),
+                 j_conf_root_get_line(root));
+    vsnprintf(g_strerror + n, sizeof(g_strerror) / sizeof(char) - n, fmt,
+              ap);
+    va_end(ap);
+}
+
+/*
+ * 跳过没有用的字符，包括注释
+ */
 static inline const char *j_conf_skip(const char *data);
 
+/*
+ * 解析一个指令名，类似C语言中的变量，字母开头
+ */
 static inline const char *j_conf_name_parse(char **name, const char *data);
-static inline const char *j_conf_node_parse(JConfNode ** node,
+/*
+ * 解析一个节点，字符串、整数、浮点数、对象或者数组
+ */
+static inline const char *j_conf_node_parse(JConfRoot * root,
+                                            JConfNode ** node,
                                             const char *data);
-static inline const char *j_conf_string_parse(char **ret,
+/*
+ * 解析字符串，以双引号包裹，支持unicode解析
+ */
+static inline const char *j_conf_string_parse(JConfRoot * root, char **ret,
                                               const char *data);
-static inline const char *j_conf_number_parse(JConfNode ** node,
+/*
+ * 解析数字，整型和浮点数，支持科学计数法
+ */
+static inline const char *j_conf_number_parse(JConfRoot * root,
+                                              JConfNode ** node,
                                               const char *data);
+/*
+ * 解析一个整数
+ */
 static inline const char *j_conf_int_parse(int64_t * integer,
                                            const char *data);
-static inline const char *j_conf_array_parse(JConfNode ** node,
+/*
+ * 解析一个数组
+ */
+static inline const char *j_conf_array_parse(JConfRoot * root,
+                                             JConfNode ** node,
                                              const char *data);
-static inline const char *j_conf_object_parse(JConfNode ** node,
+/*
+ * 解析一个对象
+ */
+static inline const char *j_conf_object_parse(JConfRoot * root,
+                                              JConfNode ** node,
                                               const char *data);
+/*
+ * 从一个新文件中解析配置文件
+ */
+static inline int j_conf_root_parse_file(JConfRoot * root,
+                                         const char *data);
+/*
+ * 从data中解析配置
+ */
 static inline int j_conf_root_parse(JConfRoot * root, const char *data);
+/*
+ * 解析被包含的配置文件
+ */
+static inline int j_conf_include(JConfRoot * root, JConfNode * include);
+static inline int j_conf_include_array(JConfRoot * root,
+                                       JConfNode * include);
+static inline int j_conf_include_string(JConfRoot * root,
+                                        JConfNode * include);
+/*
+ * 将一个文件内容影射为内存空间
+ * 并添加\0结尾
+ */
 static inline char *j_conf_map_file(const char *path, unsigned int *len);
+/*
+ * 取消一个内存空间对文件的影射
+ */
 static inline void j_conf_unmap_data(char *data, unsigned int len);
 
 
@@ -126,18 +195,46 @@ JConfRoot *j_conf_load_from_file(const char *path)
     return root;
 }
 
+static inline int j_conf_root_parse_file(JConfRoot * root,
+                                         const char *path)
+{
+    unsigned int len;
+    char *data = j_conf_map_file(path, &len);
+    if (data == NULL) {
+        return 0;
+    }
+    j_conf_root_push(root, path);
+    int ret = j_conf_root_parse(root, data);
+    j_conf_unmap_data(data, len);
+    return ret;
+}
+
+/*
+ * 判断一个字符是否为指令结束符号
+ */
+static inline int j_conf_root_isbreak(JConfRoot * root, char c)
+{
+    if (c == ';') {
+        return 1;
+    } else if (c == '\n') {
+        j_conf_root_line_add(root);
+        return 1;
+    }
+    return 0;
+}
+
 static inline int j_conf_root_parse(JConfRoot * root, const char *data)
 {
     j_conf_set_error(J_CONF_SUCCESS, "Success");
     data = j_conf_skip(data);
     while (*data) {
-        if (*data == '\n' || *data == ';') {
+        if (j_conf_root_isbreak(root, *data)) {
             data = j_conf_skip(data + 1);
             continue;
         } else if (!isalpha(*data)) {
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Ascii letter is required", *data, data);
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Ascii letter is required", *data, data);
             return 0;
         }
         char *name = NULL;
@@ -146,29 +243,36 @@ static inline int j_conf_root_parse(JConfRoot * root, const char *data)
             j_free(name);
             return 0;
         }
-        if (*data == '\n' || *data == ';' || *data == '\0') {
+        if (j_conf_root_isbreak(root, *data) || *data == '\0') {
             child = j_conf_node_create_null();
         } else if (*data == ':') {
             if ((data =
-                 j_conf_skip(j_conf_node_parse(&child, data + 1))) ==
+                 j_conf_skip(j_conf_node_parse(root, &child, data + 1))) ==
                 NULL) {
                 j_free(name);
                 return 0;
             }
         } else {
             j_free(name);
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Break or colon is required", *data, data);
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Break or colon is required", *data,
+                                  data);
             return 0;
         }
         j_conf_node_set_name_take(child, name);
-        j_conf_root_append(root, child);
+        if (strcmp(name, J_CONF_INCLUDE) == 0) {    /* 读取子配置文件 */
+            if (!j_conf_include(root, child)) {
+                return 0;
+            }
+        } else {
+            j_conf_root_append(root, child);
+        }
         data = j_conf_skip(data);
-        if (*data != '\n' && *data != ';' && *data != '\0') {
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Break is required", *data, data);
+        if (!j_conf_root_isbreak(root, *data) && *data != '\0') {
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Break is required", *data, data);
             return 0;
         }
         if (*data != '\0') {
@@ -176,6 +280,43 @@ static inline int j_conf_root_parse(JConfRoot * root, const char *data)
         }
     }
     return 1;
+}
+
+static inline int j_conf_include_array(JConfRoot * root,
+                                       JConfNode * include)
+{
+    JList *children = j_conf_node_get_children(include);
+    while (children) {
+        JConfNode *node = (JConfNode *) j_list_data(children);
+        if (j_conf_node_is_string(node)) {
+            if (!j_conf_include_string(root, node)) {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+        children = j_list_next(children);
+    }
+    return 1;
+}
+
+static inline int j_conf_include_string(JConfRoot * root,
+                                        JConfNode * include)
+{
+    const char *path = j_conf_string_get(include);
+    return j_conf_root_parse_file(root, path);
+}
+
+static inline int j_conf_include(JConfRoot * root, JConfNode * include)
+{
+    int ret = 0;
+    if (j_conf_node_is_string(include)) {
+        ret = j_conf_include_string(root, include);
+    } else if (j_conf_node_is_array(include)) {
+        ret = j_conf_include_array(root, include);
+    }
+    j_conf_node_free(include);
+    return ret;
 }
 
 static inline const char *j_conf_name_parse(char **name, const char *data)
@@ -188,18 +329,19 @@ static inline const char *j_conf_name_parse(char **name, const char *data)
     return data;
 }
 
-static inline const char *j_conf_node_parse(JConfNode ** node,
+static inline const char *j_conf_node_parse(JConfRoot * root,
+                                            JConfNode ** node,
                                             const char *data)
 {
     data = j_conf_skip(data);
     if (*data == '\"') {        /* 字符串 */
         char *string = NULL;
-        if ((data = j_conf_string_parse(&string, data)) == NULL) {
+        if ((data = j_conf_string_parse(root, &string, data)) == NULL) {
             return NULL;
         }
         *node = j_conf_node_create_string_take(string);
     } else if (*data == '-' || isdigit(*data)) {    /* 数字  */
-        data = j_conf_number_parse(node, data);
+        data = j_conf_number_parse(root, node, data);
     } else if (strncmp(data, "true", 4) == 0) {
         *node = j_conf_node_create_true();
         data += 4;
@@ -207,19 +349,20 @@ static inline const char *j_conf_node_parse(JConfNode ** node,
         *node = j_conf_node_create_false();
         data += 5;
     } else if (*data == '[') {  /* 数组 */
-        data = j_conf_array_parse(node, data);
+        data = j_conf_array_parse(root, node, data);
     } else if (*data == '{') {  /* object */
-        data = j_conf_object_parse(node, data);
+        data = j_conf_object_parse(root, node, data);
     } else {
-        j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                         "Invalid character \'%c\' near \"%.10s\".", *data,
-                         data);
+        j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                              "Invalid character \'%c\' near \"%.10s\".",
+                              *data, data);
         return NULL;
     }
     return data;
 }
 
-static inline const char *j_conf_object_parse(JConfNode ** node,
+static inline const char *j_conf_object_parse(JConfRoot * root,
+                                              JConfNode ** node,
                                               const char *data)
 {
     data = j_conf_skip(data + 1);
@@ -228,43 +371,44 @@ static inline const char *j_conf_object_parse(JConfNode ** node,
     while (*data) {
         char *name = NULL;
         JConfNode *child = NULL;
-        if (*data == '\n' || *data == ';') {
+        if (j_conf_root_isbreak(root, *data)) {
             data = j_conf_skip(data + 1);
             continue;
         } else if (*data == '}') {
             return data + 1;
         } else if (!isalpha(*data)) {
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Ascii letter is required", *data, data);
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Ascii letter is required", *data, data);
             goto ERROR;
         }
         data = j_conf_skip(j_conf_name_parse(&name, data));
-        if (*data == '\n' || *data == ';') {
+        if (j_conf_root_isbreak(root, *data)) {
             child = j_conf_node_create_null();
         } else if (*data == ':') {
-            if ((data = j_conf_node_parse(&child, data + 1)) == NULL) {
+            if ((data = j_conf_node_parse(root, &child, data + 1)) == NULL) {
                 free(name);
                 goto ERROR;
             }
         } else {
             free(name);
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Break or colon is required", *data, data);
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Break or colon is required", *data,
+                                  data);
             goto ERROR;
         }
         j_conf_node_set_name_take(child, name);
         j_conf_node_append_child(*node, child);
         data = j_conf_skip(data);
-        if (*data == ';' || *data == '\n') {
+        if (j_conf_root_isbreak(root, *data)) {
             data = j_conf_skip(data + 1);
         } else if (*data == '}') {
             return data + 1;
         } else {
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Break is required", *data, data);
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Break is required", *data, data);
             goto ERROR;
         }
     }
@@ -273,7 +417,8 @@ static inline const char *j_conf_object_parse(JConfNode ** node,
     return NULL;
 }
 
-static inline const char *j_conf_array_parse(JConfNode ** node,
+static inline const char *j_conf_array_parse(JConfRoot * root,
+                                             JConfNode ** node,
                                              const char *data)
 {
     *node = j_conf_node_create_array();
@@ -281,22 +426,28 @@ static inline const char *j_conf_array_parse(JConfNode ** node,
     while (*data) {
         if (*data == ']') {
             return data + 1;
+        } else if (*data == '\n') {
+            data = j_conf_skip(data + 1);
+            continue;
         }
         JConfNode *child = NULL;
-        if ((data = j_conf_node_parse(&child, data)) == NULL) {
+        if ((data = j_conf_node_parse(root, &child, data)) == NULL) {
             goto ERROR;
         }
         j_conf_node_append_child(*node, child);
 
         data = j_conf_skip(data);
+        while (*data == '\n') {
+            data = j_conf_skip(data + 1);
+        }
         if (*data == ',') {
             data = j_conf_skip(data + 1);
         } else if (*data == ']') {
             return data + 1;
-        } else {
-            j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                             "Invalid character \'%c\' near \"%.10s\". "
-                             "Break is required", *data, data);
+        } else if (*data != '\n') {
+            j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                                  "Invalid character \'%c\' near \"%.10s\". "
+                                  "Break is required", *data, data);
             goto ERROR;
         }
     }
@@ -354,7 +505,8 @@ static inline uint32_t parse_hex4(const char *str)
 
 static const unsigned char firstByteMark[7] =
     { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
-static inline const char *j_conf_string_parse(char **ret, const char *data)
+static inline const char *j_conf_string_parse(JConfRoot * root, char **ret,
+                                              const char *data)
 {
     const char *origin = data;
     if (*data != '\"') {
@@ -445,8 +597,8 @@ static inline const char *j_conf_string_parse(char **ret, const char *data)
     return data + 1;
   ERROR:
     free(out);
-    j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                     "Invalid string near \'%.15s\'. ", origin);
+    j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                          "Invalid string near \'%.15s\'. ", origin);
     return NULL;
 }
 
@@ -501,7 +653,8 @@ static inline const char *j_conf_int_parse(int64_t * integer,
     return ptr;
 }
 
-static inline const char *j_conf_number_parse(JConfNode ** node,
+static inline const char *j_conf_number_parse(JConfRoot * root,
+                                              JConfNode ** node,
                                               const char *data)
 {
     const char *origin = data;
@@ -566,8 +719,8 @@ static inline const char *j_conf_number_parse(JConfNode ** node,
     }
 
     if (data == NULL) {
-        j_conf_set_error(J_CONF_ERROR_MALFORMED,
-                         "Invalid number near \'%.10s\'. ", origin);
+        j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
+                              "Invalid number near \'%.10s\'. ", origin);
     }
     return data;
 }

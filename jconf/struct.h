@@ -74,6 +74,10 @@ JConfNode *j_conf_node_create_null(void);
  * 获取最后一个名为name的节点
  */
 JConfNode *j_conf_object_get(JConfNode * node, const char *name);
+/*
+ * 获取所有名为name的子节点
+ */
+JList *j_conf_object_get_list(JConfNode * node, const char *name);
 int64_t j_conf_int_get(JConfNode * node);
 double j_conf_float_get(JConfNode * node);
 const char *j_conf_string_get(JConfNode * node);
@@ -85,16 +89,27 @@ void j_conf_node_set_name_take(JConfNode * node, char *name);
 
 void j_conf_node_free(JConfNode * node);
 
+
+#define J_CONF_SUCCESS 0
+#define J_CONF_ERROR_FILE   1   /* 打开文件错误 */
+#define J_CONF_ERROR_MALFORMED 2    /* 格式错误 */
 typedef struct {
     JList *children;            /* JConfNode */
     char *name;                 /* file name */
+    unsigned int line;          /* line number */
+
+    JStack *stack;              /* 用来保存当前解析位置,文件名:行号 */
 } JConfRoot;
 #define j_conf_root_get_children(r) ((r)->children)
 #define j_conf_root_get_name(r)     ((r)->name)
-
+#define j_conf_root_line_add(r)     (r)->line++
+#define j_conf_root_get_line(r)     ((r)->line)
 JConfRoot *j_conf_root_new(const char *name);
 void j_conf_root_free(JConfRoot * root);
 void j_conf_root_append(JConfRoot * root, JConfNode * node);
+
+void j_conf_root_push(JConfRoot * root, const char *path);
+void j_conf_root_pop(JConfRoot * root);
 
 
 #endif

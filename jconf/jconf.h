@@ -20,15 +20,12 @@
 
 #include "struct.h"
 
+#define J_CONF_INCLUDE  "IncludeConf"
+
 /*
  * 从一个文件中载入配置
  */
 JConfRoot *j_conf_load_from_file(const char *path);
-
-
-#define J_CONF_SUCCESS 0
-#define J_CONF_ERROR_FILE   1   /* 打开文件错误 */
-#define J_CONF_ERROR_MALFORMED 2    /* 格式错误 */
 
 /* 获取错误代码和错误说明 */
 int j_conf_errno(void);

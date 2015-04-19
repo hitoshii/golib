@@ -1,4 +1,6 @@
-Really Nice
-<Module True>
-    Name {Wiky}
-</Module>
+Really: true
+Doit: "right now"
+
+VirtualAPP:{
+    name:"another"
+}

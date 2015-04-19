@@ -17,6 +17,8 @@
  */
 #include "struct.h"
 #include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 static inline JConfNode *j_conf_node_alloc(JConfNodeType type);
 
@@ -143,6 +145,23 @@ JConfNode *j_conf_object_get(JConfNode * obj, const char *name)
     return child;
 }
 
+/*
+ * 获取所有名为name的子节点
+ */
+JList *j_conf_object_get_list(JConfNode * node, const char *name)
+{
+    JList *ret = NULL;
+    JList *children = j_conf_node_get_children(node);
+    while (children) {
+        JConfNode *node = (JConfNode *) j_list_data(children);
+        if (strcmp(name, j_conf_node_get_name(node)) == 0) {
+            ret = j_list_append(ret, node);
+        }
+        children = j_list_next(children);
+    }
+    return ret;
+}
+
 int64_t j_conf_int_get(JConfNode * node)
 {
     if (!j_conf_node_is_int(node)) {
@@ -167,19 +186,63 @@ const char *j_conf_string_get(JConfNode * node)
     return node->data.string;
 }
 
+typedef struct {
+    char *name;
+    unsigned int line;
+} JConfRootStack;
+
+JConfRootStack *j_conf_root_stack_new(const char *path, unsigned int line)
+{
+    JConfRootStack *stack =
+        (JConfRootStack *) j_malloc(sizeof(JConfRootStack));
+    stack->name = j_strdup(path);
+    stack->line = 0;
+    return stack;
+}
+
+void j_conf_root_stack_free(JConfRootStack * stack)
+{
+    j_free(stack->name);
+    j_free(stack);
+}
+
 
 JConfRoot *j_conf_root_new(const char *name)
 {
     JConfRoot *root = (JConfRoot *) j_malloc(sizeof(JConfRoot));
     root->name = j_strdup(name);
     root->children = NULL;
+    root->line = 1;
+    root->stack = j_stack_new();
     return root;
 }
+
+void j_conf_root_push(JConfRoot * root, const char *path)
+{
+    JConfRootStack *stack = j_conf_root_stack_new(path, root->line);
+    j_stack_push(root->stack, stack);
+    j_free(root->name);
+    root->name = j_strdup(path);
+    root->line = 1;
+}
+
+void j_conf_root_pop(JConfRoot * root)
+{
+    JConfRootStack *pop = j_stack_pop(root->stack);
+    if (pop) {
+        j_free(root->name);
+        root->name = j_strdup(pop->name);
+        root->line = pop->line;
+        j_conf_root_stack_free(pop);
+    }
+}
+
 
 void j_conf_root_free(JConfRoot * root)
 {
     j_free(root->name);
     j_list_free_full(root->children, (JListDestroy) j_conf_node_free);
+    j_stack_free(root->stack, (JStackDestroy) j_conf_root_stack_free);
     j_free(root);
 }
 
