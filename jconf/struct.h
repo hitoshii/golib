@@ -54,6 +54,7 @@ struct _JConfNode {
 #define j_conf_node_is_false(n) (j_conf_node_get_type(n)==J_CONF_NODE_FALSE)
 #define j_conf_node_is_null(n)  (j_conf_node_get_type(n)==J_CONF_NODE_NULL)
 #define j_conf_node_is_number(n)    (j_conf_node_is_int(n)||j_conf_node_is_float(n))
+#define j_conf_node_is_bool(n)  (j_conf_node_is_true(n)||j_conf_node_is_false(n))
 #define j_conf_node_get_name(n) ((n)->name)
 
 void j_conf_node_append_child(JConfNode * node, JConfNode * child);
@@ -74,13 +75,26 @@ JConfNode *j_conf_node_create_null(void);
  * 获取最后一个名为name的节点
  */
 JConfNode *j_conf_object_get(JConfNode * node, const char *name);
+int64_t j_conf_object_get_int(JConfNode * node, const char *name,
+                              int64_t def);
+const char *j_conf_object_get_string(JConfNode * node, const char *name,
+                                     const char *def);
+double j_conf_object_get_float(JConfNode * node, const char *name,
+                               double def);
+double j_conf_object_get_number(JConfNode * node, const char *name,
+                                double def);
+int j_conf_object_get_bool(JConfNode * node, const char *name, int def);
 /*
  * 获取所有名为name的子节点
  */
 JList *j_conf_object_get_list(JConfNode * node, const char *name);
+/*
+ * 获取值
+ */
 int64_t j_conf_int_get(JConfNode * node);
 double j_conf_float_get(JConfNode * node);
 const char *j_conf_string_get(JConfNode * node);
+int j_conf_bool_get(JConfNode * node);
 
 
 
@@ -110,6 +124,25 @@ void j_conf_root_append(JConfRoot * root, JConfNode * node);
 
 void j_conf_root_push(JConfRoot * root, const char *path);
 void j_conf_root_pop(JConfRoot * root);
+
+/*
+ * 获取子节点
+ */
+JConfNode *j_conf_root_get(JConfRoot * root, const char *name);
+JList *J_conf_root_get_list(JConfRoot * root, const char *name);
+
+/*
+ * 获取子节点值
+ */
+int64_t j_conf_root_get_int(JConfRoot * root, const char *name,
+                            int64_t def);
+const char *j_conf_root_get_string(JConfRoot * root, const char *name,
+                                   const char *def);
+double j_conf_root_get_float(JConfRoot * root, const char *name,
+                             double def);
+double j_conf_root_get_number(JConfRoot * root, const char *name,
+                              double def);
+int j_conf_root_get_bool(JConfRoot * root, const char *name, int def);
 
 
 #endif

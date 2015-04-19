@@ -145,6 +145,58 @@ JConfNode *j_conf_object_get(JConfNode * obj, const char *name)
     return child;
 }
 
+int64_t j_conf_object_get_int(JConfNode * obj, const char *name,
+                              int64_t def)
+{
+    JConfNode *node = j_conf_object_get(obj, name);
+    if (node == NULL || !j_conf_node_is_int(node)) {
+        return def;
+    }
+    return j_conf_int_get(node);
+}
+
+const char *j_conf_object_get_string(JConfNode * obj, const char *name,
+                                     const char *def)
+{
+    JConfNode *node = j_conf_object_get(obj, name);
+    if (node == NULL || !j_conf_node_is_string(node)) {
+        return def;
+    }
+    return j_conf_string_get(node);
+}
+
+double j_conf_object_get_float(JConfNode * obj, const char *name,
+                               double def)
+{
+    JConfNode *node = j_conf_object_get(obj, name);
+    if (node == NULL || !j_conf_node_is_float(node)) {
+        return def;
+    }
+    return j_conf_float_get(node);
+}
+
+double j_conf_object_get_number(JConfNode * obj, const char *name,
+                                double def)
+{
+    JConfNode *node = j_conf_object_get(obj, name);
+    if (node == NULL || !j_conf_node_is_number(node)) {
+        return def;
+    }
+    if (j_conf_node_is_int(node)) {
+        return (double) j_conf_int_get(node);
+    }
+    return j_conf_float_get(node);
+}
+
+int j_conf_object_get_bool(JConfNode * obj, const char *name, int def)
+{
+    JConfNode *node = j_conf_object_get(obj, name);
+    if (node == NULL || !j_conf_node_is_bool(node)) {
+        return def;
+    }
+    return j_conf_bool_get(node);
+}
+
 /*
  * 获取所有名为name的子节点
  */
@@ -184,6 +236,14 @@ const char *j_conf_string_get(JConfNode * node)
         return NULL;
     }
     return node->data.string;
+}
+
+int j_conf_bool_get(JConfNode * node)
+{
+    if (j_conf_node_is_true(node)) {
+        return 1;
+    }
+    return 0;
 }
 
 typedef struct {
@@ -249,4 +309,97 @@ void j_conf_root_free(JConfRoot * root)
 void j_conf_root_append(JConfRoot * root, JConfNode * node)
 {
     root->children = j_list_append(root->children, node);
+}
+
+
+/*
+ * 获取子节点
+ */
+JConfNode *j_conf_root_get(JConfRoot * root, const char *name)
+{
+    JConfNode *ret = NULL;
+    JList *children = j_conf_root_get_children(root);
+    while (children) {
+        JConfNode *node = (JConfNode *) j_list_data(children);
+        if (strcmp(name, j_conf_node_get_name(node)) == 0) {
+            ret = node;
+        }
+        children = j_list_next(children);
+    }
+    return ret;
+}
+
+JList *J_conf_root_get_list(JConfRoot * root, const char *name)
+{
+    JList *ret = NULL;
+    JList *children = j_conf_root_get_children(root);
+    while (children) {
+        JConfNode *node = (JConfNode *) j_list_data(children);
+        if (strcmp(name, j_conf_node_get_name(node)) == 0) {
+            ret = j_list_append(ret, node);
+        }
+        children = j_list_next(children);
+    }
+    return ret;
+}
+
+
+/*
+ * 获取子节点值
+ */
+int64_t j_conf_root_get_int(JConfRoot * root, const char *name,
+                            int64_t def)
+{
+    JConfNode *node = j_conf_root_get(root, name);
+    if (node == NULL || !j_conf_node_is_int(node)) {
+        return def;
+    }
+    return def;
+}
+
+const char *j_conf_root_get_string(JConfRoot * root, const char *name,
+                                   const char *def)
+{
+    JConfNode *node = j_conf_root_get(root, name);
+    if (node == NULL || !j_conf_node_is_string(node)) {
+        return def;
+    }
+    return j_conf_string_get(node);
+}
+
+double j_conf_root_get_float(JConfRoot * root, const char *name,
+                             double def)
+{
+    JConfNode *node = j_conf_root_get(root, name);
+    if (node == NULL || !j_conf_node_is_float(node)) {
+        return def;
+    }
+    return j_conf_float_get(node);
+}
+
+double j_conf_root_get_number(JConfRoot * root, const char *name,
+                              double def)
+{
+    JConfNode *node = j_conf_root_get(root, name);
+    if (node == NULL) {
+        return def;
+    }
+    if (j_conf_node_is_float(node)) {
+        return j_conf_float_get(node);
+    } else if (j_conf_node_is_int(node)) {
+        return (double) j_conf_int_get(node);
+    }
+    return def;
+}
+
+int j_conf_root_get_bool(JConfRoot * root, const char *name, int def)
+{
+    JConfNode *node = j_conf_root_get(root, name);
+    if (node == NULL || !j_conf_node_is_bool(node)) {
+        return def;
+    }
+    if (j_conf_node_is_true(node)) {
+        return 1;
+    }
+    return 0;
 }
