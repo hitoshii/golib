@@ -356,7 +356,7 @@ JConfNode *j_conf_root_get(JConfRoot * root, const char *name)
     return ret;
 }
 
-JList *J_conf_root_get_list(JConfRoot * root, const char *name)
+JList *j_conf_root_get_list(JConfRoot * root, const char *name)
 {
     JList *ret = NULL;
     JList *children = j_conf_root_get_children(root);

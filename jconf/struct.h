@@ -143,7 +143,7 @@ char *j_conf_root_assign(JConfRoot * root, char *string);   /* 替换字符串�
  * 获取子节点
  */
 JConfNode *j_conf_root_get(JConfRoot * root, const char *name);
-JList *J_conf_root_get_list(JConfRoot * root, const char *name);
+JList *j_conf_root_get_list(JConfRoot * root, const char *name);
 
 /*
  * 获取子节点值
