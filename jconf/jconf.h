@@ -22,6 +22,12 @@
 
 #define J_CONF_INCLUDE  "IncludeConf"
 
+
+/*
+ * 载入配置文件
+ * 成功返回1，失败返回0
+ */
+int j_conf_root_load(JConfRoot * root);
 /*
  * 从一个文件中载入配置
  */

@@ -40,9 +40,15 @@ int main(int argc, char *argv[])
     j_free(str);
 
 
-    str = j_strdup("This is a very good apple");
+    str = j_strdup("Thare is a very good apple");
     str = j_str_replace(str, "is", "are");
     if (j_strcmp0(str, "Thare are a very good apple")) {
+        printf("replace error!\n");
+        return 1;
+    }
+    str = j_str_replace(str, "abcdefg", "d");
+    if (j_strcmp0(str, "Thare are a very good apple")) {
+        printf("replace error!\n");
         return 1;
     }
     j_free(str);
@@ -58,14 +64,17 @@ int main(int argc, char *argv[])
     if (j_strcmp0(basename, "hello")) {
         return 1;
     }
+    j_free(basename);
     basename = j_path_basename("/home/wiky/*.conf");
     if (j_strcmp0(basename, "*.conf")) {
         return 1;
     }
+    j_free(basename);
     basename = j_path_basename("///");
     if (j_strcmp0(basename, "")) {
         return 1;
     }
+    j_free(basename);
 
     JString *string = j_string_new();
     j_string_append(string, "hello");
@@ -80,5 +89,6 @@ int main(int argc, char *argv[])
     if (j_strcmp0(string->data, "helloworld")) {
         return 1;
     }
+    j_string_free(string, 1);
     return 0;
 }

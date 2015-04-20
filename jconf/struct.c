@@ -246,6 +246,8 @@ int j_conf_bool_get(JConfNode * node)
     return 0;
 }
 
+/**********************************stack *******************************/
+
 typedef struct {
     char *name;
     unsigned int line;
@@ -266,6 +268,29 @@ void j_conf_root_stack_free(JConfRootStack * stack)
     j_free(stack);
 }
 
+/************************ variables ***************************************/
+typedef struct {
+    char *name;
+    char *value;
+} JConfVariable;
+
+static inline JConfVariable *j_conf_variable_new(const char *name,
+                                                 const char *value)
+{
+    JConfVariable *var = (JConfVariable *) j_malloc(sizeof(JConfVariable));
+    var->name = j_strdup(name);
+    var->value = j_strdup(value);
+    return var;
+}
+
+static inline void j_conf_variable_free(JConfVariable * var)
+{
+    j_free(var->name);
+    j_free(var->value);
+    j_free(var);
+}
+
+/*************************************************************************/
 
 JConfRoot *j_conf_root_new(const char *name)
 {
@@ -274,6 +299,7 @@ JConfRoot *j_conf_root_new(const char *name)
     root->children = NULL;
     root->line = 1;
     root->stack = j_stack_new();
+    root->vars = NULL;
     return root;
 }
 
@@ -302,6 +328,7 @@ void j_conf_root_free(JConfRoot * root)
 {
     j_free(root->name);
     j_list_free_full(root->children, (JListDestroy) j_conf_node_free);
+    j_list_free_full(root->vars, (JListDestroy) j_conf_variable_free);
     j_stack_free(root->stack, (JStackDestroy) j_conf_root_stack_free);
     j_free(root);
 }
@@ -402,4 +429,50 @@ int j_conf_root_get_bool(JConfRoot * root, const char *name, int def)
         return 1;
     }
     return 0;
+}
+
+/*
+ * 添加变量
+ */
+void j_conf_root_add_var(JConfRoot * root, const char *name,
+                         const char *value)
+{
+    JConfVariable *var = j_conf_variable_new(name, value);
+    root->vars = j_list_append(root->vars, var);
+}
+
+/*
+ * 添加多个变量，变量名与变量值对
+ * 以NULL结尾
+ */
+void j_conf_root_add_vars(JConfRoot * root, ...)
+{
+    va_list ap;
+    va_start(ap, root);
+    const char *name = NULL;
+    const char *value = NULL;
+    while ((name = va_arg(ap, const char *))) {
+        if (name == NULL) {
+            break;
+        }
+        value = va_arg(ap, const char *);
+        j_conf_root_add_var(root, name, value);
+    }
+    va_end(ap);
+}
+
+/*
+ * 替换字符串中的变量
+ */
+char *j_conf_root_assign(JConfRoot * root, char *str)
+{
+    JList *vars = root->vars;
+    char buf[1024];
+    while (vars) {
+        JConfVariable *var = (JConfVariable *) j_list_data(vars);
+        snprintf(buf, sizeof(buf) / sizeof(char), "${%s}", var->name);
+        str = j_str_replace(str, buf, var->value);
+        vars = j_list_next(vars);
+    }
+    return str;
 }

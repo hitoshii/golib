@@ -404,18 +404,23 @@ char *j_str_forward(char *str, unsigned int count)
 
 char *j_str_replace(char *str, const char *t1, const char *t2)
 {
-    int t1_len = j_strlen(t1);
-    char *ptr = str;
-    JString *string = j_string_new();
-    while (*ptr) {
-        if (j_strncmp0(ptr, t1, t1_len) == 0) {
-            j_string_append(string, t2);
-            ptr += t1_len;
-        } else {
-            j_string_append_c(string, *ptr);
-            ptr++;
+    char *start = str;
+    char *ptr = strstr(start, t1);
+    int len = j_strlen(t1);
+    JString *string = NULL;
+    while (ptr) {
+        if (string == NULL) {
+            string = j_string_new();
         }
+        j_string_append_len(string, start, ptr - start);
+        j_string_append(string, t2);
+        start = ptr + len;
+        ptr = strstr(start, t1);
     }
+    if (string == NULL) {
+        return str;
+    }
+    j_string_append(string, start);
     j_free(str);
     return j_string_free(string, 0);
 }

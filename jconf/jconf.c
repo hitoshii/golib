@@ -195,6 +195,25 @@ JConfRoot *j_conf_load_from_file(const char *path)
     return root;
 }
 
+/*
+ * 载入配置文件
+ * 成功返回1，失败返回0
+ */
+int j_conf_root_load(JConfRoot * root)
+{
+    unsigned int len;
+    char *data = j_conf_map_file(j_conf_root_get_name(root), &len);
+    if (data == NULL) {
+        return 0;
+    }
+    int ret = j_conf_root_parse(root, data);
+    j_conf_unmap_data(data, len);
+    return ret;
+}
+
+/*
+ * 载入额外的配置文件
+ */
 static inline int j_conf_root_parse_file(JConfRoot * root,
                                          const char *path)
 {
@@ -593,7 +612,7 @@ static inline const char *j_conf_string_parse(JConfRoot * root, char **ret,
         }
     }
     *ptr = '\0';
-    *ret = out;
+    *ret = j_conf_root_assign(root, out);
     return data + 1;
   ERROR:
     free(out);

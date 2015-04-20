@@ -112,6 +112,8 @@ typedef struct {
     char *name;                 /* file name */
     unsigned int line;          /* line number */
 
+    /* private */
+    JList *vars;                /* 变量 */
     JStack *stack;              /* 用来保存当前解析位置,文件名:行号 */
 } JConfRoot;
 #define j_conf_root_get_children(r) ((r)->children)
@@ -124,6 +126,18 @@ void j_conf_root_append(JConfRoot * root, JConfNode * node);
 
 void j_conf_root_push(JConfRoot * root, const char *path);
 void j_conf_root_pop(JConfRoot * root);
+
+/*
+ * 添加变量
+ */
+void j_conf_root_add_var(JConfRoot * root, const char *name,
+                         const char *value);
+/*
+ * 添加多个变量，变量名与变量值对
+ * 以NULL结尾
+ */
+void j_conf_root_add_vars(JConfRoot * root, ...);
+char *j_conf_root_assign(JConfRoot * root, char *string);   /* 替换字符串中的变量 */
 
 /*
  * 获取子节点

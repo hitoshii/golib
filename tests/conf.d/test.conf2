@@ -4,3 +4,5 @@ Doit: "right now"
 VirtualAPP:{
     name:"another"
 }
+
+age:"${AGE} ${DATE}"

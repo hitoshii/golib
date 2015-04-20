@@ -60,8 +60,11 @@ static inline void jconf_print(JConfNode * node, unsigned int tab)
 
 int main(int argc, char *argv[])
 {
-    JConfRoot *root = j_conf_load_from_file(CONFIG_PATH);
-    if (root == NULL) {
+    JConfRoot *root = j_conf_root_new(CONFIG_PATH);
+    j_conf_root_add_var(root, "CREATOR", "Wiky");
+    j_conf_root_add_vars(root, "DATE", "TODAY", "AGE", "123", NULL);
+    if (!j_conf_root_load(root)) {
+        j_conf_root_free(root);
         printf("%s\n", j_conf_strerror());
         return -1;
     }
