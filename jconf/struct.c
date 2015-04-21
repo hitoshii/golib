@@ -137,7 +137,7 @@ JConfNode *j_conf_object_get(JConfNode * obj, const char *name)
     JList *children = j_conf_node_get_children(obj);
     while (children) {
         JConfNode *node = (JConfNode *) j_list_data(children);
-        if (strcmp(name, j_conf_node_get_name(node)) == 0) {
+        if (j_strcmp0(name, j_conf_node_get_name(node)) == 0) {
             child = node;
         }
         children = j_list_next(children);

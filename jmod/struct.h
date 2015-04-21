@@ -22,17 +22,20 @@
 #include <jconf/jconf.h>
 #include <jlib/jlib.h>
 
-typedef void (*JModuleInit) (void); /* 模块的初始化函数 */
+/*
+ * 模块初始化函数
+ * r和n是模块相关的配置节点，
+ * r在根配置下
+ * n在VirtualServer配置下
+ * 如果模块是在全局载入的，那么n一定为NULL，而r根据配置是否存在决定
+ * 如果模块在VirtualServer中载入，那么r和n都根据配置是否存在而决定
+ */
+typedef void (*JModuleInit) (JConfNode * r, JConfNode * n);
 
-
-/* 服务进程开始时的回调函数 */
-typedef void (*JModuleServerInit) (int pid, const char *name,
-                                   unsigned short port);
 typedef struct {
     char *name;                 /* module name */
 
     JModuleInit init;           /* 当模块载入时执行 */
-    JModuleServerInit server_init;  /* 服务器开始时执行 */
 } JModule;
 
 

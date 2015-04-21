@@ -32,121 +32,53 @@ typedef enum {
 } JModuleHookType;
 
 
-/**************************** ACCEPT ******************************/
+/*****************************ACTION ******************************/
+
 typedef enum {
-    J_MODULE_ACCEPT_DROP = 0,
-    J_MODULE_ACCEPT_SEND,
-    J_MODULE_ACCEPT_RECV,
-    J_MODULE_ACCEPT_KEEP,       /* 不监听事件，单纯保持该连接 */
-} JModuleAcceptAct;
+    J_MODULE_ACTION_DROP = 0x1,
+    J_MODULE_ACTION_SEND = 0x2,
+    J_MODULE_ACTION_RECV = 0x4,
+    J_MODULE_ACTION_IGNORE = 0x8,
+} JModuleActionType;
 
 typedef struct {
+    unsigned int type;
     JByteArray *array;
-    JModuleAcceptAct act;
-} JModuleAccept;
-#define j_module_accept_get_byte_array(acc) \
-                (acc)->array
-#define j_module_accept_get_data(acc)   \
-                j_byte_array_get_data(j_module_accept_get_byte_array(acc))
-#define j_module_accept_get_len(acc)    \
-                j_byte_array_get_len(j_module_accept_get_byte_array(acc))
-#define j_module_accept_get_action(acc) \
-                ((acc)->act)
-#define j_module_accept_set_action(acc,action) (acc)->act=action
-#define j_module_accept_is_drop(acc)    \
-                j_module_accept_get_action(acc)==J_MODULE_ACCEPT_DROP
-#define j_module_accept_is_send(acc)    \
-                j_module_accept_get_action(acc)==J_MODULE_ACCEPT_SEND
-#define j_module_accept_is_recv(acc)    \
-                j_module_accept_get_action(acc)==J_MODULE_ACCEPT_RECV
+} JModuleAction;
+#define j_module_action_get_type(act)   ((act)->type)
+#define j_module_action_set_type(act, t)   (act)->type=(t)
+#define j_module_action_get_byte_array(act) ((act)->array)
+#define j_module_action_get_data(act)   (j_byte_array_get_data(j_module_action_get_byte_array(act)))
+#define j_module_action_get_len(act)    (j_byte_array_get_len(j_module_action_get_byte_array(act)))
 
-typedef void (*JModuleAcceptHook) (JSocket * conn, JModuleAccept * acc);
+JModuleAction *j_module_action_new(void);
+JModuleAction *j_module_action_new_with_type(unsigned int type);
+void j_module_action_free(JModuleAction * act);
 
-JModuleAccept *j_module_accept_new(void);
-void j_module_accept_free(JModuleAccept * acc);
+/**************************** ACCEPT ******************************/
 
-
+typedef void (*JModuleAcceptHook) (JSocket * conn, JModuleAction * act);
 typedef void (*JModuleAcceptErrorHook) (void);
-
-/************************* END of ACCEPT *************************/
 
 /************************* RECV **********************************/
 
-typedef enum {
-    J_MODULE_RECV_DROP = 0,
-    J_MODULE_RECV_SEND,
-    J_MODULE_RECV_RECV,
-    J_MODULE_RECV_KEEP,         /* 不监听事件，单纯保持该连接 */
-} JModuleRecvAct;
-
-typedef struct {
-    JByteArray *array;
-    JModuleRecvAct act;
-} JModuleRecv;
-#define j_module_recv_get_byte_array(r) (r)->array
-#define j_module_recv_get_data(r)   \
-                j_byte_array_get_data(j_module_recv_get_byte_array(r))
-#define j_module_recv_get_len(r)    \
-                j_byte_array_get_len(j_module_recv_get_byte_array(r))
-#define j_module_recv_get_action(r) (r)->act
-#define j_module_recv_set_action(r,action) (r)->act=action
-#define j_module_recv_is_recv(r)    \
-                j_module_recv_get_action(r)==J_MODULE_RECV_RECV
-#define j_module_recv_is_send(r)    \
-                j_module_recv_get_action(r)==J_MODULE_RECV_SEND
-#define j_module_recv_is_drop(r)    \
-                j_module_recv_get_action(r)==J_MODULE_RECV_DROP
-
-JModuleRecv *j_module_recv_new(void);
-void j_module_recv_free(JModuleRecv * r);
-
 typedef void (*JModuleRecvHook) (JSocket * conn, const void *data,
-                                 unsigned int len, JModuleRecv * recv);
+                                 unsigned int len, JModuleAction * act);
 
 typedef void (*JModuleRecvErrorHook) (JSocket * conn, const void *data,
                                       unsigned int len);
 
-/*********************** END of RECV *****************************/
 
 /*********************** SEND ***********************************/
-typedef enum {
-    J_MODULE_SEND_DROP = 0,
-    J_MODULE_SEND_SEND,
-    J_MODULE_SEND_RECV,
-    J_MODULE_SEND_KEEP,         /* 不监听事件，单纯保持该连接 */
-} JModuleSendAct;
-
-typedef struct {
-    JByteArray *array;
-    JModuleSendAct act;
-} JModuleSend;
-
-#define j_module_send_get_byte_array(s) (s)->array
-#define j_module_send_get_data(s)   \
-                j_byte_array_get_data(j_module_send_get_byte_array(s))
-#define j_module_send_get_len(s)    \
-                j_byte_array_get_len(j_module_send_get_byte_array(s))
-#define j_module_send_get_action(s) (s)->act
-#define j_module_send_set_action(s,action)  (s)->act=action
-#define j_module_send_is_drop(s)    \
-                j_module_send_get_action(s)==J_MODULE_SEND_DROP
-#define j_module_send_is_send(s)    \
-                j_module_send_get_action(s)==J_MODULE_SEND_SEND
-#define j_module_send_is_recv(s)    \
-                j_module_send_get_action(s)==J_MODULE_SEND_RECV
-
-JModuleSend *j_module_send_new(void);
-void j_module_send_free(JModuleSend * s);
 
 typedef void (*JModuleSendHook) (JSocket * conn, const char *data,
-                                 unsigned int count, JModuleSend * send);
+                                 unsigned int count, JModuleAction * act);
 
 typedef void (*JModuleSendErrorHook) (JSocket * conn, const char *data,
                                       unsigned int count,
                                       unsigned int len);
 
 /*********************** END of SEND ******************************/
-
 /*
  * 注册回调函数
  */

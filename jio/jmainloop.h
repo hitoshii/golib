@@ -126,4 +126,11 @@ void j_socket_recv_async(JSocket * sock, JSocketRecvNotify notify,
 void j_socket_recv_len_async(JSocket * sock, JSocketRecvNotify notify,
                              unsigned int len, void *user_data);
 
+/*
+ * 当epoll触发EPOLLHUP或者EPOLLERR时调用
+ */
+typedef void (*JSocketErrorNotify) (JSocket * sock, void *user_data);
+void j_socket_set_error_notify(JSocket * sock, JSocketErrorNotify notify,
+                               void *user_data);
+
 #endif

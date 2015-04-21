@@ -49,8 +49,10 @@ typedef struct {
     JSocketAcceptNotify accept_callback;
     JSocketRecvNotify recv_callback;
     JSocketSendNotify send_callback;
+    JSocketErrorNotify error_callback;
 
     void *accept_udata;
+    void *error_udata;
 
     /* send */
     JByteArray *send_data;
@@ -65,9 +67,11 @@ typedef struct {
 #define j_source_get_accept_udata(src) (src)->accept_udata
 #define j_source_get_send_udata(src)    (src)->send_udata
 #define j_source_get_recv_udata(src)    (src)->recv_udata
+#define j_source_get_error_udata(src)   (src)->error_udata
 #define j_source_get_accept_callback(src)  (src)->accept_callback
 #define j_source_get_recv_callback(src)     (src)->recv_callback
 #define j_source_get_send_callback(src)     (src)->send_callback
+#define j_source_get_error_callback(src)    (src)->error_callback
 #define j_source_get_send_data(src)      (src)->send_data
 #define j_source_get_send_len(src)  (src)->send_len
 #define j_source_get_recv_data(src) (src)->recv_data
@@ -132,6 +136,7 @@ void j_main_loop_run(JMainLoop * loop)
             void *accept_udata = j_source_get_accept_udata(src);
             void *send_udata = j_source_get_send_udata(src);
             void *recv_udata = j_source_get_recv_udata(src);
+            void *error_udata = j_source_get_error_udata(src);
             /* callback */
             JSocketAcceptNotify accept_callback =
                 j_source_get_accept_callback(src);
@@ -139,6 +144,8 @@ void j_main_loop_run(JMainLoop * loop)
                 j_source_get_send_callback(src);
             JSocketRecvNotify read_callback =
                 j_source_get_recv_callback(src);
+            JSocketErrorNotify error_callback =
+                j_source_get_error_callback(src);
             /* send */
             JByteArray *send_bytes = j_source_get_send_data(src);
             void *send_data =
@@ -151,17 +158,10 @@ void j_main_loop_run(JMainLoop * loop)
             JByteArray *recv_data = j_source_get_recv_data(src);
 
             if (evnts & J_POLLHUP || evnts & J_POLLERR) {   /* 监听出错 */
-                src->send_data = NULL;
-                /* XXX 只会调用一个回调函数 */
-                j_main_loop_remove_source(loop, src);
-                if (read_callback) {
-                    read_callback(socket, NULL, 0, J_SOCKET_RECV_ERR,
-                                  recv_udata);
-                } else if (send_callback) {
-                    send_callback(socket, send_data, send_count,
-                                  send_len, send_udata);
+                if (error_callback) {
+                    error_callback(socket, error_udata);
                 }
-                j_byte_array_free(send_bytes, 1);
+                j_main_loop_remove_source(loop, src);
                 continue;
             }
 
@@ -366,6 +366,23 @@ static inline JSource *j_main_loop_find_source(JMainLoop * loop,
     return src;
 }
 
+void j_socket_set_error_notify(JSocket * sock, JSocketErrorNotify notify,
+                               void *user_data)
+{
+    JMainLoop *loop = j_main_loop_default();
+    JSource *src = j_main_loop_find_source(loop, sock);
+    if (src) {
+        src->error_callback = notify;
+    } else {
+        src = j_source_new(sock);
+        src->error_udata = user_data;
+        src->error_callback = notify;
+        if (!j_main_loop_append_source(loop, src)) {
+            notify(sock, user_data);
+        }
+    }
+}
+
 /*
  * Appends a new source
  * If the socket is already existing, modifies its events
@@ -397,6 +414,12 @@ static inline void j_main_loop_update_source(JMainLoop * loop,
     unsigned int events = j_source_get_events(src);
 
     if (!j_poll_ctl(poll, J_POLL_CTL_MOD, events, sock, src)) {
+        JSocketErrorNotify error_callback =
+            j_source_get_error_callback(src);
+        void *error_udata = j_source_get_error_udata(src);
+        if (error_callback) {
+            error_callback(sock, error_udata);
+        }
         j_main_loop_remove_source(loop, src);
     }
 }
@@ -495,6 +518,8 @@ static inline JSource *j_source_new(JSocket * socket)
     src->accept_callback = NULL;
     src->send_callback = NULL;
     src->recv_callback = NULL;
+    src->error_callback = NULL;
+    src->error_udata = NULL;
     src->send_data = j_byte_array_new();
     src->send_len = 0;
     src->recv_data = j_byte_array_new();

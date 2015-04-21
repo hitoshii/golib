@@ -74,44 +74,24 @@ void j_mod_register_hook(JModuleHookType type, void *hook)
     }
 }
 
-JModuleAccept *j_module_accept_new(void)
+JModuleAction *j_module_action_new(void)
 {
-    JModuleAccept *acc = (JModuleAccept *) j_malloc(sizeof(JModuleAccept));
-    acc->array = j_byte_array_new();
-    acc->act = J_MODULE_ACCEPT_RECV;
-    return acc;
+    JModuleAction *act = (JModuleAction *) j_malloc(sizeof(JModuleAction));
+    act->type = J_MODULE_ACTION_IGNORE;
+    act->array = j_byte_array_new();
+    return act;
 }
 
-void j_module_accept_free(JModuleAccept * acc)
+JModuleAction *j_module_action_new_with_type(unsigned int type)
 {
-    j_byte_array_free(acc->array, 1);
-    j_free(acc);
+    JModuleAction *act = (JModuleAction *) j_malloc(sizeof(JModuleAction));
+    act->type = type;
+    act->array = j_byte_array_new();
+    return act;
 }
 
-JModuleRecv *j_module_recv_new(void)
+void j_module_action_free(JModuleAction * act)
 {
-    JModuleRecv *r = (JModuleRecv *) j_malloc(sizeof(JModuleRecv));
-    r->array = j_byte_array_new();
-    r->act = J_MODULE_RECV_RECV;
-    return r;
-}
-
-void j_module_recv_free(JModuleRecv * r)
-{
-    j_byte_array_free(r->array, 1);
-    j_free(r);
-}
-
-JModuleSend *j_module_send_new(void)
-{
-    JModuleSend *s = (JModuleSend *) j_malloc(sizeof(JModuleSend));
-    s->array = j_byte_array_new();
-    s->act = J_MODULE_SEND_RECV;
-    return s;
-}
-
-void j_module_send_free(JModuleSend * s)
-{
-    j_byte_array_free(s->array, 1);
-    j_free(s);
+    j_byte_array_free(act->array, 1);
+    j_free(act);
 }
