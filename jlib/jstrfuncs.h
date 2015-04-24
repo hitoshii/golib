@@ -162,4 +162,14 @@ char *j_str_replace(char *str, const char *t1, const char *t2);
 char **j_strsplit_c(const char *str, char c, int max);
 
 
+typedef enum {
+    J_ENCODING_UTF8,
+} JEncoding;
+/*
+ * Encode str using the codec registered for encoding.
+ * If strict is true. NULL may be returnd because of encoding error.
+ * Otherwise A new allocated string is returned.
+ */
+char *j_str_encode(const char *str, JEncoding encoding, int strict);
+
 #endif

@@ -459,3 +459,68 @@ char **j_strsplit_c(const char *str, char c, int max)
     strv[pos] = NULL;
     return strv;
 }
+
+static inline char *j_str_encode_utf8(const char *str, int strict)
+{
+    JString *string = j_string_new();
+    const char *ptr = str;
+    while (*ptr) {
+        unsigned char c1 = *ptr++, c2, c3, c4;
+        unsigned int point = ' ';
+        if (c1 < 0x80) {
+            j_string_append_c(string, c1);
+            continue;
+        } else if (c1 < 0xC0) {
+            goto ERROR;
+        } else if (c1 < 0xE0) {
+            c2 = *ptr++;
+            if ((c2 & 0xC0) != 0x80) {
+                goto ERROR;
+            }
+            point = (c1 << 6) + c2 - 0x3080;
+        } else if (c1 < 0xF0) {
+            c2 = *ptr++;
+            if ((c2 & 0xC0) != 0x80 || (c1 == 0xE0 && c2 < 0xA0)) {
+                goto ERROR;
+            }
+            c3 = *ptr++;
+            if ((c3 & 0xC0) != 0x80) {
+                goto ERROR;
+            }
+            point = (c1 << 12) + (c2 << 6) + c3 - 0xE2080;
+        } else if (c1 < 0xF5) {
+            c2 = *ptr++;
+            if ((c2 & 0xC0) != 0x80 || (c1 == 0xF0 && c2 < 0x90)
+                || (c1 == 0xF4 && c2 >= 0x90)) {
+                goto ERROR;
+            }
+            c3 = *ptr++;
+            if ((c3 & 0xC0) != 0x80) {
+                goto ERROR;
+            }
+            c4 = *ptr++;
+            if ((c4 & 0xC0) != 0x80) {
+                goto ERROR;
+            }
+            point = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080;
+        } else {
+            goto ERROR;
+        }
+        j_string_append_printf(string, "\\u%04X", point);
+        continue;
+      ERROR:
+        if (strict) {
+            j_string_free(string, 1);
+            return NULL;
+        }
+    }
+    return j_string_free(string, 0);
+}
+
+char *j_str_encode(const char *str, JEncoding encoding, int strict)
+{
+    if (encoding == J_ENCODING_UTF8) {
+        return j_str_encode_utf8(str, strict);
+    }
+    return NULL;
+}

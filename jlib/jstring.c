@@ -19,6 +19,8 @@
 #include "jmem.h"
 #include "jstrfuncs.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 
 static inline void j_string_realloc(JString * string)
@@ -64,6 +66,16 @@ void j_string_append_c(JString * string, char c)
     string->data[string->len] = c;
     string->len++;
     string->data[string->len] = '\0';
+}
+
+void j_string_append_printf(JString * string, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    char *buf = j_strdup_vprintf(fmt, ap);
+    j_string_append(string, buf);
+    j_free(buf);
+    va_end(ap);
 }
 
 char *j_string_free(JString * string, int free_segment)

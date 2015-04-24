@@ -3,6 +3,11 @@
 
 int main(int argc, char *argv[])
 {
+    char *utf8 = j_str_encode("你们好 ABCDEF 阿!", J_ENCODING_UTF8, 0);
+    if (j_strcmp0(utf8, "\\u4F60\\u4EEC\\u597D ABCDEF \\u963F!")) {
+        return -1;
+    }
+    j_free(utf8);
     char **strv = j_strdupv(3, "hello", "world", "everyone");
     char **ptr = strv;
     while (*ptr) {

@@ -33,6 +33,7 @@ void j_string_append(JString * string, const char *str);
 void j_string_append_len(JString * string, const char *str,
                          unsigned int len);
 void j_string_append_c(JString * string, char c);
+void j_string_append_printf(JString * string, const char *fmt, ...);
 char *j_string_free(JString * string, int free_segment);
 
 
