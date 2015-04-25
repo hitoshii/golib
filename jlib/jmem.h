@@ -18,16 +18,21 @@
 #ifndef __J_LIB_MEM_H__
 #define __J_LIB_MEM_H__
 
-#include <stdlib.h>
+/*#include "jtypes.h"*/
 
-#define j_malloc(size)  malloc(size)
-#define j_free(ptr)    free(ptr)
-#define j_realloc(ptr,size) realloc(ptr,size)
+#include "jtypes.h"
+
+
+jpointer j_malloc(juint size) J_GNUC_MALLOC;
+jpointer j_malloc0(juint size) J_GNUC_MALLOC;
+jpointer j_realloc(jpointer mem, juint size);
+void j_free(jpointer ptr);
 
 /*
  * Duplicates
  */
 void *j_memdup(const void *data, unsigned int len);
+
 
 
 #endif

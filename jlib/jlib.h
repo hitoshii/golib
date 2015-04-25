@@ -19,7 +19,9 @@
 #ifndef __J_LIB_H__
 #define __J_LIB_H__
 
+#include "jmacros.h"
 #include "jtypes.h"
+#include "jatomic.h"
 #include "jstrfuncs.h"
 #include "jstring.h"
 #include "jmem.h"

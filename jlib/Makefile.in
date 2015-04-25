@@ -124,7 +124,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjlib_la_DEPENDENCIES =
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
-	jstack.lo jpath.lo jhashtable.lo jbytearray.lo
+	jstack.lo jpath.lo jhashtable.lo jbytearray.lo jatomic.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -338,7 +338,8 @@ libjlib_la_SOURCES = \
 	jstack.c \
 	jpath.c \
 	jhashtable.c \
-	jbytearray.c
+	jbytearray.c \
+	jatomic.c
 
 libjlib_la_LDFLAGS = 
 libjlib_la_LIBADD = 
@@ -353,7 +354,10 @@ jlibsubinclude_HEADERS = \
 	jstack.h \
 	jpath.h \
 	jhashtable.h \
-	jbytearray.h
+	jbytearray.h \
+	jtypes.h \
+	jmacros.h \
+	jatomic.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
@@ -441,6 +445,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jatomic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jbytearray.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jhashtable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlist.Plo@am__quote@

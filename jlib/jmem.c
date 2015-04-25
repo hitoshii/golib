@@ -17,7 +17,43 @@
  */
 #include "jmem.h"
 #include <string.h>
+#include <stdlib.h>
 
+
+jpointer j_malloc(juint size)
+{
+    if (J_UNLIKELY(size == 0)) {
+        return NULL;
+    }
+    jpointer ptr = malloc(size);
+    return ptr;
+}
+
+jpointer j_malloc0(juint size)
+{
+    if (J_UNLIKELY(size == 0)) {
+        return NULL;
+    }
+    jpointer ptr = calloc(1, size);
+    return ptr;
+}
+
+jpointer j_realloc(jpointer mem, juint size)
+{
+    if (J_UNLIKELY(size == 0)) {
+        j_free(mem);
+        return NULL;
+    }
+    jpointer ptr = realloc(mem, size);
+    return ptr;
+}
+
+void j_free(jpointer ptr)
+{
+    if (J_LIKELY(ptr)) {
+        free(ptr);
+    }
+}
 
 void *j_memdup(const void *data, unsigned int len)
 {

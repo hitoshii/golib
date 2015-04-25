@@ -406,11 +406,11 @@ static inline const char *j_conf_object_parse(JConfRoot * root,
             child = j_conf_node_create_null();
         } else if (*data == ':') {
             if ((data = j_conf_node_parse(root, &child, data + 1)) == NULL) {
-                free(name);
+                j_free(name);
                 goto ERROR;
             }
         } else {
-            free(name);
+            j_free(name);
             j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
                                   "Invalid character \'%c\' near \"%.10s\". "
                                   "Break or colon is required", *data,
@@ -615,7 +615,7 @@ static inline const char *j_conf_string_parse(JConfRoot * root, char **ret,
     *ret = j_conf_root_assign(root, out);
     return data + 1;
   ERROR:
-    free(out);
+    j_free(out);
     j_conf_root_set_error(root, J_CONF_ERROR_MALFORMED,
                           "Invalid string near \'%.15s\'. ", origin);
     return NULL;
