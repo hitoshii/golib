@@ -78,4 +78,9 @@ typedef const void *jconstpointer;
 #define J_PI_4  0.78539816339744830961566084581987572104929234984378
 #define J_SQRT2 1.4142135623730950488016887242096980785696718753769
 
+/*
+ * Functions
+ */
+typedef void (*JDestroyNotify) (jpointer data);
+
 #endif

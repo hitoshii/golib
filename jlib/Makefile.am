@@ -24,11 +24,12 @@ libjlib_la_SOURCES = \
 	jpath.c \
 	jhashtable.c \
 	jbytearray.c \
-	jatomic.c
+	jatomic.c \
+	jthread.c
 
 libjlib_la_LDFLAGS =
 
-libjlib_la_LIBADD =
+libjlib_la_LIBADD = $(PTHREAD_LIBS)
 
 
 
@@ -46,7 +47,8 @@ jlibsubinclude_HEADERS= \
 	jbytearray.h \
 	jtypes.h \
 	jmacros.h \
-	jatomic.h
+	jatomic.h \
+	jthread.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

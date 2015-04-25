@@ -14,6 +14,17 @@ AC_PROG_CC
 
 AC_PREFIX_DEFAULT(/usr)
 
+
+# Check for pthread
+PTHREAD_PRESENT=""
+AC_CHECK_LIB( pthread, pthread_create, PTHREAD_PRESENT="yes",, $PTHREAD_LIBS
+-lpthread )
+if test "x$PTHREAD_PRESENT" = "xyes"; then
+AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define if libpthread is present])
+PTHREAD_LIBS="-lpthread"
+AC_SUBST(PTHREAD_LIBS)
+fi
+
 jlib_includedir='$(includedir)/jlib-0.1'
 AC_SUBST(jlib_includedir)
 

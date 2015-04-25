@@ -30,7 +30,8 @@ noinst_PROGRAMS= \
 	test-hashtable \
 	test-loop \
 	test-byte \
-	test-conf
+	test-conf \
+	test-thread
 
 TESTS=\
     test-string \
@@ -42,7 +43,8 @@ TESTS=\
     test-hashtable \
     test-loop \
     test-byte \
-    test-conf
+    test-conf \
+    test-thread
 
 dist_check_DATA = \
     test.conf
@@ -76,6 +78,9 @@ test_loop_SOURCES = \
 
 test_byte_SOURCES = \
 	test-byte.c
+
+test_thread_SOURCES = \
+    test-thread.c
 
 module: module.c
 	gcc -shared -fPIC module.c -o module.so
