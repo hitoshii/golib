@@ -45,7 +45,6 @@ jlibsubinclude_HEADERS= \
 	jpath.h \
 	jhashtable.h \
 	jbytearray.h \
-	jtypes.h \
 	jmacros.h \
 	jatomic.h \
 	jthread.h

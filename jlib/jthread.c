@@ -204,6 +204,7 @@ static inline void j_thread_free(JThread * thread)
     if (!thread->joined) {
         pthread_detach(thread->posix);
     }
+    j_free(thread->name);
     j_mutex_clear(&thread->lock);
     j_free(thread);
 }

@@ -3,8 +3,20 @@
 
 J_PRIVATE_DEFINE_STATIC(private, NULL);
 
+static jpointer thread_func1(jpointer data)
+{
+    printf("%s\n", (const jchar *) data);
+    return "hello";
+}
+
 static jpointer thread_func(jpointer data)
 {
+    JThread *thread = j_thread_new("test-thread", thread_func1,
+                                   "My name is Han Meimei");
+    jpointer retval = j_thread_join(thread);
+    if (j_strcmp0(retval, "hello")) {
+        return NULL;
+    }
     printf("%s\n", (const jchar *) data);
     return "hello world";
 }
