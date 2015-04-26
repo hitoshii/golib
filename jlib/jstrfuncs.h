@@ -20,7 +20,7 @@
 
 #include <stdarg.h>
 #include <ctype.h>
-#include <stdint.h>
+#include "jtypes.h"
 
 /*
  * Compares two strings. like standard strcmp
@@ -62,7 +62,7 @@ char *j_strchug(char *str);
  * Duplicates a string.
  * If str is NULL, returns NULL
  */
-char *j_strdup(const char *str);
+jchar *j_strdup(const jchar * str);
 
 
 char *j_strdup_vprintf(const char *fmt, va_list vl);

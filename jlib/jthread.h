@@ -31,6 +31,13 @@ struct _JMutext {
 #define J_MUTEX_DEFINE(name)  JMutex name = {PTHREAD_MUTEX_INITIALIZER}
 #define J_MUTEX_DEFINE_STATIC(name) static J_MUTEX_DEFINE(name)
 
+#define J_LOCK_NAME(name)   j__ ## name ## _lock
+#define J_LOCK_DEFINE(name) J_MUTEX_DEFINE(J_LOCK_NAME(name))
+#define J_LOCK_DEFINE_STATIC(name) J_MUTEX_DEFINE_STATIC(J_LOCK_NAME(name))
+
+#define J_LOCK(name)    j_mutex_lock (&J_LOCK_NAME (name))
+#define J_UNLOCK(name)  j_mutex_unlock (&J_LOCK_NAME(name))
+
 void j_mutex_init(JMutex * mutex);
 
 void j_mutex_clear(JMutex * mutex);
@@ -68,5 +75,19 @@ struct _JPrivate {
 
 jpointer j_private_get(JPrivate * priv);
 void j_private_set(JPrivate * priv, jpointer data);
+
+/*
+ * Thread
+ */
+typedef jpointer(*JThreadFunc) (jpointer data);
+
+typedef struct _JThread JThread;
+
+JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data);
+
+void j_thread_unref(JThread * thread);
+void j_thread_ref(JThread * thread);
+
+jpointer j_thread_join(JThread * thread);
 
 #endif

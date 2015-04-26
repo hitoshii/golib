@@ -66,7 +66,7 @@ int j_strncmp0(const char *s1, const char *s2, unsigned int count)
  * Duplicates a string.
  * If str is NULL, returns NULL
  */
-char *j_strdup(const char *str)
+jchar *j_strdup(const jchar * str)
 {
     if (str == NULL) {
         return NULL;

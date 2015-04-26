@@ -17,8 +17,24 @@
  */
 #include "jthread.h"
 #include "jmem.h"
+#include "jstrfuncs.h"
 #include "jatomic.h"
 #include <stdlib.h>
+
+struct _JThread {
+    pthread_t posix;
+    JMutex lock;
+    jboolean joined;
+
+    JThreadFunc func;
+    jpointer data;
+    jboolean joinable;
+
+    jchar *name;
+    jboolean ours;
+    jint ref;
+    jpointer retval;
+};
 
 void j_mutex_init(JMutex * mutex)
 {
@@ -92,4 +108,118 @@ void j_private_set(JPrivate * priv, jpointer data)
 {
     pthread_key_t *key = j_private_get_key(priv);
     pthread_setspecific(*key, data);
+}
+
+static void j_thread_cleanup(jpointer data);
+
+J_LOCK_DEFINE_STATIC(j_thread_new);
+J_PRIVATE_DEFINE_STATIC(j_thread_specific_private, j_thread_cleanup);
+
+
+#include <sys/prctl.h>
+static inline void j_thread_set_name(const jchar * name)
+{
+    prctl(PR_SET_NAME, name, 0, 0, 0, 0);
+}
+
+static jpointer thread_func_proxy(jpointer data)
+{
+    if (data == NULL) {
+        return NULL;
+    }
+    JThread *thread = (JThread *) data;
+    j_private_set(&j_thread_specific_private, data);
+    J_LOCK(j_thread_new);
+    J_UNLOCK(j_thread_new);
+    if (thread->name) {
+        /* set thread name */
+        j_thread_set_name(thread->name);
+    }
+    thread->retval = thread->func(thread->data);
+    return NULL;
+}
+
+static inline JThread *j_thread_new_internal(JThreadFunc func,
+                                             jpointer data)
+{
+    JThread *thread = (JThread *) j_malloc(sizeof(JThread));
+    jint ret =
+        pthread_create(&thread->posix, NULL, thread_func_proxy, thread);
+    if (ret) {
+        j_free(thread);
+        return NULL;
+    }
+    j_mutex_init(&thread->lock);
+    return thread;
+}
+
+JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data)
+{
+    JThread *thread = NULL;
+    J_LOCK(j_thread_new);
+    thread = j_thread_new_internal(func, data);
+    if (thread) {
+        thread->name = j_strdup(name);
+        thread->joinable = TRUE;
+        thread->joined = FALSE;
+        thread->func = func;
+        thread->data = data;
+        thread->ours = TRUE;
+        thread->ref = 2;
+    }
+    J_UNLOCK(j_thread_new);
+    return thread;
+}
+
+static inline void j_thread_join_internal(JThread * thread)
+{
+    j_mutex_lock(&thread->lock);
+    if (!thread->joined) {
+        pthread_join(thread->posix, NULL);
+        thread->joined = TRUE;
+    }
+
+    j_mutex_unlock(&thread->lock);
+
+}
+
+jpointer j_thread_join(JThread * thread)
+{
+    jpointer retval;
+
+    j_thread_join_internal(thread);
+    retval = thread->retval;
+    thread->joinable = FALSE;
+    j_thread_unref(thread);
+    return retval;
+}
+
+static void j_thread_cleanup(jpointer data)
+{
+    j_thread_unref(data);
+}
+
+static inline void j_thread_free(JThread * thread)
+{
+    if (!thread->joined) {
+        pthread_detach(thread->posix);
+    }
+    j_mutex_clear(&thread->lock);
+    j_free(thread);
+}
+
+void j_thread_unref(JThread * thread)
+{
+    if (j_atomic_int_dec_and_test(&thread->ref)) {
+        if (thread->ours) {
+            j_thread_free(thread);
+        } else {
+            j_free(thread);
+        }
+    }
+}
+
+void j_thread_ref(JThread * thread)
+{
+    j_atomic_int_inc(&thread->ref);
 }
