@@ -90,4 +90,6 @@ void j_thread_ref(JThread * thread);
 
 jpointer j_thread_join(JThread * thread);
 
+JThread *j_thread_self(void);
+
 #endif

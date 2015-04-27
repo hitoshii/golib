@@ -224,3 +224,19 @@ void j_thread_ref(JThread * thread)
 {
     j_atomic_int_inc(&thread->ref);
 }
+
+JThread *j_thread_self(void)
+{
+    JThread *thread = j_private_get(&j_thread_specific_private);
+    if (thread == NULL) {
+        /*
+         * If no thread data is available, provide and set one.
+         * This can hanppen for the main thread and threads
+         * that are not created by JLib.
+         */
+        thread = j_malloc(sizeof(JThread));
+        thread->ref = 1;
+        j_private_set(&j_thread_specific_private, thread);
+    }
+    return thread;
+}
