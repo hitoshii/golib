@@ -125,8 +125,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libjlib_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
-	jstack.lo jpath.lo jhashtable.lo jbytearray.lo jatomic.lo \
-	jthread.lo
+	jstack.lo jfileutils.lo jhashtable.lo jbytearray.lo jatomic.lo \
+	jthread.lo jepoll.lo jslist.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -339,11 +339,13 @@ libjlib_la_SOURCES = \
 	jstrfuncs.c \
 	jstring.c \
 	jstack.c \
-	jpath.c \
+	jfileutils.c \
 	jhashtable.c \
 	jbytearray.c \
 	jatomic.c \
-	jthread.c
+	jthread.c \
+	jepoll.c \
+	jslist.c
 
 libjlib_la_LDFLAGS = 
 libjlib_la_LIBADD = $(PTHREAD_LIBS)
@@ -356,12 +358,14 @@ jlibsubinclude_HEADERS = \
 	jstrfuncs.h \
 	jstring.h \
 	jstack.h \
-	jpath.h \
+	jfileutils.h \
 	jhashtable.h \
 	jbytearray.h \
 	jmacros.h \
 	jatomic.h \
-	jthread.h
+	jthread.h \
+	jepoll.h \
+	jslist.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
@@ -451,10 +455,12 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jatomic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jbytearray.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jepoll.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfileutils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jhashtable.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmem.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jpath.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jslist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstack.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstrfuncs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstring.Plo@am__quote@

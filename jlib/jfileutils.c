@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-#include "jpath.h"
+#include "jfileutils.h"
 #include "jstrfuncs.h"
 #include "jmem.h"
 #include <stdlib.h>

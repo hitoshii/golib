@@ -216,34 +216,38 @@ int j_hash_table_update(JHashTable * h, void *key, void *value)
     return 0;
 }
 
-static inline int j_hash_table_remove_internal(JHashTable * h, void *key,
-                                               JKeyDestroyFunc key_func,
-                                               JValueDestroyFunc
-                                               value_func)
+static inline jpointer j_hash_table_remove_internal(JHashTable * h,
+                                                    void *key,
+                                                    JKeyDestroyFunc
+                                                    key_func,
+                                                    JValueDestroyFunc
+                                                    value_func)
 {
     JHashTableNode *node = j_hash_table_find_node(h, key);
+    jpointer value = NULL;
 
     if (node) {
         uint32_t index = j_hash_table_index(h, key);
         h->keys = j_list_remove(h->keys, node->key);
         h->buckets[index] = j_list_remove(h->buckets[index], node);
+        if (value_func == NULL) {
+            value = node->value;
+        }
         j_hash_table_node_free(node, key_func, value_func);
-        return 0;
     }
-    return -1;
+    return value;
 }
 
 /* remove but not free key or value */
-int j_hash_table_remove(JHashTable * h, void *key)
+jpointer j_hash_table_remove(JHashTable * h, void *key)
 {
     return j_hash_table_remove_internal(h, key, NULL, NULL);
 }
 
 /* remove and free key and value */
-int j_hash_table_remove_full(JHashTable * h, void *key)
+void j_hash_table_remove_full(JHashTable * h, void *key)
 {
-    return j_hash_table_remove_internal(h, key, h->key_func,
-                                        h->value_func);
+    j_hash_table_remove_internal(h, key, h->key_func, h->value_func);
 }
 
 void *j_hash_table_find(JHashTable * h, const void *key)

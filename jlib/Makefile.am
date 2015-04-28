@@ -21,11 +21,13 @@ libjlib_la_SOURCES = \
 	jstrfuncs.c \
 	jstring.c \
 	jstack.c \
-	jpath.c \
+	jfileutils.c \
 	jhashtable.c \
 	jbytearray.c \
 	jatomic.c \
-	jthread.c
+	jthread.c \
+	jepoll.c \
+	jslist.c
 
 libjlib_la_LDFLAGS =
 
@@ -42,12 +44,14 @@ jlibsubinclude_HEADERS= \
 	jstrfuncs.h \
 	jstring.h \
 	jstack.h \
-	jpath.h \
+	jfileutils.h \
 	jhashtable.h \
 	jbytearray.h \
 	jmacros.h \
 	jatomic.h \
-	jthread.h
+	jthread.h \
+	jepoll.h \
+	jslist.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

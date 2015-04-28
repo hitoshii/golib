@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,24 +15,42 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-
-#ifndef __J_LIB_H__
-#define __J_LIB_H__
-
-#include "jmacros.h"
-#include "jtypes.h"
-#include "jmem.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
 #include "jslist.h"
-#include "jlist.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jbytearray.h"
-#include "jepoll.h"
+#include "jmem.h"
 
 
-#endif
+JSList *j_slist_alloc(jpointer data)
+{
+    JSList *l = (JSList *) j_malloc(sizeof(JSList));
+    l->data = data;
+    l->next = NULL;
+    return l;
+}
+
+JSList *j_slist_last(JSList * l)
+{
+    if (l == NULL) {
+        return NULL;
+    }
+    while (j_slist_next(l)) {
+        l = j_slist_next(l);
+    }
+    return l;
+}
+
+JSList *j_slist_append(JSList * l, jpointer data)
+{
+    JSList *last = j_slist_last(l);
+    if (last == NULL) {
+        return j_slist_alloc(data);
+    }
+    last->next = j_slist_alloc(data);
+    return l;
+}
+
+JSList *j_slist_preppend(JSList * l, jpointer data)
+{
+    JSList *h = j_slist_alloc(data);
+    h->next = l;
+    return h;
+}

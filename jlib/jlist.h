@@ -19,6 +19,7 @@
 #ifndef __J_LIB_LIST_H__
 #define __J_LIB_LIST_H__
 
+#include "jtypes.h"
 
 typedef struct _JList JList;
 

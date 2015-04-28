@@ -31,7 +31,6 @@ struct _JThread {
     jboolean joinable;
 
     jchar *name;
-    jboolean ours;
     jint ref;
     jpointer retval;
 };
@@ -164,7 +163,6 @@ JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data)
         thread->joined = FALSE;
         thread->func = func;
         thread->data = data;
-        thread->ours = TRUE;
         thread->ref = 2;
     }
     J_UNLOCK(j_thread_new);
@@ -212,11 +210,7 @@ static inline void j_thread_free(JThread * thread)
 void j_thread_unref(JThread * thread)
 {
     if (j_atomic_int_dec_and_test(&thread->ref)) {
-        if (thread->ours) {
-            j_thread_free(thread);
-        } else {
-            j_free(thread);
-        }
+        j_thread_free(thread);
     }
 }
 
@@ -228,15 +222,21 @@ void j_thread_ref(JThread * thread)
 JThread *j_thread_self(void)
 {
     JThread *thread = j_private_get(&j_thread_specific_private);
-    if (thread == NULL) {
-        /*
-         * If no thread data is available, provide and set one.
-         * This can hanppen for the main thread and threads
-         * that are not created by JLib.
-         */
-        thread = j_malloc(sizeof(JThread));
-        thread->ref = 1;
-        j_private_set(&j_thread_specific_private, thread);
-    }
     return thread;
+}
+
+#include <sched.h>
+void j_thread_yield()
+{
+    sched_yield();
+}
+
+void j_thread_exit(jpointer retval)
+{
+    JThread *thread = j_thread_self();
+    if (thread == NULL) {
+        return;
+    }
+    thread->retval = retval;
+    pthread_exit(NULL);
 }

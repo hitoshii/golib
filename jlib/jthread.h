@@ -39,7 +39,6 @@ struct _JMutext {
 #define J_UNLOCK(name)  j_mutex_unlock (&J_LOCK_NAME(name))
 
 void j_mutex_init(JMutex * mutex);
-
 void j_mutex_clear(JMutex * mutex);
 
 void j_mutex_lock(JMutex * mutex);
@@ -90,6 +89,22 @@ void j_thread_ref(JThread * thread);
 
 jpointer j_thread_join(JThread * thread);
 
+/*
+ * Must call j_thread_exit() from a thread that created by j_thread_new
+ */
+void j_thread_exit(jpointer retval);
+
+/*
+ * Causes the calling thread to voluntarily relinquish the CPU, so that other threads can run
+ * This function is often used as a method to make busy wait less evil
+ */
+void j_thread_yield();
+
+/*
+ * If no thread data is available, returns NULL.
+ * This can hanppen for the main thread and threads
+ * that are not created by JLib.
+ */
 JThread *j_thread_self(void);
 
 #endif

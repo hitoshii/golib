@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,24 +15,31 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
+#ifndef __JLIB_SLIST_H__
+#define __JLIB_SLIST_H__
 
-#ifndef __J_LIB_H__
-#define __J_LIB_H__
-
-#include "jmacros.h"
 #include "jtypes.h"
-#include "jmem.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jbytearray.h"
-#include "jepoll.h"
+
+/*
+ * Singly linked list
+ */
+
+typedef struct _JSList JSList;
+
+
+struct _JSList {
+    jpointer data;
+    JSList *next;
+};
+
+#define j_slist_new()   (NULL)
+#define j_slist_next(l) ((l)->next)
+
+JSList *j_slist_alloc(jpointer data);
+
+JSList *j_slist_last(JSList * l);
+JSList *j_slist_append(JSList * l, jpointer data);
+JSList *j_slist_preppend(JSList * l, jpointer data);
 
 
 #endif

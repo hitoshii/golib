@@ -93,12 +93,12 @@ int j_hash_table_update(JHashTable * h, void *key, void *value);
  * 
  * @param key: the key to remove.
  * 
- * @return: 0 if removed, -1 if key not found.
+ * @return: the value found or NULL
  */
-int j_hash_table_remove(JHashTable * h, void *key);
+jpointer j_hash_table_remove(JHashTable * h, void *key);
 
 /* remove and free */
-int j_hash_table_remove_full(JHashTable * h, void *key);
+void j_hash_table_remove_full(JHashTable * h, void *key);
 
 
 /*
