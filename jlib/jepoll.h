@@ -41,6 +41,12 @@ typedef enum {
 } JEPollControl;
 
 
+typedef struct {
+    jint fd;
+    jushort events;
+    jpointer data;
+} JEPollEvent;
+
 /*
  * Creates a new epoll instance
  */
@@ -50,5 +56,8 @@ void j_epoll_close(JEPoll * p);
 jboolean j_epoll_ctl(JEPoll * pfd, jint fd, JEPollControl ctl,
                      jushort events, jpointer data,
                      JDestroyNotify destroy);
+
+jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
+                  jint timeout);
 
 #endif

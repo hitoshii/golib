@@ -54,3 +54,30 @@ JSList *j_slist_preppend(JSList * l, jpointer data)
     h->next = l;
     return h;
 }
+
+juint j_slist_length(JSList * l)
+{
+    juint len = 0;
+    while (l) {
+        len++;
+        l = j_slist_next(l);
+    }
+    return len;
+}
+
+void j_slist_free(JSList * l)
+{
+    j_slist_free_full(l, NULL);
+}
+
+void j_slist_free_full(JSList * l, JDestroyNotify destroy)
+{
+    while (l) {
+        if (destroy) {
+            destroy(j_slist_data(l));
+        }
+        JSList *next = j_slist_next(l);
+        j_free(l);
+        l = next;
+    }
+}

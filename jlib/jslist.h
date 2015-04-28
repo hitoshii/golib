@@ -34,12 +34,19 @@ struct _JSList {
 
 #define j_slist_new()   (NULL)
 #define j_slist_next(l) ((l)->next)
+#define j_slist_data(l) ((l)->data)
 
 JSList *j_slist_alloc(jpointer data);
 
 JSList *j_slist_last(JSList * l);
 JSList *j_slist_append(JSList * l, jpointer data);
 JSList *j_slist_preppend(JSList * l, jpointer data);
+
+void j_slist_free(JSList * l);
+void j_slist_free_full(JSList * l, JDestroyNotify destroy);
+
+
+juint j_slist_length(JSList * l);
 
 
 #endif
