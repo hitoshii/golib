@@ -19,6 +19,8 @@
 #ifndef __J_LIB_STACK_H__
 #define __J_LIB_STACK_H__
 
+#include "jtypes.h"
+
 
 /*
  * A stack implemented by JList
@@ -54,8 +56,7 @@ unsigned int j_stack_length(JStack * stack);
 #define j_stack_is_empty(stack) (j_stack_length(stack)==0)
 
 
-typedef void (*JStackDestroy) (void *data);
-void j_stack_free(JStack * stack, JStackDestroy destroy);
+void j_stack_free(JStack * stack, JDestroyNotify destroy);
 
 
 #endif

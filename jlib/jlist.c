@@ -25,9 +25,9 @@
 /*
  * Returns the length of JList 
  */
-unsigned int j_list_length(JList * l)
+juint j_list_length(JList * l)
 {
-    unsigned int len = 0;
+    juint len = 0;
     while (l) {
         len++;
         l = j_list_next(l);
@@ -36,7 +36,7 @@ unsigned int j_list_length(JList * l)
 }
 
 
-JList *j_list_append(JList * l, void *data)
+JList *j_list_append(JList * l, jpointer data)
 {
     JList *new = j_list_alloc(data);
     if (l == NULL) {
@@ -48,7 +48,7 @@ JList *j_list_append(JList * l, void *data)
     return l;
 }
 
-JList *j_list_prepend(JList * l, void *data)
+JList *j_list_prepend(JList * l, jpointer data)
 {
     JList *new = j_list_alloc(data);
     if (l == NULL) {
@@ -82,7 +82,8 @@ JList *j_list_last(JList * l)
     return l;
 }
 
-JList *j_list_find(JList * l, JListCompare compare, const void *user_data)
+JList *j_list_find(JList * l, JCompareFunc compare,
+                   jconstpointer user_data)
 {
     JList *ptr = l;
     while (ptr) {
@@ -95,8 +96,8 @@ JList *j_list_find(JList * l, JListCompare compare, const void *user_data)
     return NULL;
 }
 
-void *j_list_find_data(JList * l, JListCompare compare,
-                       const void *user_data)
+jpointer j_list_find_data(JList * l, JCompareFunc compare,
+                          jconstpointer user_data)
 {
     JList *ptr = j_list_find(l, compare, user_data);
     if (ptr) {
@@ -106,7 +107,7 @@ void *j_list_find_data(JList * l, JListCompare compare,
 }
 
 
-JList *j_list_alloc(void *data)
+JList *j_list_alloc(jpointer data)
 {
     JList *l = (JList *) j_malloc(sizeof(JList));
     l->data = data;
@@ -115,7 +116,7 @@ JList *j_list_alloc(void *data)
     return l;
 }
 
-void j_list_free1(JList * l, JListDestroy destroy)
+void j_list_free1(JList * l, JDestroyNotify destroy)
 {
     if (destroy) {
         destroy(j_list_data(l));
@@ -131,7 +132,7 @@ void j_list_free(JList * l)
 /*
  * Frees the list and all data using JListDestroy
  */
-void j_list_free_full(JList * l, JListDestroy destroy)
+void j_list_free_full(JList * l, JDestroyNotify destroy)
 {
     if (l == NULL) {
         return;
@@ -143,7 +144,7 @@ void j_list_free_full(JList * l, JListDestroy destroy)
     } while (l);
 }
 
-int j_list_compare(JList * l1, JList * l2, JListCompare compare)
+int j_list_compare(JList * l1, JList * l2, JCompareFunc compare)
 {
     while (l1 && l2) {
         int ret = compare(j_list_data(l1), j_list_data(l2));
@@ -162,7 +163,7 @@ int j_list_compare(JList * l1, JList * l2, JListCompare compare)
  * If two or more elements  contain the same data, only the first one is removed.
  * If none of the elements contain the data, JList is unchanged.
  */
-JList *j_list_remove(JList * l, void *data)
+JList *j_list_remove(JList * l, jpointer data)
 {
     if (l == NULL) {
         return l;

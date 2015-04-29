@@ -37,7 +37,7 @@
 #define J_GNUC_MALLOC
 #endif
 
-#define JPOINTER_TO_JUINT(p) ((juint) (p))
+#define JPOINTER_TO_JUINT(p) ((juint)(julong) (p))
 #define JUINT_TO_JPOINTER(u) ((jpointer)(juint) u)
 #define JINT_TO_JPOINTER(i)  ((jpointer)(jlong) i)
 
@@ -121,6 +121,11 @@
 #define J_STATIC_ASSERT(expr) typedef char J_PASTE (_GStaticAssertCompileTimeAssertion_, __LINE__)[(expr) ? 1 : -1] J_GNUC_UNUSED
 #endif
 #define J_STATIC_ASSERT_EXPR(expr) ((void) sizeof (char[(expr) ? 1 : -1]))
+#endif
+
+
+#ifndef JLIB_VAR
+#define JLIB_VAR extern
 #endif
 
 

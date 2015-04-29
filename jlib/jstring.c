@@ -27,7 +27,7 @@ static inline void j_string_realloc(JString * string)
 {
     string->total *= 2;
     string->data =
-        (char *) j_realloc(string->data, sizeof(char) * string->total);
+        (jchar *) j_realloc(string->data, sizeof(char) * string->total);
 }
 
 
@@ -41,14 +41,13 @@ JString *j_string_new()
     return string;
 }
 
-void j_string_append(JString * string, const char *str)
+void j_string_append(JString * string, const jchar * str)
 {
-    int len = j_strlen(str);
+    jint len = j_strlen(str);
     j_string_append_len(string, str, len);
 }
 
-void j_string_append_len(JString * string, const char *str,
-                         unsigned int len)
+void j_string_append_len(JString * string, const jchar * str, juint len)
 {
     while (string->len + len >= string->total) {
         j_string_realloc(string);
@@ -58,7 +57,7 @@ void j_string_append_len(JString * string, const char *str,
     string->data[string->len] = '\0';
 }
 
-void j_string_append_c(JString * string, char c)
+void j_string_append_c(JString * string, jchar c)
 {
     if (string->len >= string->total - 1) {
         j_string_realloc(string);
@@ -68,19 +67,19 @@ void j_string_append_c(JString * string, char c)
     string->data[string->len] = '\0';
 }
 
-void j_string_append_printf(JString * string, const char *fmt, ...)
+void j_string_append_printf(JString * string, const jchar * fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    char *buf = j_strdup_vprintf(fmt, ap);
+    jchar *buf = j_strdup_vprintf(fmt, ap);
     j_string_append(string, buf);
     j_free(buf);
     va_end(ap);
 }
 
-char *j_string_free(JString * string, int free_segment)
+jchar *j_string_free(JString * string, jboolean free_segment)
 {
-    char *data = string->data;
+    jchar *data = string->data;
     j_free(string);
     if (free_segment) {
         j_free(data);

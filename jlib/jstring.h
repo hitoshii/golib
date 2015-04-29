@@ -18,23 +18,23 @@
 #ifndef __J_LIB_STRING_H__
 #define __J_LIB_STRING_H__
 
+#include "jtypes.h"
 
 typedef struct {
-    char *data;
-    unsigned int len;
+    jchar *data;
+    juint len;
 
     /* private */
-    unsigned int total;
+    juint total;
 } JString;
 
 
 JString *j_string_new();
-void j_string_append(JString * string, const char *str);
-void j_string_append_len(JString * string, const char *str,
-                         unsigned int len);
-void j_string_append_c(JString * string, char c);
-void j_string_append_printf(JString * string, const char *fmt, ...);
-char *j_string_free(JString * string, int free_segment);
+void j_string_append(JString * string, const jchar * str);
+void j_string_append_len(JString * string, const jchar * str, juint len);
+void j_string_append_c(JString * string, jchar c);
+void j_string_append_printf(JString * string, const jchar * fmt, ...);
+jchar *j_string_free(JString * string, jboolean free_segment);
 
 
 

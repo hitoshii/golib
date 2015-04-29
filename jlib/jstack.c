@@ -81,8 +81,8 @@ unsigned int j_stack_length(JStack * stack)
     return stack->len;
 }
 
-void j_stack_free(JStack * stack, JStackDestroy destroy)
+void j_stack_free(JStack * stack, JDestroyNotify destroy)
 {
-    j_list_free_full(stack->data, (JListDestroy) destroy);
+    j_list_free_full(stack->data, (JDestroyNotify) destroy);
     j_free(stack);
 }

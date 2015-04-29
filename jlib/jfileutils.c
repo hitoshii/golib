@@ -26,7 +26,7 @@
  /*
   * Checks to see if the path is absolute
   */
-int j_path_is_absolute(const char *path)
+jint j_path_is_absolute(const jchar * path)
 {
     return j_str_has_prefix(path, "/");
 }
@@ -36,7 +36,7 @@ int j_path_is_absolute(const char *path)
  * i.e. after the "/" in UNIX or "C:\" under Windows.
  * If file_name is not an absolute path it returns path it self.
  */
-const char *j_path_skip_root(const char *path)
+const jchar *j_path_skip_root(const jchar * path)
 {
     if (!j_path_is_absolute(path)) {
         return path;
@@ -49,9 +49,9 @@ const char *j_path_skip_root(const char *path)
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname
  */
-char *j_path_realpath(const char *path)
+jchar *j_path_realpath(const jchar * path)
 {
-    char *real = realpath(path, NULL);
+    jchar *real = realpath(path, NULL);
     return real;
 }
 
@@ -60,16 +60,16 @@ char *j_path_realpath(const char *path)
  * Returns a newly allocated string containing
  * the last component of the filename
  */
-char *j_path_basename(const char *path)
+jchar *j_path_basename(const jchar * path)
 {
-    char *slash = strrchr(path, '/');
+    jchar *slash = strrchr(path, '/');
     if (slash == NULL) {        /* slash not found */
         return j_strdup(path);
     }
     if (*(slash + 1)) {
         return j_strdup(slash + 1);
     }
-    char *ptr = slash - 1;
+    jchar *ptr = slash - 1;
     while (ptr != path) {
         if (*ptr == '/') {
             break;
@@ -87,16 +87,16 @@ char *j_path_basename(const char *path)
  * used by shell (see glob(3)). No tilde expansion or parameter substitution
  * is done
  */
-char **j_path_glob(const char *pattern)
+jchar **j_path_glob(const jchar * pattern)
 {
     glob_t globs;
-    int ret = glob(pattern, 0, NULL, &globs);
+    jint ret = glob(pattern, 0, NULL, &globs);
     if (ret != 0) {
         return NULL;
     }
-    char **strv =
-        (char **) j_malloc(sizeof(char *) * (globs.gl_pathc + 1));
-    int i;
+    jchar **strv =
+        (jchar **) j_malloc(sizeof(jchar *) * (globs.gl_pathc + 1));
+    jint i;
     for (i = 0; i < globs.gl_pathc; i++) {
         strv[i] = j_strdup(globs.gl_pathv[i]);
     }
@@ -109,7 +109,7 @@ char **j_path_glob(const char *pattern)
 /*
  * Joins two path, p2 must be relative
  */
-char *j_path_join(const char *p1, const char *p2)
+jchar *j_path_join(const jchar * p1, const jchar * p2)
 {
     if (j_path_is_absolute(p2)) {
         return NULL;

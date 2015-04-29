@@ -31,7 +31,7 @@ void j_free(jpointer ptr);
 /*
  * Duplicates
  */
-void *j_memdup(const void *data, unsigned int len);
+jpointer j_memdup(jconstpointer data, juint len);
 
 
 

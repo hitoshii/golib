@@ -95,7 +95,7 @@ void j_conf_node_free(JConfNode * node)
     }
     if (j_conf_node_is_array(node) || j_conf_node_is_object(node)) {
         j_list_free_full(node->data.children,
-                         (JListDestroy) j_conf_node_free);
+                         (JDestroyNotify) j_conf_node_free);
     } else if (j_conf_node_is_string(node)) {
         j_free(node->data.string);
     }
@@ -327,9 +327,9 @@ void j_conf_root_pop(JConfRoot * root)
 void j_conf_root_free(JConfRoot * root)
 {
     j_free(root->name);
-    j_list_free_full(root->children, (JListDestroy) j_conf_node_free);
-    j_list_free_full(root->vars, (JListDestroy) j_conf_variable_free);
-    j_stack_free(root->stack, (JStackDestroy) j_conf_root_stack_free);
+    j_list_free_full(root->children, (JDestroyNotify) j_conf_node_free);
+    j_list_free_full(root->vars, (JDestroyNotify) j_conf_variable_free);
+    j_stack_free(root->stack, (JDestroyNotify) j_conf_root_stack_free);
     j_free(root);
 }
 

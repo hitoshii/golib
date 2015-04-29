@@ -24,7 +24,7 @@
 typedef struct _JList JList;
 
 struct _JList {
-    void *data;
+    jpointer data;
     JList *prev;
     JList *next;
 };
@@ -35,24 +35,26 @@ struct _JList {
 #define j_list_new()    (NULL)
 
 
-JList *j_list_alloc(void *data);
+JList *j_list_alloc(jpointer data);
 
 
 /*
- * Returns the length of JList 
+ * Gets the number of elements in a JSList
+ * This function iterates over the whole list to count its elements.
  */
-unsigned int j_list_length(JList * l);
+juint j_list_length(JList * l);
 
 
 /*
  * Appends a new element with data to last of the list
  */
-JList *j_list_append(JList * l, void *data);
+JList *j_list_append(JList * l, jpointer data);
 
 /*
- * Prepends a new element with data to the head of the list
+ * Prepends a new element with data to the head of the list.
+ * It's faster than j_list_append()
  */
-JList *j_list_prepend(JList * l, void *data);
+JList *j_list_prepend(JList * l, jpointer data);
 
 
 /*
@@ -62,10 +64,10 @@ JList *j_list_prepend(JList * l, void *data);
  * The function takes two gconstpointer arguments, the JList element's data 
  * as the first argument and the given user data.
  */
-typedef int (*JListCompare) (const void *data, const void *user_data);
-JList *j_list_find(JList * l, JListCompare compare, const void *user_data);
-void *j_list_find_data(JList * l, JListCompare compare,
-                       const void *user_data);
+JList *j_list_find(JList * l, JCompareFunc compare,
+                   jconstpointer user_data);
+jpointer j_list_find_data(JList * l, JCompareFunc compare,
+                          jconstpointer user_data);
 
 /*
  * Returns the first element of the list
@@ -84,23 +86,22 @@ void j_list_free(JList * l);
 /*
  * Frees the list and all data using JListDestroy
  */
-typedef void (*JListDestroy) (void *data);
-void j_list_free_full(JList * l, JListDestroy destroy);
+void j_list_free_full(JList * l, JDestroyNotify destroy);
 
-void j_list_free1(JList * l, JListDestroy destroy);
+void j_list_free1(JList * l, JDestroyNotify destroy);
 
 
 /*
  * Compares two list
  */
-int j_list_compare(JList * l1, JList * l2, JListCompare compare);
+int j_list_compare(JList * l1, JList * l2, JCompareFunc compare);
 
 /*
  * Removes an element from a JList. 
  * If two or more elements  contain the same data, only the first one is removed.
  * If none of the elements contain the data, JList is unchanged.
  */
-JList *j_list_remove(JList * l, void *data);
+JList *j_list_remove(JList * l, jpointer data);
 
 
 #endif

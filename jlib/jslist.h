@@ -45,7 +45,18 @@ JSList *j_slist_preppend(JSList * l, jpointer data);
 void j_slist_free(JSList * l);
 void j_slist_free_full(JSList * l, JDestroyNotify destroy);
 
+void j_slist_free1(JSList * l, JDestroyNotify destroy);
 
+JSList *j_slist_find(JSList * l, JCompareFunc compare,
+                     jconstpointer user_data);
+jpointer j_slist_find_data(JSList * l, JCompareFunc compare,
+                           jconstpointer user_data);
+
+
+/*
+ * Gets the number of elements in a JSList
+ * This function iterates over the whole list to count its elements.
+ */
 juint j_slist_length(JSList * l);
 
 

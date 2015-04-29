@@ -18,13 +18,14 @@
 #ifndef __JLIB_BYTE_ARRAY_H__
 #define __JLIB_BYTE_ARRAY_H__
 
+#include "jtypes.h"
 
 typedef struct {
-    void *data;
-    unsigned int len;
+    jpointer data;
+    juint len;
 
     /* private */
-    unsigned int total;
+    juint total;
 } JByteArray;
 #define j_byte_array_get_data(ba)   (ba)->data
 #define j_byte_array_get_len(ba)    (ba)->len
@@ -33,12 +34,10 @@ typedef struct {
 
 JByteArray *j_byte_array_new(void);
 
-void j_byte_array_append(JByteArray * ba, const void *data,
-                         unsigned int len);
-void j_byte_array_preppend(JByteArray * ba, const void *data,
-                           unsigned int len);
+void j_byte_array_append(JByteArray * ba, jconstpointer data, juint len);
+void j_byte_array_preppend(JByteArray * ba, jconstpointer data, juint len);
 
-void *j_byte_array_free(JByteArray * ba, int f);
+jpointer j_byte_array_free(JByteArray * ba, jboolean f);
 
 void j_byte_array_clear(JByteArray * ba);
 

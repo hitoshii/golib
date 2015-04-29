@@ -37,28 +37,29 @@ typedef struct _JHashTable JHashTable;
  * 
  * @return: the hash code
  */
-typedef unsigned int (*JHashFunc) (const void *data);
+typedef juint(*JHashFunc) (jconstpointer data);
 /*
  * The equal function
  * 
  * @return: zero if equal, non-zero if not.
  */
-typedef int (*JEqualFunc) (const void *a, const void *b);
+typedef JCompareFunc JEqualFunc;
 /*
  * the key & value destroy function
  */
-typedef void (*JKeyDestroyFunc) (void *key);
-typedef void (*JValueDestroyFunc) (void *value);
+typedef JDestroyNotify JKeyDestroyFunc;
+typedef JDestroyNotify JValueDestroyFunc;
 
 /*
  *
  */
-typedef int (*JNodeFunc) (void *key, void *value, void *user_data);
+typedef jint(*JNodeFunc) (jpointer key, jpointer value,
+                          jpointer user_data);
 
 /*
  * create a new WHastTable
  */
-JHashTable *j_hash_table_new(unsigned short i,
+JHashTable *j_hash_table_new(jushort i,
                              JHashFunc hash_func,
                              JEqualFunc equal_func,
                              JKeyDestroyFunc key_func,
@@ -71,9 +72,9 @@ JHashTable *j_hash_table_new(unsigned short i,
  * @param key: the key
  * @param value: the value
  * 
- * @return: 0 if inserted, 1 if updated, -1 if fail
+ * @return: TRUE if inserted, FALSE if updated
  */
-int j_hash_table_insert(JHashTable * h, void *key, void *value);
+jboolean j_hash_table_insert(JHashTable * h, jpointer key, jpointer value);
 
 /*
  * @description: Update the value associated to the given key,
@@ -83,9 +84,9 @@ int j_hash_table_insert(JHashTable * h, void *key, void *value);
  * @param key: the key
  * @param value: the new value of key.
  * 
- * @return: 0 if updated, -1 if key not found
+ * @return: TRUE if updated, FALSE if key not found
  */
-int j_hash_table_update(JHashTable * h, void *key, void *value);
+jboolean j_hash_table_update(JHashTable * h, jpointer key, jpointer value);
 
 /*
  * @description: Remove a node whoes key matches.
@@ -95,10 +96,10 @@ int j_hash_table_update(JHashTable * h, void *key, void *value);
  * 
  * @return: the value found or NULL
  */
-jpointer j_hash_table_remove(JHashTable * h, void *key);
+jpointer j_hash_table_remove(JHashTable * h, jpointer key);
 
 /* remove and free */
-void j_hash_table_remove_full(JHashTable * h, void *key);
+void j_hash_table_remove_full(JHashTable * h, jpointer key);
 
 
 /*
@@ -106,19 +107,20 @@ void j_hash_table_remove_full(JHashTable * h, void *key);
  * 
  * @return: the value if found, or NULL
  */
-void *j_hash_table_find(JHashTable * h, const void *key);
+jpointer j_hash_table_find(JHashTable * h, jconstpointer key);
 
 
 /*
  * @description: call node_func on every element in the hash table.
  */
-void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func, void *data);
+void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func,
+                          jpointer data);
 
 /*
  * @description: get all the keys in the hash table
  * 
  * @return: the list of keys, this list is owned by hash table,
- *			should not be modified.
+ *          should not be modified.
  */
 JList *j_hash_table_get_keys(JHashTable * h);
 
@@ -141,16 +143,16 @@ void j_hash_table_free(JHashTable * h);
  */
 
 /* string */
-unsigned int j_str_hash(const void *p);
-int j_str_equal(const void *s1, const void *s2);
+juint j_str_hash(jconstpointer p);
+jint j_str_equal(jconstpointer s1, jconstpointer s2);
 
 /* int */
-unsigned int j_int_hash(const void *p);
-int j_int_equal(const void *p1, const void *p2);
+juint j_int_hash(jconstpointer p);
+jint j_int_equal(jconstpointer p1, jconstpointer p2);
 
 /* direct */
-unsigned int j_direct_hash(const void *p);
-int j_direct_equal(const void *p1, const void *p2);
+juint j_direct_hash(jconstpointer p);
+jint j_direct_equal(jconstpointer p1, jconstpointer p2);
 
 
 #endif

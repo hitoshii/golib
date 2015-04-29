@@ -18,18 +18,19 @@
 #ifndef __J_LIB_FILEUTILS_H__
 #define __J_LIB_FILEUTILS_H__
 
+#include "jtypes.h"
 
 /*
  * Checks to see if the path is absolute
  */
-int j_path_is_absolute(const char *path);
+jint j_path_is_absolute(const jchar * path);
 
 /*
  * Returns a pointer into file_name after the root component,
  * i.e. after the "/" in UNIX or "C:\" under Windows.
  * If file_name is not an absolute path it returns path it self.
  */
-const char *j_path_skip_root(const char *path);
+const jchar *j_path_skip_root(const jchar * path);
 
 
 #define j_path_is_relative(path)    (!(j_path_is_absolute(path)))
@@ -40,26 +41,26 @@ const char *j_path_skip_root(const char *path);
  * Returns a newly allocated string containing
  * the last component of the filename
  */
-char *j_path_basename(const char *path);
+jchar *j_path_basename(const jchar * path);
 
 /*
  * Expands all symbolic links and resolves references to /./, /../
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname
  */
-char *j_path_realpath(const char *path);
+jchar *j_path_realpath(const jchar * path);
 
 /*
  * Searches for all the pathnames matching pattern accoding to the rules
  * used by shell (see glob(3)). No tilde expansion or parameter substitution
  * is done
  */
-char **j_path_glob(const char *pattern);
+jchar **j_path_glob(const jchar * pattern);
 
 /*
  * Joins two path, p2 must be relative
  */
-char *j_path_join(const char *p1, const char *p2);
+jchar *j_path_join(const jchar * p1, const jchar * p2);
 
 
 #endif

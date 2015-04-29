@@ -21,8 +21,6 @@
 #include <string.h>
 
 
-#define j_byte_array_
-
 static inline JByteArray *j_byte_array_realloc(JByteArray * ba)
 {
     ba->total = ba->total < 1;
@@ -31,7 +29,7 @@ static inline JByteArray *j_byte_array_realloc(JByteArray * ba)
 }
 
 static inline JByteArray *j_byte_array_realloc_len(JByteArray * ba,
-                                                   unsigned int len)
+                                                   juint len)
 {
     while (j_byte_array_get_total(ba) < len + j_byte_array_get_len(ba)) {
         ba = j_byte_array_realloc(ba);
@@ -49,10 +47,9 @@ JByteArray *j_byte_array_new(void)
     return ba;
 }
 
-void j_byte_array_append(JByteArray * ba, const void *data,
-                         unsigned int len)
+void j_byte_array_append(JByteArray * ba, jconstpointer data, juint len)
 {
-    if (len == 0) {
+    if (J_UNLIKELY(len == 0)) {
         return;
     }
 
@@ -61,8 +58,7 @@ void j_byte_array_append(JByteArray * ba, const void *data,
     ba->len += len;
 }
 
-void j_byte_array_preppend(JByteArray * ba, const void *data,
-                           unsigned int len)
+void j_byte_array_preppend(JByteArray * ba, jconstpointer data, juint len)
 {
     if (len == 0) {
         return;
@@ -78,9 +74,9 @@ void j_byte_array_clear(JByteArray * ba)
     ba->len = 0;
 }
 
-void *j_byte_array_free(JByteArray * ba, int f)
+jpointer j_byte_array_free(JByteArray * ba, jboolean f)
 {
-    void *data = j_byte_array_get_data(ba);
+    jpointer data = j_byte_array_get_data(ba);
     j_free(ba);
     if (f) {
         j_free(data);
