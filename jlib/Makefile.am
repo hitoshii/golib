@@ -23,7 +23,7 @@ libjlib_la_SOURCES = \
 	jstack.c \
 	jfileutils.c \
 	jhashtable.c \
-	jbytearray.c \
+	jarray.c \
 	jatomic.c \
 	jthread.c \
 	jepoll.c \
@@ -46,7 +46,7 @@ jlibsubinclude_HEADERS= \
 	jstack.h \
 	jfileutils.h \
 	jhashtable.h \
-	jbytearray.h \
+	jarray.h \
 	jmacros.h \
 	jatomic.h \
 	jthread.h \

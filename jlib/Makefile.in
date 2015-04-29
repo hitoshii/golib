@@ -125,7 +125,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libjlib_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
-	jstack.lo jfileutils.lo jhashtable.lo jbytearray.lo jatomic.lo \
+	jstack.lo jfileutils.lo jhashtable.lo jarray.lo jatomic.lo \
 	jthread.lo jepoll.lo jslist.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -341,7 +341,7 @@ libjlib_la_SOURCES = \
 	jstack.c \
 	jfileutils.c \
 	jhashtable.c \
-	jbytearray.c \
+	jarray.c \
 	jatomic.c \
 	jthread.c \
 	jepoll.c \
@@ -360,7 +360,7 @@ jlibsubinclude_HEADERS = \
 	jstack.h \
 	jfileutils.h \
 	jhashtable.h \
-	jbytearray.h \
+	jarray.h \
 	jmacros.h \
 	jatomic.h \
 	jthread.h \
@@ -453,8 +453,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jarray.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jatomic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jbytearray.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jepoll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfileutils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jhashtable.Plo@am__quote@

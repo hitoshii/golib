@@ -318,7 +318,7 @@ static inline JSocketRecvResult *j_socket_recv_with_flags(JSocket * sock,
             break;
         }
         len -= n;
-        j_byte_array_append(array, buf, n);
+        j_byte_array_append(array, (const juint8 *) buf, n);
     }
 
 

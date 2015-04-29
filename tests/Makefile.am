@@ -29,7 +29,7 @@ noinst_PROGRAMS= \
 	test-epoll \
 	test-hashtable \
 	test-loop \
-	test-byte \
+	test-array \
 	test-conf \
 	test-thread
 
@@ -42,7 +42,7 @@ TESTS=\
     test-epoll \
     test-hashtable \
     test-loop \
-    test-byte \
+    test-array \
     test-conf \
     test-thread
 
@@ -76,8 +76,8 @@ test_hashtable_SOURCES = \
 test_loop_SOURCES = \
     test-loop.c
 
-test_byte_SOURCES = \
-	test-byte.c
+test_array_SOURCES = \
+	test-array.c
 
 test_thread_SOURCES = \
     test-thread.c

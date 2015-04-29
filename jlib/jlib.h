@@ -31,7 +31,7 @@
 #include "jstack.h"
 #include "jfileutils.h"
 #include "jhashtable.h"
-#include "jbytearray.h"
+#include "jarray.h"
 #include "jepoll.h"
 
 

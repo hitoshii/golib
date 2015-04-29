@@ -1,0 +1,48 @@
+#include <jlib/jlib.h>
+#include <stdio.h>
+
+int main(int argc, char const *argv[])
+{
+    JByteArray *array = j_byte_array_new();
+    j_byte_array_append(array, (const juint8 *) "hello", 4);
+    j_byte_array_append(array, (const juint8 *) "o", 2);
+    if (j_strcmp0((const jchar *) j_byte_array_get_data(array), "hello")) {
+        return 1;
+    }
+    jpointer data = j_byte_array_free(array, 0);
+    if (j_strcmp0(data, "hello")) {
+        return 2;
+    }
+    j_free(data);
+
+    array = j_byte_array_sized_new(4);
+    j_byte_array_append(array, (const juint8 *) "hello world", 8);
+    if (j_strncmp0
+        ((const jchar *) j_byte_array_get_data(array), "hello", 5)) {
+        return 3;
+    }
+    data = j_byte_array_free(array, 0);
+    if (j_strncmp0(data, "hello world", 8)) {
+        return 4;
+    }
+    j_free(data);
+
+    JPtrArray *parray = j_ptr_array_new_full(1, j_free);
+    j_ptr_array_append_ptr(parray, j_strdup("hello world"));
+    j_ptr_array_append(parray, j_strdup("what?"), j_strdup("nice"),
+                       j_strdup("我是谁?"), NULL);
+    j_ptr_array_remove_index(parray, 1);
+    if (j_strcmp0((jchar *) j_ptr_array_get(parray, 1), "nice")) {
+        return 5;
+    }
+    j_ptr_array_remove_index_fast(parray, 0);
+    if (j_strcmp0((jchar *) j_ptr_array_get(parray, 0), "我是谁?")) {
+        return 6;
+    }
+    juint i;
+    for (i = 0; i < j_ptr_array_get_len(parray); i++) {
+        printf("%s\n", (jchar *) parray->data[i]);
+    }
+    j_ptr_array_free(parray, TRUE);
+    return 0;
+}

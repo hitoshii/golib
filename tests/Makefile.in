@@ -81,10 +81,10 @@ host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
 	test-mod$(EXEEXT) test-log$(EXEEXT) test-socket$(EXEEXT) \
 	test-epoll$(EXEEXT) test-hashtable$(EXEEXT) test-loop$(EXEEXT) \
-	test-byte$(EXEEXT) test-conf$(EXEEXT) test-thread$(EXEEXT)
+	test-array$(EXEEXT) test-conf$(EXEEXT) test-thread$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-file$(EXEEXT) test-mod$(EXEEXT) \
 	test-log$(EXEEXT) test-socket$(EXEEXT) test-epoll$(EXEEXT) \
-	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-byte$(EXEEXT) \
+	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-array$(EXEEXT) \
 	test-conf$(EXEEXT) test-thread$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
@@ -99,9 +99,9 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_test_byte_OBJECTS = test-byte.$(OBJEXT)
-test_byte_OBJECTS = $(am_test_byte_OBJECTS)
-test_byte_LDADD = $(LDADD)
+am_test_array_OBJECTS = test-array.$(OBJEXT)
+test_array_OBJECTS = $(am_test_array_OBJECTS)
+test_array_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -170,13 +170,13 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test_byte_SOURCES) $(test_conf_SOURCES) \
+SOURCES = $(test_array_SOURCES) $(test_conf_SOURCES) \
 	$(test_epoll_SOURCES) $(test_file_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
 	$(test_loop_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES) \
 	$(test_thread_SOURCES)
-DIST_SOURCES = $(test_byte_SOURCES) $(test_conf_SOURCES) \
+DIST_SOURCES = $(test_array_SOURCES) $(test_conf_SOURCES) \
 	$(test_epoll_SOURCES) $(test_file_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
 	$(test_loop_SOURCES) $(test_mod_SOURCES) \
@@ -583,8 +583,8 @@ test_hashtable_SOURCES = \
 test_loop_SOURCES = \
     test-loop.c
 
-test_byte_SOURCES = \
-	test-byte.c
+test_array_SOURCES = \
+	test-array.c
 
 test_thread_SOURCES = \
     test-thread.c
@@ -633,9 +633,9 @@ clean-noinstPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-test-byte$(EXEEXT): $(test_byte_OBJECTS) $(test_byte_DEPENDENCIES) $(EXTRA_test_byte_DEPENDENCIES) 
-	@rm -f test-byte$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(test_byte_OBJECTS) $(test_byte_LDADD) $(LIBS)
+test-array$(EXEEXT): $(test_array_OBJECTS) $(test_array_DEPENDENCIES) $(EXTRA_test_array_DEPENDENCIES) 
+	@rm -f test-array$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_array_OBJECTS) $(test_array_LDADD) $(LIBS)
 
 test-conf$(EXEEXT): $(test_conf_OBJECTS) $(test_conf_DEPENDENCIES) $(EXTRA_test_conf_DEPENDENCIES) 
 	@rm -f test-conf$(EXEEXT)
@@ -683,7 +683,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-byte.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-array.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-epoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
@@ -971,9 +971,9 @@ test-loop.log: test-loop$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test-byte.log: test-byte$(EXEEXT)
-	@p='test-byte$(EXEEXT)'; \
-	b='test-byte'; \
+test-array.log: test-array$(EXEEXT)
+	@p='test-array$(EXEEXT)'; \
+	b='test-array'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
