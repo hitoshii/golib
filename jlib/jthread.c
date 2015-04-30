@@ -26,6 +26,8 @@ struct _JThread {
     JMutex lock;
     jboolean joined;
 
+    jboolean jlibs;             /* 该线程是否是jlib创建的 */
+
     JThreadFunc func;
     jpointer data;
     jboolean joinable;
@@ -163,6 +165,7 @@ JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data)
         thread->joined = FALSE;
         thread->func = func;
         thread->data = data;
+        thread->jlibs = TRUE;
         thread->ref = 2;
     }
     J_UNLOCK(j_thread_new);
@@ -210,7 +213,11 @@ static inline void j_thread_free(JThread * thread)
 void j_thread_unref(JThread * thread)
 {
     if (j_atomic_int_dec_and_test(&thread->ref)) {
-        j_thread_free(thread);
+        if (thread->jlibs) {
+            j_thread_free(thread);
+        } else {
+            j_free(thread);
+        }
     }
 }
 
@@ -222,6 +229,12 @@ void j_thread_ref(JThread * thread)
 JThread *j_thread_self(void)
 {
     JThread *thread = j_private_get(&j_thread_specific_private);
+    if (thread == NULL) {
+        thread = j_malloc(sizeof(JThread));
+        thread->ref = 1;
+        thread->jlibs = FALSE;
+        j_private_set(&j_thread_specific_private, thread);
+    }
     return thread;
 }
 
