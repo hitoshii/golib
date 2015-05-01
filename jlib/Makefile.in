@@ -126,7 +126,7 @@ am__DEPENDENCIES_1 =
 libjlib_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
 	jstack.lo jfileutils.lo jhashtable.lo jarray.lo jatomic.lo \
-	jthread.lo jepoll.lo jslist.lo
+	jthread.lo jepoll.lo jslist.lo jwakeup.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -345,7 +345,8 @@ libjlib_la_SOURCES = \
 	jatomic.c \
 	jthread.c \
 	jepoll.c \
-	jslist.c
+	jslist.c \
+	jwakeup.c 
 
 libjlib_la_LDFLAGS = 
 libjlib_la_LIBADD = $(PTHREAD_LIBS)
@@ -465,6 +466,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstrfuncs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstring.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jthread.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jwakeup.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

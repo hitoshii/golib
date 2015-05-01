@@ -101,3 +101,28 @@ jboolean j_epoll_ctl(JEPoll * p, jint fd, JEPollControl ctl,
         return j_epoll_mod(p, fd, events, data, destroy);
     }
 }
+
+jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
+                  jint timeout)
+{
+    if (J_UNLIKELY(maxevent == 0 || maxevent > 1024 * 1024)) {
+        return -1;
+    }
+    //struct epoll_event *e=(struct epoll_event*)j_malloc
+    //(sizeof(struct epoll_event)*maxevent);
+    struct epoll_event e[1024 * 1024];
+    jint ret = epoll_wait(j_epoll_get_fd(p), e, maxevent, timeout);
+    if (ret <= 0) {
+        goto OUT;
+    }
+    jint i;
+    for (i = 0; i < ret; i++) {
+        events[i].fd = e[i].data.fd;
+        events[i].data = j_hash_table_find(j_epoll_get_fds(p),
+                                           JINT_TO_JPOINTER(e[i].data.fd));
+        events[i].events = e[i].events;
+    }
+  OUT:
+    //j_free(e);
+    return ret;
+}

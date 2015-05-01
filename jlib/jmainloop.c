@@ -23,30 +23,29 @@
 #include "jarray.h"
 
 
-struct _JSourceFuncs{
-    jboolean (*prepare)(JSource *source, jint *timeout);
-    jboolean (*check)(JSource *source);
-    jboolean (*dispatch)(JSource *source,JSourceFunc callback,
+struct _JSourceFuncs {
+    jboolean(*prepare) (JSource * source, jint * timeout);
+    jboolean(*check) (JSource * source);
+    jboolean(*dispatch) (JSource * source, JSourceFunc callback,
                          jpointer user_data);
-    void (*finalize)(JSource *source);
+    void (*finalize) (JSource * source);
 };
 
 
-struct _JSourceCallbackFuncs{
+struct _JSourceCallbackFuncs {
     void (*ref) (jpointer cb_data);
     void (*unref) (jpointer cb_data);
-    void (*get) (jpointer cb_data, JSource *source,
-                 JSourceFunc *func,
-                 jpointer *data);
+    void (*get) (jpointer cb_data, JSource * source,
+                 JSourceFunc * func, jpointer * data);
 };
 
-struct _JSource{
+struct _JSource {
     JSourceCallbackFuncs *callback_funcs;
     jpointer callback_data;
-    
+
 };
 
-struct _JMainContext{
+struct _JMainContext {
     JMutex mutex;
     JCond cond;
     JThread *owner;
@@ -54,10 +53,10 @@ struct _JMainContext{
     JSList *waiters;
 
     jint ref;
-    JHashTable *sources;    /* juint -> JSource */
+    JHashTable *sources;        /* juint -> JSource */
 
     JPtrArray *pending_despatches;
-    jint timeout;           /* timeout for current iteration */
+    jint timeout;               /* timeout for current iteration */
 
     juint next_id;
     JList *source_lists;

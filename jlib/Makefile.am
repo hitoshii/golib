@@ -27,7 +27,8 @@ libjlib_la_SOURCES = \
 	jatomic.c \
 	jthread.c \
 	jepoll.c \
-	jslist.c
+	jslist.c \
+	jwakeup.c 
 
 libjlib_la_LDFLAGS =
 
