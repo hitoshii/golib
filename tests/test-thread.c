@@ -23,6 +23,7 @@ static jpointer thread_func(jpointer data)
                 J_EPOLL_IN, NULL, NULL);
     JEPollEvent event[1];
     jint n = j_epoll_wait(ep, event, 1, -1);
+    j_wakeup_acknowledge(wakeup);
     jpointer retval = j_thread_join(thread);
     if (n != 1 || j_strcmp0((const jchar *) retval, "hello")) {
         return NULL;
