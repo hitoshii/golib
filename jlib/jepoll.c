@@ -46,8 +46,7 @@ void j_epoll_close(JEPoll * p)
     j_free(p);
 }
 
-static inline jboolean j_epoll_add(JEPoll * p, jint fd, jushort events,
-                                   jpointer data)
+jboolean j_epoll_add(JEPoll * p, jint fd, jushort events, jpointer data)
 {
     struct epoll_event event = {
         events,
@@ -60,8 +59,8 @@ static inline jboolean j_epoll_add(JEPoll * p, jint fd, jushort events,
     return TRUE;
 }
 
-static inline jboolean j_epoll_mod(JEPoll * p, jint fd, jushort events,
-                                   jpointer data, JDestroyNotify destroy)
+jboolean j_epoll_mod(JEPoll * p, jint fd, jushort events,
+                     jpointer data, JDestroyNotify destroy)
 {
     struct epoll_event event = {
         events,
@@ -77,8 +76,7 @@ static inline jboolean j_epoll_mod(JEPoll * p, jint fd, jushort events,
     return TRUE;
 }
 
-static inline jboolean j_epoll_del(JEPoll * p, jint fd,
-                                   JDestroyNotify destroy)
+jboolean j_epoll_del(JEPoll * p, jint fd, JDestroyNotify destroy)
 {
     jpointer old_data =
         j_hash_table_remove(j_epoll_get_fds(p), JINT_TO_JPOINTER(fd));

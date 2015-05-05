@@ -64,5 +64,5 @@ AC_OUTPUT([
            jio/jio-0.1.pc
            jmod/Makefile
            jmod/jmod-0.1.pc
-           tests/Makefile
+           test/Makefile
            ])

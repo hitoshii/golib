@@ -86,7 +86,7 @@ TESTS = test-string$(EXEEXT) test-file$(EXEEXT) test-mod$(EXEEXT) \
 	test-log$(EXEEXT) test-socket$(EXEEXT) test-epoll$(EXEEXT) \
 	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-array$(EXEEXT) \
 	test-conf$(EXEEXT) test-thread$(EXEEXT)
-subdir = tests
+subdir = test
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp $(dist_check_DATA) \
 	$(top_srcdir)/test-driver
@@ -540,7 +540,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
-	-DPACKAGE_TEST_DIR=\""$(top_srcdir)/tests"\" \
+	-DPACKAGE_TEST_DIR=\""$(top_srcdir)/test"\" \
 	$(jlib_INCLUDE)
 
 AM_CFLAGS = \
@@ -602,9 +602,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu test/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu tests/Makefile
+	  $(AUTOMAKE) --gnu test/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

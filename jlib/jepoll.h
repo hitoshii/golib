@@ -53,6 +53,20 @@ typedef struct {
 JEPoll *j_epoll_new(void);
 void j_epoll_close(JEPoll * p);
 
+/*
+ * Register the file descriptor
+ */
+jboolean j_epoll_add(JEPoll * p, jint fd, jushort events, jpointer data);
+/*
+ * Change the event associated with the file descriptor
+ */
+jboolean j_epoll_mod(JEPoll * p, jint fd, jushort events, jpointer data,
+                     JDestroyNotify destroy);
+/*
+ * Remove the file descriptor fd from epoll instance
+ */
+jboolean j_epoll_del(JEPoll * p, jint fd, JDestroyNotify destroy);
+
 jboolean j_epoll_ctl(JEPoll * pfd, jint fd, JEPollControl ctl,
                      jushort events, jpointer data,
                      JDestroyNotify destroy);

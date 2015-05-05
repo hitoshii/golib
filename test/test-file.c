@@ -3,11 +3,11 @@
 #include <stdio.h>
 
 
+#define TEST_FILE PACKAGE_TEST_DIR "/test-file.c"
+
 int main(int argc, char *argv[])
 {
-    char *data =
-        j_file_readall
-        ("/home/wiky/Documents/CODE/Git/jlib/tests/test-file.c");
+    char *data = j_file_readall(TEST_FILE);
     printf("%s", data);
     if (data == NULL) {
         return 1;

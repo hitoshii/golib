@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 ## Created by Anjuta
 
-SUBDIRS = jlib jconf jio jmod tests
+SUBDIRS = jlib jconf jio jmod test
 
 dist_doc_DATA = \
 	README \
