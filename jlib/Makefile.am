@@ -28,7 +28,8 @@ libjlib_la_SOURCES = \
 	jthread.c \
 	jepoll.c \
 	jslist.c \
-	jwakeup.c 
+	jwakeup.c \
+	jmain.c
 
 libjlib_la_LDFLAGS =
 
@@ -52,7 +53,8 @@ jlibsubinclude_HEADERS= \
 	jatomic.h \
 	jthread.h \
 	jepoll.h \
-	jslist.h
+	jslist.h \
+	jmain.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

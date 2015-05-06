@@ -80,12 +80,13 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-file$(EXEEXT) \
 	test-mod$(EXEEXT) test-log$(EXEEXT) test-socket$(EXEEXT) \
-	test-epoll$(EXEEXT) test-hashtable$(EXEEXT) test-loop$(EXEEXT) \
-	test-array$(EXEEXT) test-conf$(EXEEXT) test-thread$(EXEEXT)
+	test-epoll$(EXEEXT) test-hashtable$(EXEEXT) \
+	test-array$(EXEEXT) test-conf$(EXEEXT) test-thread$(EXEEXT) \
+	test-main$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-file$(EXEEXT) test-mod$(EXEEXT) \
 	test-log$(EXEEXT) test-socket$(EXEEXT) test-epoll$(EXEEXT) \
-	test-hashtable$(EXEEXT) test-loop$(EXEEXT) test-array$(EXEEXT) \
-	test-conf$(EXEEXT) test-thread$(EXEEXT)
+	test-hashtable$(EXEEXT) test-array$(EXEEXT) test-conf$(EXEEXT) \
+	test-thread$(EXEEXT) test-main$(EXEEXT)
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp $(dist_check_DATA) \
@@ -121,9 +122,9 @@ test_hashtable_LDADD = $(LDADD)
 am_test_log_OBJECTS = test-log.$(OBJEXT)
 test_log_OBJECTS = $(am_test_log_OBJECTS)
 test_log_LDADD = $(LDADD)
-am_test_loop_OBJECTS = test-loop.$(OBJEXT)
-test_loop_OBJECTS = $(am_test_loop_OBJECTS)
-test_loop_LDADD = $(LDADD)
+am_test_main_OBJECTS = test-main.$(OBJEXT)
+test_main_OBJECTS = $(am_test_main_OBJECTS)
+test_main_LDADD = $(LDADD)
 am_test_mod_OBJECTS = test-mod.$(OBJEXT)
 test_mod_OBJECTS = $(am_test_mod_OBJECTS)
 test_mod_LDADD = $(LDADD)
@@ -173,13 +174,13 @@ am__v_CCLD_1 =
 SOURCES = $(test_array_SOURCES) $(test_conf_SOURCES) \
 	$(test_epoll_SOURCES) $(test_file_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
-	$(test_loop_SOURCES) $(test_mod_SOURCES) \
+	$(test_main_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES) \
 	$(test_thread_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_conf_SOURCES) \
 	$(test_epoll_SOURCES) $(test_file_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_log_SOURCES) \
-	$(test_loop_SOURCES) $(test_mod_SOURCES) \
+	$(test_main_SOURCES) $(test_mod_SOURCES) \
 	$(test_socket_SOURCES) $(test_string_SOURCES) \
 	$(test_thread_SOURCES)
 am__can_run_installinfo = \
@@ -580,14 +581,14 @@ test_epoll_SOURCES = \
 test_hashtable_SOURCES = \
     test-hashtable.c
 
-test_loop_SOURCES = \
-    test-loop.c
-
 test_array_SOURCES = \
 	test-array.c
 
 test_thread_SOURCES = \
     test-thread.c
+
+test_main_SOURCES = \
+    test-main.c
 
 all: all-am
 
@@ -657,9 +658,9 @@ test-log$(EXEEXT): $(test_log_OBJECTS) $(test_log_DEPENDENCIES) $(EXTRA_test_log
 	@rm -f test-log$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_log_OBJECTS) $(test_log_LDADD) $(LIBS)
 
-test-loop$(EXEEXT): $(test_loop_OBJECTS) $(test_loop_DEPENDENCIES) $(EXTRA_test_loop_DEPENDENCIES) 
-	@rm -f test-loop$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(test_loop_OBJECTS) $(test_loop_LDADD) $(LIBS)
+test-main$(EXEEXT): $(test_main_OBJECTS) $(test_main_DEPENDENCIES) $(EXTRA_test_main_DEPENDENCIES) 
+	@rm -f test-main$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_main_OBJECTS) $(test_main_LDADD) $(LIBS)
 
 test-mod$(EXEEXT): $(test_mod_OBJECTS) $(test_mod_DEPENDENCIES) $(EXTRA_test_mod_DEPENDENCIES) 
 	@rm -f test-mod$(EXEEXT)
@@ -689,7 +690,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-log.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-loop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-mod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-string.Po@am__quote@
@@ -964,13 +965,6 @@ test-hashtable.log: test-hashtable$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test-loop.log: test-loop$(EXEEXT)
-	@p='test-loop$(EXEEXT)'; \
-	b='test-loop'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 test-array.log: test-array$(EXEEXT)
 	@p='test-array$(EXEEXT)'; \
 	b='test-array'; \
@@ -988,6 +982,13 @@ test-conf.log: test-conf$(EXEEXT)
 test-thread.log: test-thread$(EXEEXT)
 	@p='test-thread$(EXEEXT)'; \
 	b='test-thread'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-main.log: test-main$(EXEEXT)
+	@p='test-main$(EXEEXT)'; \
+	b='test-main'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

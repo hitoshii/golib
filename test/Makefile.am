@@ -28,10 +28,10 @@ noinst_PROGRAMS= \
 	test-socket \
 	test-epoll \
 	test-hashtable \
-	test-loop \
 	test-array \
 	test-conf \
-	test-thread
+	test-thread \
+	test-main
 
 TESTS=\
     test-string \
@@ -41,10 +41,10 @@ TESTS=\
     test-socket \
     test-epoll \
     test-hashtable \
-    test-loop \
     test-array \
     test-conf \
-    test-thread
+    test-thread \
+    test-main
 
 dist_check_DATA = \
     test.conf
@@ -73,14 +73,14 @@ test_epoll_SOURCES = \
 test_hashtable_SOURCES = \
     test-hashtable.c
 
-test_loop_SOURCES = \
-    test-loop.c
-
 test_array_SOURCES = \
 	test-array.c
 
 test_thread_SOURCES = \
     test-thread.c
+
+test_main_SOURCES = \
+    test-main.c
 
 module: module.c
 	gcc -shared -fPIC module.c -o module.so

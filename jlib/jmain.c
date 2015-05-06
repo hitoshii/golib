@@ -21,6 +21,8 @@
 #include "jlist.h"
 #include "jhashtable.h"
 #include "jarray.h"
+#include "jwakeup.h"
+#include <time.h>
 
 
 struct _JSourceFuncs {
@@ -43,6 +45,25 @@ struct _JSource {
     JSourceCallbackFuncs *callback_funcs;
     jpointer callback_data;
 
+    /* 在不同阶段调用的JSource函数 */
+    const JSourceFuncs *source_funcs;
+    juint ref;
+
+    JMainContext *context;
+
+    jint priority;              /* 优先级 */
+    juint flags;
+
+    juint id;                   /* source id */
+
+    JSList *poll_fds;
+
+    jchar *name;
+
+    JSList *children;
+    JSource *parent;
+
+    jint64 ready_time;
 };
 
 struct _JMainContext {
@@ -61,5 +82,25 @@ struct _JMainContext {
     juint next_id;
     JList *source_lists;
     jint in_check_or_prepare;
-    /* TODO */
+
+    JWakeup *wakeup;
+
+    jint64 time;
+    jboolean time_is_fresh;
 };
+
+
+
+jint64 j_get_monotonic_time(void)
+{
+    struct timespec ts;
+    jint result;
+
+    result = clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    if (J_UNLIKELY(result != 0)) {
+        return -1;
+    }
+
+    return (((jint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
+}

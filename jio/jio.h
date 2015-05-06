@@ -23,7 +23,6 @@
 #include "jlog.h"
 #include "jsocket.h"
 #include "jpoll.h"
-#include "jmainloop.h"
 
 
 #endif

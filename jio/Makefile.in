@@ -83,7 +83,7 @@ host_triplet = @host@
 subdir = jio
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(srcdir)/jio-0.1.pc.in $(top_srcdir)/depcomp \
-	$(jiosubinclude_HEADERS)
+	$(jiosubinclude_HEADERS) README
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -123,8 +123,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jiosubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjio_la_DEPENDENCIES =
-am_libjio_la_OBJECTS = jfile.lo jdir.lo jlog.lo jsocket.lo jpoll.lo \
-	jmainloop.lo
+am_libjio_la_OBJECTS = jfile.lo jdir.lo jlog.lo jsocket.lo jpoll.lo
 libjio_la_OBJECTS = $(am_libjio_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -336,8 +335,7 @@ libjio_la_SOURCES = \
 	jdir.c \
 	jlog.c \
 	jsocket.c \
-	jpoll.c \
-	jmainloop.c
+	jpoll.c 
 
 libjio_la_LDFLAGS = 
 libjio_la_LIBADD = 
@@ -348,8 +346,7 @@ jiosubinclude_HEADERS = \
 	jio.h \
 	jlog.h \
 	jsocket.h \
-	jpoll.h \
-	jmainloop.h
+	jpoll.h 
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jio-0.1.pc
@@ -440,7 +437,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jdir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlog.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmainloop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jpoll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jsocket.Plo@am__quote@
 

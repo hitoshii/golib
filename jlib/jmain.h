@@ -19,11 +19,19 @@
 #define __JLIB_MAIN_H__
 #include "jtypes.h"
 
+/*
+ * Queries the system monotonic time.
+ */
+jint64 j_get_monotonic_time(void);
+
+/* JSource */
 typedef jboolean(*JSourceFunc) (jpointer user_data);
 
 typedef struct _JSourceCallbackFuncs JSourceCallbackFuncs;
 typedef struct _JSourceFuncs JSourceFuncs;
 typedef struct _JSource JSource;
+
+/* JMainContext */
 typedef struct _JMainContext JMainContext;
 
 

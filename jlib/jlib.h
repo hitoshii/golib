@@ -33,6 +33,7 @@
 #include "jhashtable.h"
 #include "jarray.h"
 #include "jepoll.h"
+#include "jmain.h"
 
 
 #endif

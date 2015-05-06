@@ -113,45 +113,5 @@ JSocketRecvResult *j_socket_recv_dontwait(JSocket * jsock,
                                           unsigned int len);
 
 
-/*
- * 发送和接收打包数据
- */
-/*
- * 接受消息的回调函数
- * 如果接受失败，则返回的data为NULL，长度为0
- */
-typedef void (*JSocketRecvPackageNotify) (JSocket * sock,
-                                          const void *data,
-                                          unsigned int len,
-                                          void *user_data);
-typedef void (*JSocketRecvErrorNotify) (JSocket * sock,
-                                        const void *data,
-                                        unsigned int len, void *user_data);
-void j_socket_recv_package(JSocket * sock, JSocketRecvPackageNotify notify,
-                           JSocketRecvErrorNotify error_notify,
-                           void *user_data);
-
-
-/*
- * 发送消息
- */
-
-/*
- * count 为数据包的长度
- */
-typedef void (*JSocketSendPackageNotify) (JSocket * sock, const char *data,
-                                          unsigned int count,
-                                          void *user_data);
-/*
- * len为成功发送的长度
- */
-typedef void (*JSocketSendErrorNotify) (JSocket * sock, const char *data,
-                                        unsigned int count,
-                                        unsigned int len, void *user_data);
-void j_socket_send_package(JSocket * sock, JSocketSendPackageNotify notify,
-                           JSocketSendErrorNotify error_notify,
-                           const void *data, unsigned int len,
-                           void *user_data);
-
 
 #endif
