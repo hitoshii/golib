@@ -15,8 +15,8 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JLIB_MAINLOOP_H__
-#define __JLIB_MAINLOOP_H__
+#ifndef __JLIB_MAIN_H__
+#define __JLIB_MAIN_H__
 #include "jtypes.h"
 
 typedef jboolean(*JSourceFunc) (jpointer user_data);

@@ -15,7 +15,7 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#include "jmainloop.h"
+#include "jmain.h"
 #include "jthread.h"
 #include "jslist.h"
 #include "jlist.h"

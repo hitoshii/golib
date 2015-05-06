@@ -16,8 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-#ifndef __J_LIB_H__
-#define __J_LIB_H__
+#ifndef __JLIB_H__
+#define __JLIB_H__
 
 #include "jmacros.h"
 #include "jtypes.h"
