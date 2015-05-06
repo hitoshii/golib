@@ -257,6 +257,11 @@ jpointer j_hash_table_find(JHashTable * h, jconstpointer key)
     return NULL;
 }
 
+jboolean j_hash_table_contains(JHashTable *h, jconstpointer key)
+{
+    return  j_hash_table_find_node(h, key)!=NULL;
+}
+
 void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func,
                           jpointer data)
 {

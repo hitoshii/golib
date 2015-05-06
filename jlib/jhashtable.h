@@ -111,6 +111,11 @@ jpointer j_hash_table_find(JHashTable * h, jconstpointer key);
 
 
 /*
+ * Checks to see if the key is in h
+ */
+jboolean j_hash_table_contains(JHashTable *h, jconstpointer key);
+
+/*
  * @description: call node_func on every element in the hash table.
  */
 void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func,
