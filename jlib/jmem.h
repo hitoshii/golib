@@ -34,5 +34,9 @@ void j_free(jpointer ptr);
 jpointer j_memdup(jconstpointer data, juint len);
 
 
+#define j_new(structure, n) j_malloc(sizeof(structure) * n)
+#define j_new0(structure, n) j_malloc0(sizeof(structure) *n)
+
+
 
 #endif

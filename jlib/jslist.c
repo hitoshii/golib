@@ -55,6 +55,31 @@ JSList *j_slist_preppend(JSList * l, jpointer data)
     return h;
 }
 
+JSList *j_slist_remove(JSList * l, jconstpointer data)
+{
+    if (J_UNLIKELY(l == NULL)) {
+        return NULL;
+    }
+    JSList *tmp;
+    if (j_slist_data(l) == data) {
+        tmp = j_slist_next(l);
+        j_slist_free1(l, NULL);
+        return tmp;
+    }
+    JSList *prev = l;
+    tmp = j_slist_next(prev);
+    while (tmp) {
+        if (j_slist_data(tmp) == data) {
+            prev->next = tmp->next;
+            j_slist_free1(tmp, NULL);
+            break;
+        }
+        prev = tmp;
+        tmp = j_slist_next(prev);
+    }
+    return l;
+}
+
 juint j_slist_length(JSList * l)
 {
     juint len = 0;

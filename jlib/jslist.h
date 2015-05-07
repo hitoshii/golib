@@ -42,6 +42,8 @@ JSList *j_slist_last(JSList * l);
 JSList *j_slist_append(JSList * l, jpointer data);
 JSList *j_slist_preppend(JSList * l, jpointer data);
 
+JSList *j_slist_remove(JSList * l, jconstpointer data);
+
 void j_slist_free(JSList * l);
 void j_slist_free_full(JSList * l, JDestroyNotify destroy);
 

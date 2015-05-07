@@ -31,6 +31,46 @@ typedef struct _JSourceCallbackFuncs JSourceCallbackFuncs;
 typedef struct _JSourceFuncs JSourceFuncs;
 typedef struct _JSource JSource;
 
+
+typedef enum {
+    J_SOURCE_FLAG_ACTIVE = 1 << 0,
+    J_SOURCE_FLAG_IN_CALL = 1 << 1,
+    J_SOURCE_FLAG_BLOCKED = 1 << 2,
+    J_SOURCE_FLAG_READY = 1 << 3,
+    J_SOURCE_FLAG_CAN_RECURSE = 1 << 4,
+    J_SOURCE_FLAG_MASK = 0xFF,
+} JSourceFlag;
+
+#define J_PRIORITY_HIGH -100
+#define J_PRIORITY_DEFAULT 0
+#define J_PRIORITY_HIGH_IDLE 100
+#define J_PRIORITY_DEFAULT_IDLE 200
+#define J_PRIORITY_LOW 300
+
+
+const jchar *j_source_get_name(JSource * src);
+
+/*
+ * Creates a new JSource structure.
+ * The size is specified to allow createing structures derived from JSource that contain additional data.
+ * The size must be greater than sizeof(JSource)
+ */
+JSource *j_source_new(JSourceFuncs * funcs, juint struct_size);
+
+
+/*
+ * Decreases the reference count of a source by one.
+ * If the resulting reference count is zero the source and associated memory will be destroyed.
+ */
+void j_source_unref(JSource * src);
+
+/*
+ * Removes a source from its GMainContext, if any, and mark it as destroyed.
+ * The source cannot be subsequently added to another context.
+ * It is safe to call this on sources which have already been removed from their context.
+ */
+void j_source_destroy(JSource * src);
+
 /* JMainContext */
 typedef struct _JMainContext JMainContext;
 
