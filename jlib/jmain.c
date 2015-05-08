@@ -23,7 +23,6 @@
 #include "jarray.h"
 #include "jwakeup.h"
 #include "jmem.h"
-#include "jepoll.h"
 #include <time.h>
 
 
@@ -155,6 +154,23 @@ JSource *j_source_new(JSourceFuncs * funcs, juint struct_size)
 const jchar *j_source_get_name(JSource * src)
 {
     return src->name;
+}
+
+/*
+ * Monitors fd for the IO events in events .
+ */
+void j_source_add_poll_fd(JSource * src, jint fd, juint io)
+{
+    JEPollEvent *e = (JEPollEvent *) j_malloc(sizeof(JEPollEvent));
+    e->fd = fd;
+    e->events = io;
+    e->data = src;
+    src->poll_fds = j_slist_append(src->poll_fds, e);
+    if (src->context) {
+        j_main_context_lock(src->context);
+        j_main_context_add_poll_unlocked(src->context, e);
+        j_main_context_unlock(src->context);
+    }
 }
 
 static inline void j_source_unref_internal(JSource * src,

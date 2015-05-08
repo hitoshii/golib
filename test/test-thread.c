@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     JThread *thread = j_thread_new("test-thread", thread_func,
                                    "My name is Jim Green");
     jpointer retval = j_thread_join(thread);
+    j_thread_unref(thread);
     if (j_strcmp0(retval, "hello world")) {
         return 1;
     }

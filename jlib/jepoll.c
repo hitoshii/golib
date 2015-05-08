@@ -43,6 +43,7 @@ JEPoll *j_epoll_new(void)
 void j_epoll_close(JEPoll * p)
 {
     close(j_epoll_get_fd(p));
+    j_hash_table_free(p->fds);
     j_free(p);
 }
 

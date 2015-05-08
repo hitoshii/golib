@@ -18,6 +18,7 @@
 #ifndef __JLIB_MAIN_H__
 #define __JLIB_MAIN_H__
 #include "jtypes.h"
+#include "jepoll.h"
 
 /*
  * Queries the system monotonic time.
@@ -57,6 +58,10 @@ const jchar *j_source_get_name(JSource * src);
  */
 JSource *j_source_new(JSourceFuncs * funcs, juint struct_size);
 
+/*
+ * Monitors fd for the IO events in events .
+ */
+void j_source_add_poll_fd(JSource * src, jint fd, juint io);
 
 /*
  * Decreases the reference count of a source by one.
