@@ -38,7 +38,7 @@
 #endif
 
 #define JPOINTER_TO_JUINT(p) ((juint)(julong) (p))
-#define JUINT_TO_JPOINTER(u) ((jpointer)(juint) u)
+#define JUINT_TO_JPOINTER(u) ((jpointer)(julong) u)
 #define JINT_TO_JPOINTER(i)  ((jpointer)(jlong) i)
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)

@@ -58,7 +58,7 @@ struct _JSource {
 
     juint id;                   /* source id */
 
-    JSList *poll_fds;
+    JSList *poll_fds;           /* JEPollEvent* */
 
     jchar *name;
 
@@ -89,6 +89,12 @@ struct _JMainContext {
 
     JWakeup *wakeup;
 
+    JEPoll *epoll;
+
+    JEPollEvent *cached_poll_array;
+    juint cached_poll_array_size;
+    jboolean poll_changed;
+
     jint64 time;
     jboolean time_is_fresh;
 };
@@ -100,7 +106,15 @@ struct _JMainContext {
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
                                                        JEPollEvent * p)
 {
-    /* TODO */
+    j_epoll_del(ctx->epoll, p->fd, NULL);
+    j_wakeup_signal(ctx->wakeup);
+}
+
+static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
+                                                    JEPollEvent * p)
+{
+    j_epoll_add(ctx->epoll, p->fd, p->events, p->data);
+    j_wakeup_signal(ctx->wakeup);
 }
 
 jint64 j_get_monotonic_time(void)
@@ -205,11 +219,87 @@ static inline void j_source_destroy_internal(JSource * src,
     }
 }
 
+/*
+ * Holds context's lock
+ */
+static inline void source_remove_from_context(JSource * src,
+                                              JMainContext * ctx)
+{
+    ctx->source_lists = j_list_remove(ctx->source_lists, src);
+    j_hash_table_remove(ctx->sources, JUINT_TO_JPOINTER(src->id));
+}
+
+/*
+ * j_source_unref() but possible to call within context lock
+ */
 static inline void j_source_unref_internal(JSource * src,
                                            JMainContext * ctx,
                                            jboolean has_lock)
 {
-    /* TODO */
+    jpointer old_cb_data = NULL;
+    JSourceCallbackFuncs *old_cb_funcs = NULL;
+    if (J_UNLIKELY(src == NULL)) {
+        return;
+    }
+
+    if (!has_lock && ctx) {
+        j_main_context_lock(ctx);
+    }
+
+    src->ref--;
+    if (src->ref == 0) {
+        old_cb_data = src->callback_data;
+        old_cb_funcs = src->callback_funcs;
+
+        src->callback_data = NULL;
+        src->callback_funcs = NULL;
+
+        if (ctx) {
+            source_remove_from_context(src, ctx);
+        }
+
+        if (src->funcs->finalize) {
+            if (ctx) {
+                j_main_context_unlock(ctx);
+            }
+            src->funcs->finalize(src);
+            if (ctx) {
+                j_main_context_lock(ctx);
+            }
+        }
+
+        j_free(src->name);
+        src->name = NULL;
+
+        j_slist_free(src->poll_fds);
+        src->poll_fds = NULL;
+
+        j_slist_free_full(src->poll_fds, j_free);
+        JSList *tmp_list = src->children;
+        while (tmp_list) {
+            JSource *child = (JSource *) j_slist_data(tmp_list);
+            j_source_unref_internal(child, ctx, has_lock);
+            tmp_list = j_slist_next(tmp_list);
+        }
+        j_slist_free(src->children);
+        src->children = NULL;
+
+        j_free(src);
+    }
+
+    if (!has_lock && ctx) {
+        j_main_context_unlock(ctx);
+    }
+
+    if (old_cb_funcs) {
+        if (has_lock) {
+            j_main_context_unlock(ctx);
+        }
+        old_cb_funcs->unref(old_cb_data);
+        if (has_lock) {
+            j_main_context_unlock(ctx);
+        }
+    }
 }
 
 void j_source_unref(JSource * src)
