@@ -87,6 +87,7 @@ struct _JMainContext {
     jint in_check_or_prepare;
 
     JWakeup *wakeup;
+    JEPollEvent wakeup_event;
 
     JEPoll *epoll;
 
@@ -318,6 +319,21 @@ static inline void j_source_unref_internal(JSource * src,
     }
 }
 
+/*
+ * Increases the reference count on a source by one.
+ */
+void j_source_ref(JSource * src)
+{
+    JMainContext *ctx = src->context;
+    if (ctx) {
+        j_main_context_lock(ctx);
+    }
+    src->ref++;
+    if (ctx) {
+        j_main_context_unlock(ctx);
+    }
+}
+
 void j_source_unref(JSource * src)
 {
     j_source_unref_internal(src, src->context, FALSE);
@@ -336,4 +352,42 @@ void j_source_destroy(JSource * src)
     } else {
         j_source_destroy_internal(src, context, FALSE);
     }
+}
+
+
+
+/*
+ * Creates a new JMainContext
+ */
+JMainContext *j_main_context_new(void)
+{
+    JMainContext *ctx = (JMainContext *) j_new0(JMainContext, 1);
+
+    j_mutex_init(&ctx->mutex);
+    j_cond_init(&ctx->cond);
+
+    ctx->sources =
+        j_hash_table_new(16, j_int_hash, j_int_equal, NULL, NULL);
+    ctx->owner = NULL;
+    ctx->waiters = NULL;
+
+    ctx->ref = 1;
+
+    ctx->next_id = 1;
+
+    ctx->source_lists = NULL;
+
+    ctx->epoll = j_epoll_new();
+
+    ctx->cached_poll_array = NULL;
+    ctx->cached_poll_array_size = 0;
+
+    ctx->pending_despatches = j_ptr_array_new();
+    ctx->time_is_fresh = FALSE;
+
+    ctx->wakeup = j_wakeup_new();
+    j_wakeup_get_pollfd(ctx->wakeup, &ctx->wakeup_event);
+    j_main_context_add_poll_unlocked(ctx, &ctx->wakeup_event);
+
+    return ctx;
 }

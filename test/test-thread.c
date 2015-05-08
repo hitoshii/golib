@@ -19,8 +19,9 @@ static jpointer thread_func(jpointer data)
     JThread *thread = j_thread_new("test-thread", thread_func1,
                                    wakeup);
     JEPoll *ep = j_epoll_new();
-    j_epoll_ctl(ep, j_wakeup_get_pollfd(wakeup), J_EPOLL_CTL_ADD,
-                J_EPOLL_IN, NULL, NULL);
+    JEPollEvent e;
+    j_wakeup_get_pollfd(wakeup, &e);
+    j_epoll_ctl(ep, e.fd, J_EPOLL_CTL_ADD, e.events, NULL, NULL);
     JEPollEvent event[1];
     jint n = j_epoll_wait(ep, event, 1, -1);
     j_wakeup_acknowledge(wakeup);

@@ -19,13 +19,14 @@
 #define __JLIB_WAKEUP_H__
 
 #include "jtypes.h"
+#include "jepoll.h"
 
 typedef struct _JWakeup JWakeup;
 
 
 JWakeup *j_wakeup_new(void);
 
-jint j_wakeup_get_pollfd(JWakeup * wakeup);
+void j_wakeup_get_pollfd(JWakeup * wakeup, JEPollEvent * e);
 
 /*
  * Acknowledges receipt of a wakeup signal on @wakeup.

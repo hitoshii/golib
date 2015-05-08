@@ -52,9 +52,11 @@ JWakeup *j_wakeup_new(void)
     return wakeup;
 }
 
-jint j_wakeup_get_pollfd(JWakeup * wakeup)
+void j_wakeup_get_pollfd(JWakeup * wakeup, JEPollEvent * e)
 {
-    return wakeup->fds[0];
+    e->fd = wakeup->fds[0];
+    e->events = J_EPOLL_IN;
+    e->data = NULL;
 }
 
 void j_wakeup_acknowledge(JWakeup * wakeup)

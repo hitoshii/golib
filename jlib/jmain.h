@@ -63,6 +63,11 @@ JSource *j_source_new(JSourceFuncs * funcs, juint struct_size);
  */
 void j_source_add_poll_fd(JSource * src, jint fd, juint io);
 
+
+/*
+ * Increases the reference count on a source by one.
+ */
+void j_source_ref(JSource * src);
 /*
  * Decreases the reference count of a source by one.
  * If the resulting reference count is zero the source and associated memory will be destroyed.
@@ -78,6 +83,11 @@ void j_source_destroy(JSource * src);
 
 /* JMainContext */
 typedef struct _JMainContext JMainContext;
+
+/*
+ * Creates a new JMainContext
+ */
+JMainContext *j_main_context_new(void);
 
 
 #endif
