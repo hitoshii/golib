@@ -25,7 +25,7 @@
 typedef struct _JMutext JMutex;
 
 struct _JMutext {
-    pthread_mutex_t posix;
+    pthread_mutex_t impl;
 };
 
 #define J_MUTEX_DEFINE(name)  JMutex name = {PTHREAD_MUTEX_INITIALIZER}
@@ -49,7 +49,7 @@ void j_mutex_unlock(JMutex * mutex);
 typedef struct _JCond JCond;
 
 struct _JCond {
-    pthread_cond_t posix;
+    pthread_cond_t impl;
 };
 
 #define J_COND_DEFINE(name) JCond name = {PTHREAD_COND_INITIALIZER}
@@ -60,6 +60,7 @@ void j_cond_clear(JCond * cond);
 
 void j_cond_wait(JCond * cond, JMutex * mutex);
 void j_cond_signal(JCond * cond);
+void j_cond_broadcast(JCond * cond);
 
 typedef struct _JPrivate JPrivate;
 

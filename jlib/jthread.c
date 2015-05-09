@@ -39,47 +39,52 @@ struct _JThread {
 
 void j_mutex_init(JMutex * mutex)
 {
-    pthread_mutex_init(&mutex->posix, NULL);
+    pthread_mutex_init(&mutex->impl, NULL);
 }
 
 void j_mutex_clear(JMutex * mutex)
 {
-    pthread_mutex_destroy(&mutex->posix);
+    pthread_mutex_destroy(&mutex->impl);
 }
 
 void j_mutex_lock(JMutex * mutex)
 {
-    pthread_mutex_lock(&mutex->posix);
+    pthread_mutex_lock(&mutex->impl);
 }
 
 jboolean j_mutex_trylock(JMutex * mutex)
 {
-    return pthread_mutex_trylock(&mutex->posix) == 0;
+    return pthread_mutex_trylock(&mutex->impl) == 0;
 }
 
 void j_mutex_unlock(JMutex * mutex)
 {
-    pthread_mutex_unlock(&mutex->posix);
+    pthread_mutex_unlock(&mutex->impl);
 }
 
 void j_cond_init(JCond * cond)
 {
-    pthread_cond_init(&cond->posix, NULL);
+    pthread_cond_init(&cond->impl, NULL);
 }
 
 void j_cond_clear(JCond * cond)
 {
-    pthread_cond_destroy(&cond->posix);
+    pthread_cond_destroy(&cond->impl);
 }
 
 void j_cond_wait(JCond * cond, JMutex * mutex)
 {
-    pthread_cond_wait(&cond->posix, &mutex->posix);
+    pthread_cond_wait(&cond->impl, &mutex->impl);
 }
 
 void j_cond_signal(JCond * cond)
 {
-    pthread_cond_signal(&cond->posix);
+    pthread_cond_signal(&cond->impl);
+}
+
+void j_cond_broadcast(JCond * cond)
+{
+    pthread_cond_broadcast(&cond->impl);
 }
 
 static inline pthread_key_t *j_private_get_key(JPrivate * priv)
