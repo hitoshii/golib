@@ -21,6 +21,7 @@
 #include "jtypes.h"
 
 void j_atomic_int_set(volatile jint * atomic, jint newval);
+jint j_atomic_int_get(const volatile jint * atomic);
 void j_atomic_int_inc(volatile jint * atomic);
 jboolean j_atomic_int_dec_and_test(volatile jint * atomic);
 jboolean j_atomic_int_compare_and_exchange(volatile jint * atomic,

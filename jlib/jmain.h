@@ -89,5 +89,14 @@ typedef struct _JMainContext JMainContext;
  */
 JMainContext *j_main_context_new(void);
 
+/*
+ * Increases the reference count on a context by one
+ */
+void j_main_context_ref(JMainContext * ctx);
+
+/*
+ * Decreases the reference
+ */
+void j_main_context_unref(JMainContext * ctx);
 
 #endif

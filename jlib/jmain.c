@@ -23,6 +23,7 @@
 #include "jarray.h"
 #include "jwakeup.h"
 #include "jmem.h"
+#include "jatomic.h"
 #include <time.h>
 
 
@@ -390,4 +391,58 @@ JMainContext *j_main_context_new(void)
     j_main_context_add_poll_unlocked(ctx, &ctx->wakeup_event);
 
     return ctx;
+}
+
+/*
+ * Increases the reference count on a context by one
+ */
+void j_main_context_ref(JMainContext * ctx)
+{
+    if (J_UNLIKELY(j_atomic_int_get(&ctx->ref) <= 0)) {
+        return;
+    }
+    j_atomic_int_inc(&ctx->ref);
+}
+
+/*
+ * Decreases the reference
+ */
+void j_main_context_unref(JMainContext * ctx)
+{
+    if (J_UNLIKELY(j_atomic_int_get(&ctx->ref) <= 0)) {
+        return;
+    }
+
+    if (!j_atomic_int_dec_and_test(&ctx->ref)) {
+        return;
+    }
+
+    jint i;
+    /* Free pending dispatches */
+    for (i = 0; i < ctx->pending_despatches->len; i++) {
+        j_source_unref_internal(ctx->pending_despatches->data[i], ctx,
+                                FALSE);
+    }
+
+    j_main_context_lock(ctx);
+    JList *tmp_list = ctx->source_lists;
+    while (tmp_list) {
+        JSource *src = (JSource *) j_list_data(tmp_list);
+        src->context = NULL;
+        j_source_destroy_internal(src, ctx, TRUE);
+        tmp_list = j_list_next(tmp_list);
+    }
+    j_list_free(ctx->source_lists);
+    j_main_context_unlock(ctx);
+
+    j_hash_table_free(ctx->sources);
+
+    j_ptr_array_free(ctx->pending_despatches, TRUE);
+    j_free(ctx->cached_poll_array);
+
+    j_wakeup_free(ctx->wakeup);
+    j_cond_clear(&ctx->cond);
+    j_mutex_clear(&ctx->mutex);
+
+    j_free(ctx);
 }
