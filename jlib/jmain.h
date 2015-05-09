@@ -19,6 +19,7 @@
 #define __JLIB_MAIN_H__
 #include "jtypes.h"
 #include "jepoll.h"
+#include "jthread.h"
 
 /*
  * Queries the system monotonic time.
@@ -90,6 +91,11 @@ typedef struct _JMainContext JMainContext;
 JMainContext *j_main_context_new(void);
 
 /*
+ * Returns the global default main context. 
+ */
+JMainContext *j_main_context_default(void);
+
+/*
  * Increases the reference count on a context by one
  */
 void j_main_context_ref(JMainContext * ctx);
@@ -98,5 +104,26 @@ void j_main_context_ref(JMainContext * ctx);
  * Decreases the reference
  */
 void j_main_context_unref(JMainContext * ctx);
+
+/*
+ * Tries to become the owner of the specified context.
+ * If some other thread is the owner of the context, returns FALSE immediately. 
+ * Ownership is properly recursive: the owner can require ownership again and will release ownership when g_main_context_release() is called as many times as g_main_context_acquire().
+ */
+jboolean j_main_context_acquire(JMainContext * ctx);
+
+
+/*
+ * Releases ownership of a context previously acquired by this thread with g_main_context_acquire().
+ * If the context was acquired multiple times, the ownership will be released only when g_main_context_release() is called as many times as it was acquired.
+ */
+void j_main_context_release(JMainContext * ctx);
+
+/*
+ * Tries to become the owner of the specified context, as with g_main_context_acquire().
+ * But if another thread is the owner, atomically drop mutex and wait on cond until that owner releases ownership or until cond is signaled, then try again (once) to become the owner.
+ */
+jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
+                             JMutex * mutex);
 
 #endif

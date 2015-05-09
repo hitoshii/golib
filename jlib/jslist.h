@@ -61,5 +61,12 @@ jpointer j_slist_find_data(JSList * l, JCompareFunc compare,
  */
 juint j_slist_length(JSList * l);
 
+/*
+ * Removes the node link_ from the list and frees it.
+ * Compare this to g_slist_remove_link() which removes the node without freeing it.
+ */
+JSList *j_slist_delete_link(JSList * l, JSList * e);
+JSList *j_slist_remove_link(JSList * l, JSList * e);
+
 
 #endif

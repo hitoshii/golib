@@ -133,3 +133,34 @@ void j_slist_free_full(JSList * l, JDestroyNotify destroy)
         l = next;
     }
 }
+
+
+/*
+ * Removes the node link_ from the list and frees it.
+ * Compare this to g_slist_remove_link() which removes the node without freeing it.
+ */
+JSList *j_slist_delete_link(JSList * l, JSList * e)
+{
+    l = j_slist_remove_link(l, e);
+    j_slist_free1(e, NULL);
+    return l;
+}
+
+JSList *j_slist_remove_link(JSList * l, JSList * e)
+{
+    if (l == e) {
+        return j_slist_next(l);
+    }
+
+    JSList *prev = l;
+    JSList *iter = j_slist_next(prev);
+    while (iter) {
+        if (iter == e) {
+            prev->next = j_slist_next(e);
+            break;
+        }
+        prev = iter;
+        iter = j_slist_next(prev);
+    }
+    return l;
+}

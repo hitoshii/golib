@@ -16,7 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jmain.h"
-#include "jthread.h"
 #include "jslist.h"
 #include "jlist.h"
 #include "jhashtable.h"
@@ -102,6 +101,12 @@ struct _JMainContext {
 
 #define j_main_context_lock(ctx)    j_mutex_lock(&(ctx)->mutex)
 #define j_main_context_unlock(ctx)  j_mutex_unlock(&(ctx)->mutex)
+
+
+typedef struct {
+    JMutex *mutex;
+    JCond *cond;
+} JMainWaiter;
 
 
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
@@ -356,6 +361,21 @@ void j_source_destroy(JSource * src)
 }
 
 
+J_LOCK_DEFINE_STATIC(default_context_lock);
+static JMainContext *default_main_context = NULL;
+/*
+ * Returns the global default main context. 
+ */
+JMainContext *j_main_context_default(void)
+{
+    J_LOCK(default_context_lock);
+    if (J_UNLIKELY(default_main_context == NULL)) {
+        default_main_context = j_main_context_new();
+    }
+    J_UNLOCK(default_context_lock);
+    return default_main_context;
+}
+
 
 /*
  * Creates a new JMainContext
@@ -445,4 +465,119 @@ void j_main_context_unref(JMainContext * ctx)
     j_mutex_clear(&ctx->mutex);
 
     j_free(ctx);
+}
+
+/*
+ * Tries to become the owner of the specified context.
+ * If some other thread is the owner of the context, returns FALSE immediately. 
+ * Ownership is properly recursive: the owner can require ownership again and will release ownership when g_main_context_release() is called as many times as g_main_context_acquire().
+ */
+jboolean j_main_context_acquire(JMainContext * ctx)
+{
+    jboolean result = FALSE;
+    JThread *self = j_thread_self();
+
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+
+    j_main_context_lock(ctx);
+    if (!ctx->owner) {
+        ctx->owner = self;
+    }
+    if (ctx->owner == self) {
+        ctx->owner_count++;
+        result = TRUE;
+    }
+    j_main_context_unlock(ctx);
+
+    return result;
+}
+
+
+/*
+ * Releases ownership of a context previously acquired by this thread with g_main_context_acquire().
+ * If the context was acquired multiple times, the ownership will be released only when g_main_context_release() is called as many times as it was acquired.
+ */
+void j_main_context_release(JMainContext * ctx)
+{
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+
+    j_main_context_lock(ctx);
+    ctx->owner_count--;
+    if (ctx->owner_count == 0) {
+        ctx->owner = NULL;
+        if (ctx->waiters) {
+            JMainWaiter *waiter = ctx->waiters->data;
+            jboolean loop_internal_waiter = (waiter->mutex == &ctx->mutex);
+            ctx->waiters = j_slist_delete_link(ctx->waiters, ctx->waiters);
+            if (!loop_internal_waiter) {
+                j_mutex_lock(waiter->mutex);
+            }
+            j_cond_signal(waiter->cond);
+            if (!loop_internal_waiter) {
+                j_mutex_unlock(waiter->mutex);
+            }
+        }
+    }
+    j_main_context_unlock(ctx);
+}
+
+/*
+ * Tries to become the owner of the specified context, as with g_main_context_acquire().
+ * But if another thread is the owner, atomically drop mutex and wait on cond until that owner releases ownership or until cond is signaled, then try again (once) to become the owner.
+ */
+jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
+                             JMutex * mutex)
+{
+    jboolean result = FALSE;
+    JThread *self = j_thread_self();
+    jboolean loop_internal_waiter;
+
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+
+    if (J_UNLIKELY(cond != &ctx->cond || mutex != &ctx->mutex)) {
+
+    }
+
+    loop_internal_waiter = (mutex == &ctx->mutex);
+
+    if (!loop_internal_waiter) {
+        j_main_context_lock(ctx);
+    }
+
+    if (ctx->owner && ctx->owner != self) {
+        JMainWaiter waiter;
+        waiter.cond = cond;
+        waiter.mutex = mutex;
+
+        ctx->waiters = j_slist_append(ctx->waiters, &waiter);
+
+        if (!loop_internal_waiter) {
+            j_main_context_unlock(ctx);
+        }
+        j_cond_wait(cond, mutex);
+        if (!loop_internal_waiter) {
+            j_main_context_lock(ctx);
+        }
+        ctx->waiters = j_slist_remove(ctx->waiters, &waiter);
+    }
+
+    if (!ctx->owner) {
+        ctx->owner = self;
+    }
+    if (ctx->owner == self) {
+        ctx->owner_count++;
+        result = TRUE;
+    }
+
+    if (!loop_internal_waiter) {
+        j_main_context_unlock(ctx);
+    }
+
+    return result;
 }
