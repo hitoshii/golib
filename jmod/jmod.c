@@ -68,21 +68,3 @@ JModule *j_mod_load(const char *MODULE_LOCATION, const char *path)
     }
     return mod;
 }
-
-static JModuleVLog mod_logger = NULL;
-
-void j_mod_set_log_func(JModuleVLog func)
-{
-    mod_logger = func;
-}
-
-void j_mod_log(JLogLevel level, const char *fmt, ...)
-{
-    if (mod_logger == NULL) {
-        return;
-    }
-    va_list ap;
-    va_start(ap, fmt);
-    mod_logger(level, fmt, ap);
-    va_end(ap);
-}

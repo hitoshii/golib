@@ -18,7 +18,6 @@ lib_LTLIBRARIES = libjio.la
 libjio_la_SOURCES = \
 	jfile.c \
 	jdir.c \
-	jlog.c \
 	jsocket.c \
 	jpoll.c 
 
@@ -33,7 +32,6 @@ jiosubinclude_HEADERS= \
 	jfile.h \
 	jdir.h \
 	jio.h \
-	jlog.h \
 	jsocket.h \
 	jpoll.h 
 

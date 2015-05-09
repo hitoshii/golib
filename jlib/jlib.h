@@ -24,6 +24,7 @@
 #include "jmem.h"
 #include "jatomic.h"
 #include "jthread.h"
+#include "jmessage.h"
 #include "jstrfuncs.h"
 #include "jstring.h"
 #include "jslist.h"

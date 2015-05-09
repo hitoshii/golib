@@ -15,19 +15,33 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __J_MOD_H__
-#define __J_MOD_H__
+#ifndef __JLIB_MESSAGE_H__
+#define __JLIB_MESSAGE_H__
 
-#include "struct.h"
-#include "jhook.h"
-#include <jio/jio.h>
-#include <stdarg.h>
+#include "jtypes.h"
+
+typedef enum {
+    J_LOG_LEVEL_ERROR = 1 << 0,
+    J_LOG_LEVEL_CRITICAL = 1 << 1,
+    J_LOG_LEVEL_WARNING = 1 << 2,
+    J_LOG_LEVEL_MESSAGE = 1 << 3,
+    J_LOG_LEVEL_INFO = 1 << 4,
+    J_LOG_LEVEL_DEBUG = 1 << 5,
+
+    J_LOG_LEVEL_MASK = 0xFF
+} JLogLevelFlag;
+
+#define J_LOG_LEVEL_USER_SHIFT (6)
+
+typedef void (*JLogFunc) (const jchar * domain, JLogLevelFlag level,
+                          const jchar * message, jpointer user_data);
 
 /*
- * Loads a module from path
- * Returns NULL on error
+ * Sets the log handler for a domain and a set of log levels.
  */
-JModule *j_mod_load(const char *location, const char *path);
+void j_log_set_handler(const jchar * domain,
+                       JLogFunc func, jpointer user_data);
+void j_log_remove_handler(const jchar * domain);
 
 
 #endif

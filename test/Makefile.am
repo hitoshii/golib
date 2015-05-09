@@ -24,27 +24,27 @@ noinst_PROGRAMS= \
 	test-string \
 	test-file \
 	test-mod \
-	test-log \
 	test-socket \
 	test-epoll \
 	test-hashtable \
 	test-array \
 	test-conf \
 	test-thread \
-	test-main
+	test-main \
+	test-message
 
 TESTS=\
     test-string \
     test-file \
     test-mod \
-    test-log \
     test-socket \
     test-epoll \
     test-hashtable \
     test-array \
     test-conf \
     test-thread \
-    test-main
+    test-main \
+    test-message
 
 dist_check_DATA = \
     test.conf
@@ -60,9 +60,6 @@ test_file_SOURCES = \
 
 test_mod_SOURCES = \
 	test-mod.c
-
-test_log_SOURCES = \
-	test-log.c
 
 test_socket_SOURCES = \
 	test-socket.c
@@ -81,6 +78,9 @@ test_thread_SOURCES = \
 
 test_main_SOURCES = \
     test-main.c
+
+test_message_SOURCES = \
+    test-message.c
 
 module: module.c
 	gcc -shared -fPIC module.c -o module.so

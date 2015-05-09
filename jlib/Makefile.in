@@ -126,7 +126,7 @@ am__DEPENDENCIES_1 =
 libjlib_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
 	jstack.lo jfileutils.lo jhashtable.lo jarray.lo jatomic.lo \
-	jthread.lo jepoll.lo jslist.lo jwakeup.lo jmain.lo
+	jthread.lo jepoll.lo jslist.lo jwakeup.lo jmain.lo jmessage.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -347,7 +347,8 @@ libjlib_la_SOURCES = \
 	jepoll.c \
 	jslist.c \
 	jwakeup.c \
-	jmain.c
+	jmain.c \
+	jmessage.c
 
 libjlib_la_LDFLAGS = 
 libjlib_la_LIBADD = $(PTHREAD_LIBS)
@@ -368,7 +369,8 @@ jlibsubinclude_HEADERS = \
 	jthread.h \
 	jepoll.h \
 	jslist.h \
-	jmain.h
+	jmain.h \
+	jmessage.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
@@ -464,6 +466,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmain.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmem.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmessage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jslist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstack.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jstrfuncs.Plo@am__quote@
