@@ -66,8 +66,8 @@ struct _JSource {
 
     jint64 ready_time;
 };
-#define j_source_is_destroyed(src)  (((src)->flags & J_SOURCE_FLAG_ACTIVE) == 0)
-#define j_source_is_blocked(src)    (((src)->flags & J_SOURCE_FLAG_BLOCKED) == 0)
+#define J_SOURCE_IS_DESTROYED(src)  (((src)->flags & J_SOURCE_FLAG_ACTIVE) == 0)
+#define J_SOURCE_IS_BLOCKED(src)    (((src)->flags & J_SOURCE_FLAG_BLOCKED) == 0)
 
 struct _JMainContext {
     JMutex mutex;
@@ -99,8 +99,8 @@ struct _JMainContext {
     jboolean time_is_fresh;
 };
 
-#define j_main_context_lock(ctx)    j_mutex_lock(&(ctx)->mutex)
-#define j_main_context_unlock(ctx)  j_mutex_unlock(&(ctx)->mutex)
+#define J_MAIN_CONTEXT_LOCK(ctx)    j_mutex_lock(&(ctx)->mutex)
+#define J_MAIN_CONTEXT_UNLOCK(ctx)  j_mutex_unlock(&(ctx)->mutex)
 
 
 typedef struct {
@@ -174,9 +174,9 @@ void j_source_add_poll_fd(JSource * src, jint fd, juint io)
     e->data = src;
     src->poll_fds = j_slist_append(src->poll_fds, e);
     if (src->context) {
-        j_main_context_lock(src->context);
+        J_MAIN_CONTEXT_LOCK(src->context);
         j_main_context_add_poll_unlocked(src->context, e);
-        j_main_context_unlock(src->context);
+        J_MAIN_CONTEXT_UNLOCK(src->context);
     }
 }
 
@@ -192,10 +192,10 @@ static inline void j_source_destroy_internal(JSource * src,
                                              jboolean has_lock)
 {
     if (!has_lock) {
-        j_main_context_lock(ctx);
+        J_MAIN_CONTEXT_LOCK(ctx);
     }
 
-    if (!j_source_is_destroyed(src)) {
+    if (!J_SOURCE_IS_DESTROYED(src)) {
         JSList *tmp_list;
         jpointer old_cb_data;
         JSourceCallbackFuncs *old_cb_funcs;
@@ -208,12 +208,12 @@ static inline void j_source_destroy_internal(JSource * src,
         src->callback_funcs = NULL;
 
         if (old_cb_funcs) {
-            j_main_context_unlock(ctx);
+            J_MAIN_CONTEXT_UNLOCK(ctx);
             old_cb_funcs->unref(old_cb_data);
-            j_main_context_lock(ctx);
+            J_MAIN_CONTEXT_LOCK(ctx);
         }
 
-        if (!j_source_is_blocked(src)) {
+        if (!J_SOURCE_IS_BLOCKED(src)) {
             tmp_list = src->poll_fds;
             while (tmp_list) {
                 j_main_context_remove_poll_unlocked(ctx,
@@ -238,7 +238,7 @@ static inline void j_source_destroy_internal(JSource * src,
         j_source_unref_internal(src, ctx, TRUE);
     }
     if (!has_lock) {
-        j_main_context_unlock(ctx);
+        J_MAIN_CONTEXT_UNLOCK(ctx);
     }
 }
 
@@ -266,7 +266,7 @@ static inline void j_source_unref_internal(JSource * src,
     }
 
     if (!has_lock && ctx) {
-        j_main_context_lock(ctx);
+        J_MAIN_CONTEXT_LOCK(ctx);
     }
 
     src->ref--;
@@ -283,11 +283,11 @@ static inline void j_source_unref_internal(JSource * src,
 
         if (src->funcs->finalize) {
             if (ctx) {
-                j_main_context_unlock(ctx);
+                J_MAIN_CONTEXT_UNLOCK(ctx);
             }
             src->funcs->finalize(src);
             if (ctx) {
-                j_main_context_lock(ctx);
+                J_MAIN_CONTEXT_LOCK(ctx);
             }
         }
 
@@ -311,16 +311,16 @@ static inline void j_source_unref_internal(JSource * src,
     }
 
     if (!has_lock && ctx) {
-        j_main_context_unlock(ctx);
+        J_MAIN_CONTEXT_UNLOCK(ctx);
     }
 
     if (old_cb_funcs) {
         if (has_lock) {
-            j_main_context_unlock(ctx);
+            J_MAIN_CONTEXT_UNLOCK(ctx);
         }
         old_cb_funcs->unref(old_cb_data);
         if (has_lock) {
-            j_main_context_unlock(ctx);
+            J_MAIN_CONTEXT_UNLOCK(ctx);
         }
     }
 }
@@ -332,11 +332,11 @@ void j_source_ref(JSource * src)
 {
     JMainContext *ctx = src->context;
     if (ctx) {
-        j_main_context_lock(ctx);
+        J_MAIN_CONTEXT_LOCK(ctx);
     }
     src->ref++;
     if (ctx) {
-        j_main_context_unlock(ctx);
+        J_MAIN_CONTEXT_UNLOCK(ctx);
     }
 }
 
@@ -364,7 +364,7 @@ void j_source_destroy(JSource * src)
 J_LOCK_DEFINE_STATIC(default_context_lock);
 static JMainContext *default_main_context = NULL;
 /*
- * Returns the global default main context. 
+ * Returns the global default main context.
  */
 JMainContext *j_main_context_default(void)
 {
@@ -444,7 +444,7 @@ void j_main_context_unref(JMainContext * ctx)
                                 FALSE);
     }
 
-    j_main_context_lock(ctx);
+    J_MAIN_CONTEXT_LOCK(ctx);
     JList *tmp_list = ctx->source_lists;
     while (tmp_list) {
         JSource *src = (JSource *) j_list_data(tmp_list);
@@ -453,7 +453,7 @@ void j_main_context_unref(JMainContext * ctx)
         tmp_list = j_list_next(tmp_list);
     }
     j_list_free(ctx->source_lists);
-    j_main_context_unlock(ctx);
+    J_MAIN_CONTEXT_UNLOCK(ctx);
 
     j_hash_table_free(ctx->sources);
 
@@ -469,7 +469,7 @@ void j_main_context_unref(JMainContext * ctx)
 
 /*
  * Tries to become the owner of the specified context.
- * If some other thread is the owner of the context, returns FALSE immediately. 
+ * If some other thread is the owner of the context, returns FALSE immediately.
  * Ownership is properly recursive: the owner can require ownership again and will release ownership when g_main_context_release() is called as many times as g_main_context_acquire().
  */
 jboolean j_main_context_acquire(JMainContext * ctx)
@@ -481,7 +481,7 @@ jboolean j_main_context_acquire(JMainContext * ctx)
         ctx = j_main_context_default();
     }
 
-    j_main_context_lock(ctx);
+    J_MAIN_CONTEXT_LOCK(ctx);
     if (!ctx->owner) {
         ctx->owner = self;
     }
@@ -489,7 +489,7 @@ jboolean j_main_context_acquire(JMainContext * ctx)
         ctx->owner_count++;
         result = TRUE;
     }
-    j_main_context_unlock(ctx);
+    J_MAIN_CONTEXT_UNLOCK(ctx);
 
     return result;
 }
@@ -505,7 +505,7 @@ void j_main_context_release(JMainContext * ctx)
         ctx = j_main_context_default();
     }
 
-    j_main_context_lock(ctx);
+    J_MAIN_CONTEXT_LOCK(ctx);
     ctx->owner_count--;
     if (ctx->owner_count == 0) {
         ctx->owner = NULL;
@@ -522,7 +522,7 @@ void j_main_context_release(JMainContext * ctx)
             }
         }
     }
-    j_main_context_unlock(ctx);
+    J_MAIN_CONTEXT_UNLOCK(ctx);
 }
 
 /*
@@ -547,7 +547,7 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
     loop_internal_waiter = (mutex == &ctx->mutex);
 
     if (!loop_internal_waiter) {
-        j_main_context_lock(ctx);
+        J_MAIN_CONTEXT_LOCK(ctx);
     }
 
     if (ctx->owner && ctx->owner != self) {
@@ -558,11 +558,11 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
         ctx->waiters = j_slist_append(ctx->waiters, &waiter);
 
         if (!loop_internal_waiter) {
-            j_main_context_unlock(ctx);
+            J_MAIN_CONTEXT_UNLOCK(ctx);
         }
         j_cond_wait(cond, mutex);
         if (!loop_internal_waiter) {
-            j_main_context_lock(ctx);
+            J_MAIN_CONTEXT_LOCK(ctx);
         }
         ctx->waiters = j_slist_remove(ctx->waiters, &waiter);
     }
@@ -576,7 +576,7 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
     }
 
     if (!loop_internal_waiter) {
-        j_main_context_unlock(ctx);
+        J_MAIN_CONTEXT_UNLOCK(ctx);
     }
 
     return result;
