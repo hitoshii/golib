@@ -86,3 +86,14 @@ void j_log_remove_handler(const jchar * domain)
 {
     j_hash_table_remove_full(j_log_get_handlers(), (jpointer) domain);
 }
+
+void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+            va_list ap)
+{
+    /* TODO */
+}
+
+void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+           ...)
+{
+}

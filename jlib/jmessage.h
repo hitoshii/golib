@@ -19,6 +19,7 @@
 #define __JLIB_MESSAGE_H__
 
 #include "jtypes.h"
+#include <stdarg.h>
 
 typedef enum {
     J_LOG_LEVEL_ERROR = 1 << 0,
@@ -43,5 +44,10 @@ void j_log_set_handler(const jchar * domain,
                        JLogFunc func, jpointer user_data);
 void j_log_remove_handler(const jchar * domain);
 
+
+void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+            va_list ap) J_GNUC_PRINTF(3, 0);
+void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+           ...) J_GNUC_PRINTF(3, 4);
 
 #endif
