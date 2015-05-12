@@ -90,10 +90,20 @@ void j_log_remove_handler(const jchar * domain)
 void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
             va_list ap)
 {
-    /* TODO */
+    JLogHandler *handler = j_log_find_handler(domain);
+    if (handler == NULL || handler->func == NULL) {
+        return;
+    }
+    jchar *buf = j_strdup_vprintf(msg, ap);
+    handler->func(domain, flag, buf, handler->user_data);
+    j_free(buf);
 }
 
 void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
            ...)
 {
+    va_list ap;
+    va_start(ap, msg);
+    j_logv(domain, flag, msg, ap);
+    va_end(ap);
 }
