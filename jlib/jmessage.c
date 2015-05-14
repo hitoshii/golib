@@ -21,6 +21,7 @@
 #include "jhashtable.h"
 #include "jmem.h"
 #include "jstrfuncs.h"
+#include <stdio.h>
 
 typedef struct {
     JLogFunc func;
@@ -50,8 +51,38 @@ static inline JHashTable *j_log_get_handlers(void)
         j_log_handlers =
             j_hash_table_new(8, j_str_hash, j_str_equal, j_free,
                              (JDestroyNotify) j_log_handler_free);
+        j_hash_table_insert(j_log_handlers, J_LOG_DOMAIN,
+                            j_log_handler_new(j_log_default_handler,
+                                              NULL));
     }
     return j_log_handlers;
+}
+
+void j_log_default_handler(const jchar * domain, JLogLevelFlag flag,
+                           const jchar * message, jpointer user_data)
+{
+    const jchar *level = NULL;
+    switch (flag & J_LOG_LEVEL_MASK) {
+    case J_LOG_LEVEL_CRITICAL:
+        level = "Critical";
+        break;
+    case J_LOG_LEVEL_ERROR:
+        level = "Error";
+        break;
+    case J_LOG_LEVEL_WARNING:
+        level = "Warning";
+        break;
+    case J_LOG_LEVEL_MESSAGE:
+        level = "Message";
+        break;
+    case J_LOG_LEVEL_INFO:
+        level = "Info";
+        break;
+    default:
+        level = "Debug";
+        break;
+    }
+    printf("%s: %s\n", level, message);
 }
 
 J_LOCK_DEFINE_STATIC(j_message_lock);
@@ -73,18 +104,22 @@ void j_log_set_handler(const jchar * domain,
                        JLogFunc func, jpointer user_data)
 {
     JLogHandler *handler = j_log_find_handler(domain);
+    J_LOCK(j_message_lock);
     if (handler) {
         handler->func = func;
         handler->user_data = user_data;
-        return;
+    } else {
+        j_hash_table_insert(j_log_get_handlers(), j_strdup(domain),
+                            j_log_handler_new(func, user_data));
     }
-    j_hash_table_insert(j_log_get_handlers(), j_strdup(domain),
-                        j_log_handler_new(func, user_data));
+    J_UNLOCK(j_message_lock);
 }
 
 void j_log_remove_handler(const jchar * domain)
 {
+    J_LOCK(j_message_lock);
     j_hash_table_remove_full(j_log_get_handlers(), (jpointer) domain);
+    J_UNLOCK(j_message_lock);
 }
 
 void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
@@ -94,9 +129,9 @@ void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
     if (handler == NULL || handler->func == NULL) {
         return;
     }
-    jchar *buf = j_strdup_vprintf(msg, ap);
+    jchar buf[4096];            /* 一次输出最长4096 */
+    vsnprintf(buf, sizeof(buf) / sizeof(jchar), msg, ap);
     handler->func(domain, flag, buf, handler->user_data);
-    j_free(buf);
 }
 
 void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,

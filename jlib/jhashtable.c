@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jhashtable.h"
+#include "jstrfuncs.h"
 #include <jlib/jlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -315,6 +316,9 @@ void j_hash_table_free(JHashTable * h)
 
 juint j_str_hash(jconstpointer p)
 {
+    if (p == NULL) {
+        return 0;
+    }
     const jchar *s = (const jchar *) p;
     juint hash = 0;
     while (*s) {
@@ -326,7 +330,7 @@ juint j_str_hash(jconstpointer p)
 
 jint j_str_equal(jconstpointer s1, jconstpointer s2)
 {
-    return strcmp((const jchar *) s1, (const jchar *) s2);
+    return j_strcmp0((const jchar *) s1, (const jchar *) s2);
 }
 
 juint j_int_hash(jconstpointer p)

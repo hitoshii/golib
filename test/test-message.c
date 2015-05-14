@@ -1,14 +1,17 @@
 #include <jlib/jlib.h>
+#include <stdio.h>
 
-
-void log_handler(const jchar * domain, JLogLevelFlag level,
-                 const jchar * message, jpointer user_data)
+static void log_handler(const jchar * domain, JLogLevelFlag level,
+                        const jchar * message, jpointer user_data)
 {
+    printf("[%s] %s\n", domain, message);
 }
 
 int main(int argc, char *argv[])
 {
-    j_log_set_handler("hello", log_handler, "");
-    j_log_remove_handler("hello");
+    j_log(NULL, J_LOG_LEVEL_CRITICAL, "Critical!!!!");
+    j_debug("这是一个DEBUG，%s", "是吗？");
+    j_log_set_handler("test", log_handler, NULL);
+    j_log("test", J_LOG_LEVEL_INFO, "Info!!!!");
     return 0;
 }
