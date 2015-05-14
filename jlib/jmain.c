@@ -87,7 +87,6 @@ struct _JMainContext {
     jint in_check_or_prepare;
 
     JWakeup *wakeup;
-    JEPollEvent wakeup_event;
 
     JEPoll *epoll;
 
@@ -161,6 +160,22 @@ JSource *j_source_new(JSourceFuncs * funcs, juint struct_size)
 const jchar *j_source_get_name(JSource * src)
 {
     return src->name;
+}
+
+juint j_source_get_id(JSource * src)
+{
+    if (J_UNLIKELY(src->context == NULL)) {
+        return 0;
+    }
+    J_MAIN_CONTEXT_LOCK(src->context);
+    juint result = src->id;
+    J_MAIN_CONTEXT_UNLOCK(src->context);
+    return result;
+}
+
+JMainContext *j_source_get_context(JSource * src)
+{
+    return src->context;
 }
 
 /*
@@ -240,6 +255,15 @@ static inline void j_source_destroy_internal(JSource * src,
     if (!has_lock) {
         J_MAIN_CONTEXT_UNLOCK(ctx);
     }
+}
+
+/*
+ * Holds context's lock
+ */
+static inline void source_add_to_context(JSource * src, JMainContext * ctx)
+{
+    ctx->source_lists = j_list_append(ctx->source_lists, src);
+    j_hash_table_insert(ctx->sources, JUINT_TO_JPOINTER(src->id), src);
 }
 
 /*
@@ -407,8 +431,9 @@ JMainContext *j_main_context_new(void)
     ctx->time_is_fresh = FALSE;
 
     ctx->wakeup = j_wakeup_new();
-    j_wakeup_get_pollfd(ctx->wakeup, &ctx->wakeup_event);
-    j_main_context_add_poll_unlocked(ctx, &ctx->wakeup_event);
+    JEPollEvent wakeup_event;
+    j_wakeup_get_pollfd(ctx->wakeup, &wakeup_event);
+    j_main_context_add_poll_unlocked(ctx, &wakeup_event);
 
     return ctx;
 }
@@ -579,5 +604,80 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
         J_MAIN_CONTEXT_UNLOCK(ctx);
     }
 
+    return result;
+}
+
+/*
+ * Wakeup context if it is blocked
+ */
+void j_main_context_wakeup(JMainContext * ctx)
+{
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+    if (j_atomic_int_get(&ctx->ref) <= 0) {
+        return;
+    }
+    j_wakeup_signal(ctx->wakeup);
+}
+
+static inline juint j_source_attach_unlocked(JSource * src,
+                                             JMainContext * ctx,
+                                             jboolean do_wakeup)
+{
+    JSList *tmp_list;
+    juint id;
+
+    do {
+        id = ctx->next_id++;
+    } while (J_UNLIKELY
+             (id == 0
+              || j_hash_table_contains(ctx->sources,
+                                       JUINT_TO_JPOINTER(id))));
+
+    src->context = ctx;
+    src->id = id;
+    src->ref++;
+
+    source_add_to_context(src, ctx);
+
+    if (!J_SOURCE_IS_BLOCKED(src)) {
+        tmp_list = src->poll_fds;
+        while (tmp_list) {
+            j_main_context_add_poll_unlocked(ctx, j_slist_data(tmp_list));
+            tmp_list = j_slist_next(tmp_list);
+        }
+    }
+    tmp_list = src->children;
+    while (tmp_list) {
+        j_source_attach_unlocked(j_slist_data(tmp_list), ctx, FALSE);
+        tmp_list = j_slist_next(tmp_list);
+    }
+
+    /* If another thread has acquired the context, wake it up since
+     * it might be in epoll_wait() right now
+     */
+    if (do_wakeup && ctx->owner && ctx->owner != j_thread_self()) {
+        j_wakeup_signal(ctx->wakeup);
+    }
+
+    return src->id;
+}
+
+/*
+ * Adds a GSource to a context so that it will be executed within that context.
+ * Returns the source ID
+ */
+juint j_source_attach(JSource * src, JMainContext * ctx)
+{
+    if (src->context != NULL || J_SOURCE_IS_DESTROYED(src)) {
+        return 0;
+    }
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+    J_MAIN_CONTEXT_LOCK(ctx);
+    juint result = j_source_attach_unlocked(src, ctx, TRUE);
+    J_MAIN_CONTEXT_UNLOCK(ctx);
     return result;
 }

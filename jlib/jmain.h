@@ -33,6 +33,9 @@ typedef struct _JSourceCallbackFuncs JSourceCallbackFuncs;
 typedef struct _JSourceFuncs JSourceFuncs;
 typedef struct _JSource JSource;
 
+/* JMainContext */
+typedef struct _JMainContext JMainContext;
+
 
 typedef enum {
     J_SOURCE_FLAG_ACTIVE = 1 << 0,
@@ -51,6 +54,8 @@ typedef enum {
 
 
 const jchar *j_source_get_name(JSource * src);
+juint j_source_get_id(JSource * src);
+JMainContext *j_source_get_context(JSource * src);
 
 /*
  * Creates a new JSource structure.
@@ -82,8 +87,12 @@ void j_source_unref(JSource * src);
  */
 void j_source_destroy(JSource * src);
 
-/* JMainContext */
-typedef struct _JMainContext JMainContext;
+
+/*
+ * Adds a GSource to a context so that it will be executed within that context.
+ * Returns the source ID
+ */
+juint j_source_attach(JSource * src, JMainContext * ctx);
 
 /*
  * Creates a new JMainContext
@@ -125,5 +134,10 @@ void j_main_context_release(JMainContext * ctx);
  */
 jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
                              JMutex * mutex);
+
+/*
+ * Wakeup context if it is blocked
+ */
+void j_main_context_wakeup(JMainContext * ctx);
 
 #endif
