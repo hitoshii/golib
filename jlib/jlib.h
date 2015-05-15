@@ -22,6 +22,7 @@
 #include "jmacros.h"
 #include "jtypes.h"
 #include "jmem.h"
+#include "jprintf.h"
 #include "jatomic.h"
 #include "jthread.h"
 #include "jmessage.h"

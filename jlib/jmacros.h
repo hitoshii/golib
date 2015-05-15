@@ -148,6 +148,12 @@
 #define J_STATIC_ASSERT_EXPR(expr) ((void) sizeof (char[(expr) ? 1 : -1]))
 #endif
 
+/* simple macro statement wrappers */
+#if !(defined(J_STMT_START) &&  defined(J_STMT_END))
+#define J_STMT_START do{
+#define J_STMT_END }while(0)
+#endif
+
 
 #ifndef JLIB_VAR
 #define JLIB_VAR extern

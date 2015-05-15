@@ -26,7 +26,7 @@ typedef struct _JWakeup JWakeup;
 
 JWakeup *j_wakeup_new(void);
 
-void j_wakeup_get_pollfd(JWakeup * wakeup, JEPollEvent * e);
+jint j_wakeup_get_pollfd(JWakeup * wakeup, JEPollEvent * e);
 
 /*
  * Acknowledges receipt of a wakeup signal on @wakeup.

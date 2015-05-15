@@ -21,6 +21,7 @@
 #include "jhashtable.h"
 #include "jmem.h"
 #include "jstrfuncs.h"
+#include "jprintf.h"
 #include <stdio.h>
 
 typedef struct {
@@ -82,7 +83,7 @@ void j_log_default_handler(const jchar * domain, JLogLevelFlag flag,
         level = "Debug";
         break;
     }
-    printf("%s: %s\n", level, message);
+    j_printf("%s: %s\n", level, message);
 }
 
 J_LOCK_DEFINE_STATIC(j_message_lock);
