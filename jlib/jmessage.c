@@ -23,6 +23,7 @@
 #include "jstrfuncs.h"
 #include "jprintf.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
     JLogFunc func;
@@ -63,12 +64,15 @@ void j_log_default_handler(const jchar * domain, JLogLevelFlag flag,
                            const jchar * message, jpointer user_data)
 {
     const jchar *level = NULL;
+    jboolean error = FALSE;
     switch (flag & J_LOG_LEVEL_MASK) {
     case J_LOG_LEVEL_CRITICAL:
         level = "Critical";
+        error = TRUE;
         break;
     case J_LOG_LEVEL_ERROR:
         level = "Error";
+        error = TRUE;
         break;
     case J_LOG_LEVEL_WARNING:
         level = "Warning";
@@ -83,7 +87,12 @@ void j_log_default_handler(const jchar * domain, JLogLevelFlag flag,
         level = "Debug";
         break;
     }
-    j_printf("%s: %s\n", level, message);
+    if (!error) {
+        j_printf("%s: %s\n", level, message);
+    } else {
+        j_fprintf(stderr, "%s: %s\n", level, message);
+        abort();
+    }
 }
 
 J_LOCK_DEFINE_STATIC(j_message_lock);

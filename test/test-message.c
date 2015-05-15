@@ -13,5 +13,6 @@ int main(int argc, char *argv[])
     j_debug("这是一个DEBUG，%s", "是吗？");
     j_log_set_handler("test", log_handler, NULL);
     j_log("test", J_LOG_LEVEL_INFO, "Info!!!!");
+    //j_error("ERROR");
     return 0;
 }
