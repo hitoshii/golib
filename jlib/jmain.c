@@ -112,6 +112,7 @@ static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
                                                        JEPollEvent * p)
 {
     j_epoll_del(ctx->epoll, p->fd, NULL);
+    ctx->poll_changed = TRUE;
     j_wakeup_signal(ctx->wakeup);
 }
 
@@ -119,6 +120,7 @@ static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
                                                     JEPollEvent * p)
 {
     j_epoll_add(ctx->epoll, p->fd, p->events, p->data);
+    ctx->poll_changed = TRUE;
     j_wakeup_signal(ctx->wakeup);
 }
 
@@ -680,4 +682,118 @@ juint j_source_attach(JSource * src, JMainContext * ctx)
     juint result = j_source_attach_unlocked(src, ctx, TRUE);
     J_MAIN_CONTEXT_UNLOCK(ctx);
     return result;
+}
+
+jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
+{
+    /* TODO */
+    return FALSE;
+}
+
+jint j_main_context_query(JMainContext * ctx, jint max_priority,
+                          jint * timeout, JEPollEvent * fds, jint n_fds)
+{
+    /* TODO */
+    return 0;
+}
+
+jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
+                              JEPollEvent * fds, jint n_fds)
+{
+    /* TODO */
+    return FALSE;
+}
+
+void j_main_context_dispatch(JMainContext * ctx)
+{
+
+}
+
+static inline void j_main_context_poll(JMainContext * ctx, jint timeout,
+                                       jint priority, JEPollEvent * fds,
+                                       jint n_fds)
+{
+    /* TODO */
+}
+
+static inline jboolean j_main_context_iterate(JMainContext * ctx,
+                                              jboolean may_block,
+                                              jboolean dispatch,
+                                              JThread * self)
+{
+    jint max_priority;
+    jint timeout;
+    jboolean some_ready;
+    jint nfds, allocated_nfds;
+    JEPollEvent *fds = NULL;
+
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    if (!j_main_context_acquire(ctx)) {
+        jboolean got_ownership;
+        J_MAIN_CONTEXT_LOCK(ctx);
+        if (!may_block) {
+            return FALSE;
+        }
+        got_ownership = j_main_context_wait(ctx, &ctx->cond, &ctx->mutex);
+        if (!got_ownership) {
+            return FALSE;
+        }
+    } else {
+        J_MAIN_CONTEXT_LOCK(ctx);
+    }
+
+    if (ctx->cached_poll_array == NULL) {
+        ctx->cached_poll_array_size = j_epoll_count(ctx->epoll) + 1;
+        ctx->cached_poll_array =
+            j_new(JEPollEvent, ctx->cached_poll_array_size);
+    }
+
+    allocated_nfds = ctx->cached_poll_array_size;
+    fds = ctx->cached_poll_array;
+
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+
+    j_main_context_prepare(ctx, &max_priority);
+
+    while ((nfds = j_main_context_query(ctx, max_priority, &timeout, fds,
+                                        allocated_nfds)) >
+           allocated_nfds) {
+        J_MAIN_CONTEXT_LOCK(ctx);
+        j_free(fds);
+        ctx->cached_poll_array_size = allocated_nfds = nfds;
+        ctx->cached_poll_array = fds = j_new(JEPollEvent, nfds);
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+    }
+
+    if (!may_block) {
+        timeout = 0;
+    }
+
+    j_main_context_poll(ctx, timeout, max_priority, fds, nfds);
+
+    some_ready = j_main_context_check(ctx, max_priority, fds, nfds);
+
+    if (dispatch) {
+        j_main_context_dispatch(ctx);
+    }
+
+    j_main_context_release(ctx);
+    J_MAIN_CONTEXT_LOCK(ctx);
+    return some_ready;
+}
+
+/*
+ * Runs a single iteration
+ */
+jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block)
+{
+    jboolean retval;
+
+    if (!ctx) {
+        ctx = j_main_context_default();
+    }
+    J_MAIN_CONTEXT_LOCK(ctx);
+    retval = j_main_context_iterate(ctx, may_block, TRUE, j_thread_self());
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    return retval;
 }

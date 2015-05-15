@@ -17,7 +17,7 @@
  */
 #include "jhashtable.h"
 #include "jstrfuncs.h"
-#include <jlib/jlib.h>
+#include "jmem.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +46,7 @@ static void j_hash_table_node_free(JHashTableNode * node,
     if (value_func) {
         value_func(node->value);
     }
-    free(node);
+    j_free(node);
 }
 
 /*
@@ -136,6 +136,14 @@ JHashTable *j_hash_table_new(jushort index,
     h->value_func = value_func;
 
     return h;
+}
+
+/*
+ * XXX This function iterates over the whole table to count its elements.
+ */
+juint j_hash_table_length(JHashTable * h)
+{
+    return j_list_length(h->keys);
 }
 
 /*

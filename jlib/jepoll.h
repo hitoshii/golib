@@ -71,6 +71,8 @@ jboolean j_epoll_ctl(JEPoll * pfd, jint fd, JEPollControl ctl,
                      jushort events, jpointer data,
                      JDestroyNotify destroy);
 
+juint j_epoll_count(JEPoll * p);
+
 jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
                   jint timeout);
 

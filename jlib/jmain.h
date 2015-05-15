@@ -140,4 +140,16 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
  */
 void j_main_context_wakeup(JMainContext * ctx);
 
+jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority);
+jint j_main_context_query(JMainContext * ctx, jint max_priority,
+                          jint * timeout, JEPollEvent * fds, jint n_fds);
+jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
+                              JEPollEvent * fds, jint n_fds);
+void j_main_context_dispatch(JMainContext * ctx);
+
+/*
+ * Runs a single iteration
+ */
+jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block);
+
 #endif

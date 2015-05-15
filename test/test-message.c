@@ -9,7 +9,7 @@ static void log_handler(const jchar * domain, JLogLevelFlag level,
 
 int main(int argc, char *argv[])
 {
-    j_log(NULL, J_LOG_LEVEL_CRITICAL, "Critical!!!!");
+    j_log(NULL, J_LOG_LEVEL_WARNING, "WARNING!!!!");
     j_debug("这是一个DEBUG，%s", "是吗？");
     j_log_set_handler("test", log_handler, NULL);
     j_log("test", J_LOG_LEVEL_INFO, "Info!!!!");

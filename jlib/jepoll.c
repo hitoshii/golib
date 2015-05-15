@@ -22,7 +22,7 @@
 
 struct _JEPoll {
     jint pfd;
-    JHashTable *fds;
+    JHashTable *fds;            /* fd => user_data */
 };
 #define j_epoll_get_fd(ep)  ((ep)->pfd)
 #define j_epoll_get_fds(ep) ((ep)->fds)
@@ -38,6 +38,11 @@ JEPoll *j_epoll_new(void)
     p->pfd = fd;
     p->fds = j_hash_table_new(16, j_int_hash, j_int_equal, NULL, NULL);
     return p;
+}
+
+juint j_epoll_count(JEPoll * p)
+{
+    return j_hash_table_length(p->fds);
 }
 
 void j_epoll_close(JEPoll * p)

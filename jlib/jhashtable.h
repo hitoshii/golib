@@ -66,6 +66,11 @@ JHashTable *j_hash_table_new(jushort i,
                              JValueDestroyFunc value_func);
 
 /*
+ * XXX This function iterates over the whole table to count its elements.
+ */
+juint j_hash_table_length(JHashTable * h);
+
+/*
  * @description: Insert a new key:value into hash table
  *				 if the key already exists, just update its value
  * @param h: the hash table
