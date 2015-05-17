@@ -50,6 +50,9 @@ typedef struct {
 JPtrArray *j_ptr_array_new(void);
 JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy);
 
+void j_ptr_array_set_size(JPtrArray * pa, juint size);
+void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length);
+
 void j_ptr_array_set_free(JPtrArray * pa, JDestroyNotify destroy);
 
 /*

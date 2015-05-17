@@ -23,6 +23,7 @@
 #include "jwakeup.h"
 #include "jmem.h"
 #include "jatomic.h"
+#include "jmessage.h"
 #include <time.h>
 
 
@@ -69,6 +70,13 @@ struct _JSource {
 #define J_SOURCE_IS_DESTROYED(src)  (((src)->flags & J_SOURCE_FLAG_ACTIVE) == 0)
 #define J_SOURCE_IS_BLOCKED(src)    (((src)->flags & J_SOURCE_FLAG_BLOCKED) == 0)
 
+#define J_SOURCE_UNREF(src, ctx)    J_STMT_START\
+                                    if((src)->ref>1){\
+                                        (src)->ref--;\
+                                    }else{\
+                                        j_source_unref_internal((src),(ctx),TRUE);\
+                                    }J_STMT_END
+
 struct _JMainContext {
     JMutex mutex;
     JCond cond;
@@ -100,6 +108,11 @@ struct _JMainContext {
 
 #define J_MAIN_CONTEXT_LOCK(ctx)    j_mutex_lock(&(ctx)->mutex)
 #define J_MAIN_CONTEXT_UNLOCK(ctx)  j_mutex_unlock(&(ctx)->mutex)
+
+#define J_MAIN_CONTEXT_CHECK(ctx)   J_STMT_START\
+                                    if(ctx==NULL){ \
+                                        ctx=j_main_context_default();\
+                                    }J_STMT_END
 
 
 typedef struct {
@@ -504,10 +517,7 @@ jboolean j_main_context_acquire(JMainContext * ctx)
     jboolean result = FALSE;
     JThread *self = j_thread_self();
 
-    if (ctx == NULL) {
-        ctx = j_main_context_default();
-    }
-
+    J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
     if (!ctx->owner) {
         ctx->owner = self;
@@ -528,10 +538,7 @@ jboolean j_main_context_acquire(JMainContext * ctx)
  */
 void j_main_context_release(JMainContext * ctx)
 {
-    if (ctx == NULL) {
-        ctx = j_main_context_default();
-    }
-
+    J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
     ctx->owner_count--;
     if (ctx->owner_count == 0) {
@@ -563,9 +570,7 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
     JThread *self = j_thread_self();
     jboolean loop_internal_waiter;
 
-    if (ctx == NULL) {
-        ctx = j_main_context_default();
-    }
+    J_MAIN_CONTEXT_CHECK(ctx);
 
     if (J_UNLIKELY(cond != &ctx->cond || mutex != &ctx->mutex)) {
 
@@ -614,9 +619,7 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
  */
 void j_main_context_wakeup(JMainContext * ctx)
 {
-    if (ctx == NULL) {
-        ctx = j_main_context_default();
-    }
+    J_MAIN_CONTEXT_CHECK(ctx);
     if (j_atomic_int_get(&ctx->ref) <= 0) {
         return;
     }
@@ -675,9 +678,7 @@ juint j_source_attach(JSource * src, JMainContext * ctx)
     if (src->context != NULL || J_SOURCE_IS_DESTROYED(src)) {
         return 0;
     }
-    if (ctx == NULL) {
-        ctx = j_main_context_default();
-    }
+    J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
     juint result = j_source_attach_unlocked(src, ctx, TRUE);
     J_MAIN_CONTEXT_UNLOCK(ctx);
@@ -686,6 +687,28 @@ juint j_source_attach(JSource * src, JMainContext * ctx)
 
 jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
 {
+    juint i;
+    jint n_ready = 0;
+    jint current_priority = J_MAXINT32;
+    JSource *src;
+
+    J_MAIN_CONTEXT_CHECK(ctx);
+    J_MAIN_CONTEXT_LOCK(ctx);
+    ctx->time_is_fresh = FALSE;
+    if (ctx->in_check_or_prepare) {
+        j_warning
+            ("j_main_context_prepare() called recursively from within "
+             "a source's check() or prepare() member");
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+        return FALSE;
+    }
+    for (i = 0; i < ctx->pending_despatches->len; i += 1) {
+        if (ctx->pending_despatches->data[i]) {
+            J_SOURCE_UNREF((JSource *) ctx->pending_despatches->data[i],
+                           ctx);
+        }
+    }
+    j_ptr_array_set_size(ctx->pending_despatches, 0);
     /* TODO */
     return FALSE;
 }
@@ -706,7 +729,7 @@ jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
 
 void j_main_context_dispatch(JMainContext * ctx)
 {
-
+    /* TODO */
 }
 
 static inline void j_main_context_poll(JMainContext * ctx, jint timeout,
@@ -789,9 +812,7 @@ jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block)
 {
     jboolean retval;
 
-    if (!ctx) {
-        ctx = j_main_context_default();
-    }
+    J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
     retval = j_main_context_iterate(ctx, may_block, TRUE, j_thread_self());
     J_MAIN_CONTEXT_UNLOCK(ctx);

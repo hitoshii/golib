@@ -120,7 +120,7 @@ typedef struct {
 static inline void j_real_ptr_array_may_extend(JRealPtrArray * real,
                                                juint len)
 {
-    if (J_UNLIKELY(real->total < real->len + len)) {
+    while (J_UNLIKELY(real->total < real->len + len)) {
         real->total <<= 1;
         real->data = (jpointer *) j_realloc(real->data,
                                             sizeof(jpointer) *
@@ -151,6 +151,41 @@ void j_ptr_array_set_free(JPtrArray * pa, JDestroyNotify destroy)
 {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     real->free_func = destroy;
+}
+
+void j_ptr_array_set_size(JPtrArray * pa, juint size)
+{
+    JRealPtrArray *real = (JRealPtrArray *) pa;
+    if (size > real->len) {
+        j_real_ptr_array_may_extend(real, (size - real->len));
+        jint i;
+        for (i = real->len; i < size; i++) {
+            real->data[i] = NULL;
+        }
+    } else if (size < real->len) {
+        j_ptr_array_remove_range(pa, size, real->len - size);
+    }
+    real->len = size;
+}
+
+void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length)
+{
+    JRealPtrArray *real = (JRealPtrArray *) pa;
+    juint n;
+    if (real == NULL || index >= real->len || index + length > real->len) {
+        return;
+    }
+    if (real->free_func != NULL) {
+        for (n = index; n < index + length; n++) {
+            real->free_func(real->data[n]);
+        }
+    }
+    if (index + length != real->len) {
+        memmove(&real->data[index],
+                &real->data[index + length],
+                (real->len - (index + length) * sizeof(jpointer)));
+    }
+    real->len -= length;
 }
 
 /*
