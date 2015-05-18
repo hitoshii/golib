@@ -690,11 +690,10 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
     juint i;
     jint n_ready = 0;
     jint current_priority = J_MAXINT32;
-    JSource *src;
 
     J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
-    ctx->time_is_fresh = FALSE;
+    ctx->time_is_fresh = FALSE; /* 是否已经刷新过时间  */
     if (ctx->in_check_or_prepare) {
         j_warning
             ("j_main_context_prepare() called recursively from within "
@@ -709,8 +708,85 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
         }
     }
     j_ptr_array_set_size(ctx->pending_despatches, 0);
-    /* TODO */
-    return FALSE;
+
+    /* Prepare all sources */
+    ctx->timeout = -1;          /* -1 表示无限大 */
+    JList *iter = ctx->source_lists;
+    while (iter) {
+        JSource *src = (JSource *) j_list_data(iter);
+        jint source_timeout = -1;
+        if (J_SOURCE_IS_DESTROYED(src) || J_SOURCE_IS_BLOCKED(src)) {
+            goto CONTINUE;
+        }
+        if (n_ready > 0 && src->priority > current_priority) {
+            /* 优先级相关，但现在没有使用优先级 */
+            //break;
+        }
+        if (!(src->flags & J_SOURCE_FLAG_READY)) {
+            /* 如果没有ready，则执行Source的prepare函数，看看会不会ready */
+            jboolean result;
+            jboolean(*prepare) (JSource * src, jint * timeout);
+            prepare = src->funcs->prepare;
+            if (prepare) {
+                ctx->in_check_or_prepare++;
+                J_MAIN_CONTEXT_UNLOCK(ctx);
+                result = (*prepare) (src, &source_timeout);
+                J_MAIN_CONTEXT_LOCK(ctx);
+                ctx->in_check_or_prepare--;
+            } else {            /* 没有prepare则默认会无限阻塞 */
+                source_timeout = -1;
+                result = FALSE;
+            }
+
+            if (result == FALSE && src->ready_time != -1) {
+                /* 虽然阻塞，但设置了ready_time，则会在ready_time到时回调  */
+                if (!ctx->time_is_fresh) {
+                    ctx->time = j_get_monotonic_time();
+                    ctx->time_is_fresh = TRUE;
+                }
+                if (src->ready_time <= ctx->time) {
+                    /* ready_time的时间已过，就要立即回调 */
+                    source_timeout = 0;
+                    result = TRUE;
+                } else {        /* 否则计算时间差来设置timeout */
+                    jint timeout;
+                    /* rounding down will lead to spinning, so always round up */
+                    timeout = (src->ready_time - ctx->time + 999) / 1000;
+                    if (source_timeout < 0 || timeout < source_timeout) {
+                        source_timeout = timeout;
+                    }
+                }
+            }
+            if (result) {       /* 如果已经ready，那么将其父Source也设置为ready */
+                JSource *ready_source = src;
+                while (ready_source) {
+                    ready_source->flags |= J_SOURCE_FLAG_READY;
+                    ready_source = ready_source->parent;
+                }
+            }
+        }
+        if (src->flags & J_SOURCE_FLAG_READY) {
+            /* 如果已经ready，那么context的timeout就是0 */
+            n_ready++;
+            current_priority = src->priority;
+            ctx->timeout = 0;
+        }
+        if (source_timeout >= 0) {
+            if (ctx->timeout < 0) {
+                ctx->timeout = source_timeout;
+            } else {
+                ctx->timeout = MIN(ctx->timeout, source_timeout);
+            }
+        }
+      CONTINUE:
+        iter = j_list_next(iter);
+    }
+
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    if (max_priority) {
+        *max_priority = current_priority;
+    }
+    return n_ready > 0;
 }
 
 jint j_main_context_query(JMainContext * ctx, jint max_priority,
