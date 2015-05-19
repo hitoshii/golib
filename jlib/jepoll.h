@@ -19,6 +19,7 @@
 #define __JLIB_EPOLL_H__
 
 #include "jtypes.h"
+#include "jlist.h"
 #include <sys/epoll.h>
 
 typedef struct _JEPoll JEPoll;
@@ -75,5 +76,11 @@ juint j_epoll_count(JEPoll * p);
 
 jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
                   jint timeout);
+
+jboolean j_epoll_is_registered(JEPoll * p, jint fd);
+/*
+ * 获取所有注册的文件描述符号
+ */
+JList *j_epoll_fds(JEPoll * p);
 
 #endif

@@ -103,5 +103,10 @@ int j_list_compare(JList * l1, JList * l2, JCompareFunc compare);
  */
 JList *j_list_remove(JList * l, jpointer data);
 
+/*
+ * Removes the node link from the list and frees it
+ */
+JList *j_list_delete_link(JList * l, JList * link);
+
 
 #endif

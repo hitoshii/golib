@@ -86,7 +86,9 @@ jboolean j_epoll_del(JEPoll * p, jint fd, JDestroyNotify destroy)
 {
     jpointer old_data =
         j_hash_table_remove(j_epoll_get_fds(p), JINT_TO_JPOINTER(fd));
-    destroy(old_data);
+    if (destroy && old_data) {
+        destroy(old_data);
+    }
     struct epoll_event event;
     if (epoll_ctl(j_epoll_get_fd(p), J_EPOLL_CTL_DEL, fd, &event)) {
         return FALSE;
@@ -126,4 +128,17 @@ jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
     }
   OUT:
     return ret;
+}
+
+jboolean j_epoll_is_registered(JEPoll * p, jint fd)
+{
+    return j_hash_table_find(p->fds, JINT_TO_JPOINTER(fd)) != NULL;
+}
+
+/*
+ * 获取所有注册的文件描述符号
+ */
+JList *j_epoll_fds(JEPoll * p)
+{
+    return j_hash_table_get_keys(p->fds);
 }

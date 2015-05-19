@@ -187,3 +187,31 @@ JList *j_list_remove(JList * l, jpointer data)
     }
     return l;
 }
+
+/*
+ * Removes the node link from the list and frees it
+ */
+JList *j_list_delete_link(JList * l, JList * link)
+{
+    if (l == NULL || link == NULL) {
+        return l;
+    }
+    JList *ptr = l;
+    while (ptr) {
+        JList *next = j_list_next(ptr);
+        if (ptr == link) {
+            JList *prev = j_list_prev(ptr);
+            j_list_free1(ptr, NULL);
+            if (next) {
+                next->prev = prev;
+            }
+            if (prev == NULL) {
+                return next;
+            }
+            prev->next = next;
+            return l;
+        }
+        ptr = next;
+    }
+    return l;
+}
