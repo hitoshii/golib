@@ -53,7 +53,7 @@ struct _JSource {
 
     JMainContext *context;
 
-    jint priority;              /* 优先级 */
+    jint priority;              /* 优先级，当前没有用 */
     juint flags;
 
     juint id;                   /* source id */
