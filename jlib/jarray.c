@@ -219,6 +219,32 @@ jpointer j_ptr_array_get(JPtrArray * pa, juint index)
     return pa->data[index];
 }
 
+jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
+                          jpointer user_data)
+{
+    jint i;
+    for (i = 0; i < pa->len; i++) {
+        jpointer data = pa->data[i];
+        if (compare(data, user_data) == 0) {
+            return data;
+        }
+    }
+    return NULL;
+}
+
+jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
+                            jpointer user_data)
+{
+    jint i;
+    for (i = 0; i < pa->len; i++) {
+        jpointer data = pa->data[i];
+        if (compare(data, user_data) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index)
 {
     JRealPtrArray *real = (JRealPtrArray *) pa;

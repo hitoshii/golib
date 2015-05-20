@@ -63,6 +63,10 @@ void j_ptr_array_append(JPtrArray * pa, ...);   /* Ends with NULL */
 void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index);
 
 jpointer j_ptr_array_get(JPtrArray * pa, juint index);
+jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
+                          jpointer user_data);
+jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
+                            jpointer user_data);
 
 /*
  * Removes the first occurrence of the given pointer from the pointer array. 

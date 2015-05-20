@@ -98,8 +98,7 @@ struct _JMainContext {
 
     JEPoll *epoll;
 
-    JList *poll_records;        /* JEPollEvent, fd就是文件描述符，events就是events，data是优先级 */
-    juint n_poll_records;
+    JPtrArray *poll_records;    /* JEPollEvent, fd就是文件描述符，events就是events，data是优先级 */
     JEPollEvent *cached_poll_array;
     juint cached_poll_array_size;
     jboolean poll_changed;
@@ -133,11 +132,10 @@ static jint compare_epoll_event(jconstpointer d1, jconstpointer d2)
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
                                                        JEPollEvent * p)
 {
-    JList *l = j_list_find(ctx->poll_records, compare_epoll_event, p);
-    if (l) {
-        j_free(j_list_data(l));
-        ctx->poll_records = j_list_delete_link(ctx->poll_records, l);
-        ctx->n_poll_records--;
+    jint index =
+        j_ptr_array_find_index(ctx->poll_records, compare_epoll_event, p);
+    if (index >= 0) {
+        j_ptr_array_remove_index_fast(ctx->poll_records, index);
     }
     if (j_epoll_del(ctx->epoll, p->fd, NULL)) {
         ctx->poll_changed = TRUE;
@@ -153,9 +151,8 @@ static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
     JEPollEvent *new = j_new(JEPollEvent, 1);
     new->fd = p->fd;
     new->events = p->events | J_EPOLL_ERR | J_EPOLL_HUP;
-    ctx->poll_records = j_list_prepend(ctx->poll_records, new);
+    j_ptr_array_append_ptr(ctx->poll_records, new);
     ctx->poll_changed = TRUE;
-    ctx->n_poll_records++;
     j_wakeup_signal(ctx->wakeup);
 }
 
@@ -460,6 +457,7 @@ JMainContext *j_main_context_new(void)
     ctx->source_lists = NULL;
 
     ctx->epoll = j_epoll_new();
+    ctx->poll_records = j_ptr_array_new_full(100, j_free);
 
     ctx->cached_poll_array = NULL;
     ctx->cached_poll_array_size = 0;
@@ -516,7 +514,7 @@ void j_main_context_unref(JMainContext * ctx)
     }
     j_list_free(ctx->source_lists);
 
-    j_list_free_full(ctx->poll_records, j_free);
+    j_ptr_array_free(ctx->poll_records, TRUE);
     J_MAIN_CONTEXT_UNLOCK(ctx);
 
     j_hash_table_free(ctx->sources);
@@ -584,10 +582,10 @@ void j_main_context_release(JMainContext * ctx)
 }
 
 /*
- * Tries to become the owner of the specified context, 
+ * Tries to become the owner of the specified context,
  * as with g_main_context_acquire().
- * But if another thread is the owner, atomically drop mutex and wait on 
- * cond until that owner releases ownership or until cond is signaled, 
+ * But if another thread is the owner, atomically drop mutex and wait on
+ * cond until that owner releases ownership or until cond is signaled,
  * then try again (once) to become the owner.
  */
 jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
@@ -836,15 +834,7 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
 
     J_MAIN_CONTEXT_LOCK(ctx);
     n_poll = 0;
-    JList *tmp_list = ctx->poll_records;
-    while (tmp_list) {
-        JEPollEvent *e = (JEPollEvent *) j_list_data(tmp_list);
-        /* TODO */
-        if (!j_epoll_is_registered(ctx->epoll, e->fd)) {
-            j_epoll_add(ctx->epoll, e->fd, e->events, e->data);
-        }
-        tmp_list = j_list_next(tmp_list);
-    }
+    /* TODO */
 
     return 0;
 }
