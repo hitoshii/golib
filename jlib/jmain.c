@@ -827,16 +827,27 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
  *   of records that need to be stored
  */
 jint j_main_context_query(JMainContext * ctx, jint max_priority,
-                          jint * timeout, JEPollEvent * fds, jint n_fds)
+                          jint * timeout)
 {
-    jint n_poll;
-    jushort events;
-
     J_MAIN_CONTEXT_LOCK(ctx);
-    n_poll = 0;
-    /* TODO */
+    jint i, total = j_ptr_array_get_len(ctx->poll_records);
+    jpointer *data = j_ptr_array_get_data(ctx->poll_records);
+    for (i = 0; i < total; i++) {
+        JEPollEvent *event = (JEPollEvent *) data[i];
+        if (!j_epoll_has(ctx->epoll, event->fd)) {
+            j_epoll_add(ctx->epoll, event->fd, event->events, event->data);
+        }
+    }
 
-    return 0;
+    if (timeout) {
+        *timeout = ctx->timeout;
+        if (*timeout != 0) {
+            ctx->time_is_fresh = FALSE;
+        }
+    }
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+
+    return total;
 }
 
 jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
@@ -884,11 +895,11 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
         J_MAIN_CONTEXT_LOCK(ctx);
     }
 
-    if (ctx->cached_poll_array == NULL) {
-        ctx->cached_poll_array_size = j_epoll_count(ctx->epoll) + 1;
-        ctx->cached_poll_array =
-            j_new(JEPollEvent, ctx->cached_poll_array_size);
-    }
+/*    if (ctx->cached_poll_array == NULL) {*/
+/*        ctx->cached_poll_array_size = j_epoll_count(ctx->epoll) + 1;*/
+/*        ctx->cached_poll_array =*/
+/*            j_new(JEPollEvent, ctx->cached_poll_array_size);*/
+/*    }*/
 
     allocated_nfds = ctx->cached_poll_array_size;
     fds = ctx->cached_poll_array;
@@ -897,9 +908,8 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
 
     j_main_context_prepare(ctx, &max_priority);
 
-    while ((nfds = j_main_context_query(ctx, max_priority, &timeout, fds,
-                                        allocated_nfds)) >
-           allocated_nfds) {
+    if ((nfds = j_main_context_query(ctx, max_priority, &timeout)) >
+        allocated_nfds) {
         J_MAIN_CONTEXT_LOCK(ctx);
         j_free(fds);
         ctx->cached_poll_array_size = allocated_nfds = nfds;

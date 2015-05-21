@@ -142,7 +142,7 @@ void j_main_context_wakeup(JMainContext * ctx);
 
 jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority);
 jint j_main_context_query(JMainContext * ctx, jint max_priority,
-                          jint * timeout, JEPollEvent * fds, jint n_fds);
+                          jint * timeout);
 jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
                               JEPollEvent * fds, jint n_fds);
 void j_main_context_dispatch(JMainContext * ctx);

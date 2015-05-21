@@ -130,7 +130,7 @@ jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
     return ret;
 }
 
-jboolean j_epoll_is_registered(JEPoll * p, jint fd)
+jboolean j_epoll_has(JEPoll * p, jint fd)
 {
     return j_hash_table_find(p->fds, JINT_TO_JPOINTER(fd)) != NULL;
 }
