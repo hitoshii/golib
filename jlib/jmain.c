@@ -862,11 +862,14 @@ void j_main_context_dispatch(JMainContext * ctx)
     /* TODO */
 }
 
+/*
+ * Hold context lock
+ */
 static inline void j_main_context_poll(JMainContext * ctx, jint timeout,
                                        jint priority, JEPollEvent * fds,
                                        jint n_fds)
 {
-    /* TODO */
+    j_epoll_wait(ctx->epoll, fds, n_fds, timeout);
 }
 
 static inline jboolean j_main_context_iterate(JMainContext * ctx,

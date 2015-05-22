@@ -19,10 +19,15 @@
 #include "jmem.h"
 #include "jhashtable.h"
 #include <unistd.h>
+#include <errno.h>
 
 struct _JEPoll {
     jint pfd;
     JHashTable *fds;            /* fd => user_data */
+
+    /* 调用epoll_wait()用 */
+    struct epoll_event *cached_events;
+    juint n_cached_events;
 };
 #define j_epoll_get_fd(ep)  ((ep)->pfd)
 #define j_epoll_get_fds(ep) ((ep)->fds)
@@ -49,6 +54,7 @@ void j_epoll_close(JEPoll * p)
 {
     close(j_epoll_get_fd(p));
     j_hash_table_free(p->fds);
+    j_free(p->cached_events);
     j_free(p);
 }
 
@@ -114,10 +120,21 @@ jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
     if (J_UNLIKELY(maxevent == 0 || maxevent > 1024 * 1024)) {
         return -1;
     }
-    struct epoll_event e[1024 * 1024];
-    jint ret = epoll_wait(j_epoll_get_fd(p), e, maxevent, timeout);
-    if (ret <= 0) {
-        goto OUT;
+
+    if (p->n_cached_events < maxevent) {
+        p->n_cached_events = maxevent;
+        p->cached_events = j_realloc(p->cached_events,
+                                     sizeof(struct epoll_event) *
+                                     maxevent);
+    }
+
+    struct epoll_event *e = p->cached_events;
+    jint ret;
+    errno = 0;
+    while ((ret = epoll_wait(j_epoll_get_fd(p), e, maxevent, timeout)) < 0) {
+        if (errno != EINTR) {
+            return ret;
+        }
     }
     jint i;
     for (i = 0; i < ret; i++) {
@@ -126,7 +143,6 @@ jint j_epoll_wait(JEPoll * p, JEPollEvent * events, juint maxevent,
                                            JINT_TO_JPOINTER(e[i].data.fd));
         events[i].events = e[i].events;
     }
-  OUT:
     return ret;
 }
 
