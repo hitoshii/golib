@@ -42,6 +42,8 @@ JEPoll *j_epoll_new(void)
     JEPoll *p = (JEPoll *) j_malloc(sizeof(JEPoll));
     p->pfd = fd;
     p->fds = j_hash_table_new(16, j_int_hash, j_int_equal, NULL, NULL);
+    p->n_cached_events = 0;
+    p->cached_events = NULL;
     return p;
 }
 

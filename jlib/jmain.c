@@ -869,7 +869,14 @@ static inline void j_main_context_poll(JMainContext * ctx, jint timeout,
                                        jint priority, JEPollEvent * fds,
                                        jint n_fds)
 {
+    J_MAIN_CONTEXT_LOCK(ctx);
+#if defined(J_MAIN_EPOLL_DEBUG)
+    j_info("j_epoll_wait() retval: %d\n",
+           j_epoll_wait(ctx->epoll, fds, n_fds, timeout));
+#else
     j_epoll_wait(ctx->epoll, fds, n_fds, timeout);
+#endif
+    J_MAIN_CONTEXT_UNLOCK(ctx);
 }
 
 static inline jboolean j_main_context_iterate(JMainContext * ctx,
