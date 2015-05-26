@@ -598,7 +598,11 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
     J_MAIN_CONTEXT_CHECK(ctx);
 
     if (J_UNLIKELY(cond != &ctx->cond || mutex != &ctx->mutex)) {
-
+        static jboolean warned = FALSE;
+        if (!warned) {
+            j_critical("WARNING!! j_main_context_wait() has a BUG!");
+            warned = TRUE;
+        }
     }
 
     loop_internal_waiter = (mutex == &ctx->mutex);
