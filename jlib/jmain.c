@@ -27,6 +27,12 @@
 #include <time.h>
 
 
+typedef struct {
+    JEPollEvent event;
+    jushort revent;
+} JEPollRecord;
+
+
 struct _JSourceFuncs {
     jboolean(*prepare) (JSource * source, jint * timeout);
     jboolean(*check) (JSource * source);
@@ -58,7 +64,7 @@ struct _JSource {
 
     juint id;                   /* source id */
 
-    JSList *poll_fds;           /* JEPollEvent* */
+    JSList *poll_fds;           /* JEPollRecord* */
 
     jchar *name;
 
@@ -95,10 +101,11 @@ struct _JMainContext {
     jint in_check_or_prepare;
 
     JWakeup *wakeup;
+    JEPollEvent wakeup_event;
 
     JEPoll *epoll;
 
-    JPtrArray *poll_records;    /* JEPollEvent, fd就是文件描述符，events就是events，data是优先级 */
+    JPtrArray *poll_records;    /* JEPollEvent, fd就是文件描述符，events就是events，data是src */
     JEPollEvent *cached_poll_array;
     juint cached_poll_array_size;
     jboolean poll_changed;
@@ -122,21 +129,17 @@ typedef struct {
 } JMainWaiter;
 
 
-static jint compare_epoll_event(jconstpointer d1, jconstpointer d2)
-{
-    JEPollEvent *e1 = (JEPollEvent *) d1;
-    JEPollEvent *e2 = (JEPollEvent *) d2;
-    return e1->fd - e2->fd;
-}
+/*static jint compare_epoll_event(jconstpointer d1, jconstpointer d2)*/
+/*{*/
+/*    JEPollEvent *e1 = (JEPollEvent *) d1;*/
+/*    JEPollEvent *e2 = (JEPollEvent *) d2;*/
+/*    return e1->fd - e2->fd;*/
+/*}*/
 
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
                                                        JEPollEvent * p)
 {
-    jint index =
-        j_ptr_array_find_index(ctx->poll_records, compare_epoll_event, p);
-    if (index >= 0) {
-        j_ptr_array_remove_index_fast(ctx->poll_records, index);
-    }
+    j_ptr_array_remove(ctx->poll_records, p);
     if (j_epoll_del(ctx->epoll, p->fd, NULL)) {
         ctx->poll_changed = TRUE;
         j_wakeup_signal(ctx->wakeup);
@@ -147,11 +150,7 @@ static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
                                                     jint priority,
                                                     JEPollEvent * p)
 {
-    //j_epoll_add(ctx->epoll, p->fd, p->events, p->data);
-    JEPollEvent *new = j_new(JEPollEvent, 1);
-    new->fd = p->fd;
-    new->events = p->events | J_EPOLL_ERR | J_EPOLL_HUP;
-    j_ptr_array_append_ptr(ctx->poll_records, new);
+    j_ptr_array_append_ptr(ctx->poll_records, p);
     ctx->poll_changed = TRUE;
     j_wakeup_signal(ctx->wakeup);
 }
@@ -217,14 +216,16 @@ JMainContext *j_source_get_context(JSource * src)
  */
 void j_source_add_poll_fd(JSource * src, jint fd, juint io)
 {
-    JEPollEvent *e = (JEPollEvent *) j_malloc(sizeof(JEPollEvent));
-    e->fd = fd;
-    e->events = io;
-    e->data = src;
+    JEPollRecord *e = (JEPollRecord *) j_malloc(sizeof(JEPollRecord));
+    e->event.fd = fd;
+    e->event.events = io;
+    e->event.data = e;
+    e->revent = 0;
     src->poll_fds = j_slist_append(src->poll_fds, e);
     if (src->context) {
         J_MAIN_CONTEXT_LOCK(src->context);
-        j_main_context_add_poll_unlocked(src->context, src->priority, e);
+        j_main_context_add_poll_unlocked(src->context, src->priority,
+                                         &e->event);
         J_MAIN_CONTEXT_UNLOCK(src->context);
     }
 }
@@ -265,9 +266,9 @@ static inline void j_source_destroy_internal(JSource * src,
         if (!J_SOURCE_IS_BLOCKED(src)) {
             tmp_list = src->poll_fds;
             while (tmp_list) {
-                j_main_context_remove_poll_unlocked(ctx,
-                                                    j_slist_data
-                                                    (tmp_list));
+                JEPollRecord *rec =
+                    (JEPollRecord *) j_slist_data(tmp_list);
+                j_main_context_remove_poll_unlocked(ctx, &rec->event);
                 tmp_list = j_slist_next(tmp_list);
             }
         }
@@ -351,9 +352,6 @@ static inline void j_source_unref_internal(JSource * src,
 
         j_free(src->name);
         src->name = NULL;
-
-        j_slist_free(src->poll_fds);
-        src->poll_fds = NULL;
 
         j_slist_free_full(src->poll_fds, j_free);
         JSList *tmp_list = src->children;
@@ -457,7 +455,7 @@ JMainContext *j_main_context_new(void)
     ctx->source_lists = NULL;
 
     ctx->epoll = j_epoll_new();
-    ctx->poll_records = j_ptr_array_new_full(100, j_free);
+    ctx->poll_records = j_ptr_array_new_full(100, NULL);
 
     ctx->cached_poll_array = NULL;
     ctx->cached_poll_array_size = 0;
@@ -466,9 +464,8 @@ JMainContext *j_main_context_new(void)
     ctx->time_is_fresh = FALSE;
 
     ctx->wakeup = j_wakeup_new();
-    JEPollEvent wakeup_event;
-    j_wakeup_get_pollfd(ctx->wakeup, &wakeup_event);
-    j_main_context_add_poll_unlocked(ctx, 0, &wakeup_event);
+    j_wakeup_get_pollfd(ctx->wakeup, &ctx->wakeup_event);
+    j_main_context_add_poll_unlocked(ctx, 0, &ctx->wakeup_event);
 
     return ctx;
 }
@@ -678,8 +675,9 @@ static inline juint j_source_attach_unlocked(JSource * src,
     if (!J_SOURCE_IS_BLOCKED(src)) {
         tmp_list = src->poll_fds;
         while (tmp_list) {
+            JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
             j_main_context_add_poll_unlocked(ctx, src->priority,
-                                             j_slist_data(tmp_list));
+                                             &rec->event);
             tmp_list = j_slist_next(tmp_list);
         }
     }
@@ -821,7 +819,7 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
 
 
 /*
- * Determines information necessary to poll this main loop.
+ * 保证所有文件描述符号都已经再EPoll中注册
  *
  * You must have successfully acquired the context with j_main_context_acquire()
  * before you call this function.
@@ -838,6 +836,8 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
     jpointer *data = j_ptr_array_get_data(ctx->poll_records);
     for (i = 0; i < total; i++) {
         JEPollEvent *event = (JEPollEvent *) data[i];
+        JEPollRecord *rec = (JEPollRecord *) event->data;
+        rec->revent = 0;        /* clear */
         if (!j_epoll_has(ctx->epoll, event->fd)) {
             j_epoll_add(ctx->epoll, event->fd, event->events, event->data);
         }
@@ -849,6 +849,13 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
             ctx->time_is_fresh = FALSE;
         }
     }
+
+    if (ctx->cached_poll_array_size < total) {
+        j_free(ctx->cached_poll_array);
+        ctx->cached_poll_array_size = total;
+        ctx->cached_poll_array = j_new(JEPollEvent, total);
+    }
+
     J_MAIN_CONTEXT_UNLOCK(ctx);
 
     return total;
@@ -857,8 +864,91 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
 jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
                               JEPollEvent * fds, jint n_fds)
 {
-    /* TODO */
-    return FALSE;
+    J_MAIN_CONTEXT_LOCK(ctx);
+    if (ctx->in_check_or_prepare) {
+        j_warning("j_main_context_check() called recursively from "
+                  "within a source's check() or prepare() member");
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+        return FALSE;
+    }
+    j_wakeup_acknowledge(ctx->wakeup);
+
+
+    /*
+     * If the set of poll file descriptors changed, bail out
+     * and let the main loop rerun
+     * XXX
+     */
+    if (ctx->poll_changed) {
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+        return FALSE;
+    }
+
+    jint i, n_ready = 0;
+
+    for (i = 0; i < n_fds; i += 1) {
+        JEPollRecord *rec = (JEPollRecord *) (fds[i].data);
+        rec->revent = fds[i].events;
+    }
+    JList *tmp_list = ctx->source_lists;
+    while (tmp_list) {
+        JSource *src = (JSource *) j_list_data(tmp_list);
+        if (J_SOURCE_IS_DESTROYED(src) || J_SOURCE_IS_BLOCKED(src)) {
+            goto CONTINUE;
+        }
+        if (!(src->flags & J_SOURCE_FLAG_READY)) {
+            jboolean result;
+            jboolean(*check) (JSource * src);
+            check = src->funcs->check;
+            if (check) {
+                /* If the check function is set, call it */
+                ctx->in_check_or_prepare++;
+                J_MAIN_CONTEXT_UNLOCK(ctx);
+                result = (*check) (src);
+                J_MAIN_CONTEXT_LOCK(ctx);
+                ctx->in_check_or_prepare--;
+            } else {
+                result = FALSE;
+            }
+            if (result == FALSE) {
+                JSList *tmp_slist = src->poll_fds;
+                while (tmp_slist) {
+                    JEPollRecord *rec =
+                        (JEPollRecord *) j_slist_data(tmp_slist);
+                    if (rec->revent) {
+                        result = TRUE;
+                        break;
+                    }
+                    tmp_slist = j_slist_next(tmp_slist);
+                }
+            }
+            if (result == FALSE && src->ready_time != -1) {
+                if (!ctx->time_is_fresh) {
+                    ctx->time = j_get_monotonic_time();
+                    ctx->time_is_fresh = TRUE;
+                }
+                if (src->ready_time <= ctx->time) {
+                    result = TRUE;
+                }
+            }
+            if (result) {
+                JSource *ready_source = src;
+                while (ready_source) {
+                    ready_source->flags |= J_SOURCE_FLAG_READY;
+                    ready_source = ready_source->parent;
+                }
+            }
+        }
+        if (src->flags & J_SOURCE_FLAG_READY) {
+            src->ref++;
+            j_ptr_array_append_ptr(ctx->pending_despatches, src);
+            n_ready++;
+        }
+      CONTINUE:
+        tmp_list = j_list_next(tmp_list);
+    }
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    return n_ready > 0;
 }
 
 void j_main_context_dispatch(JMainContext * ctx)
@@ -891,7 +981,7 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
     jint max_priority;
     jint timeout;
     jboolean some_ready;
-    jint nfds, allocated_nfds;
+    jint nfds;
     JEPollEvent *fds = NULL;
 
     J_MAIN_CONTEXT_UNLOCK(ctx);
@@ -909,27 +999,13 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
         J_MAIN_CONTEXT_LOCK(ctx);
     }
 
-/*    if (ctx->cached_poll_array == NULL) {*/
-/*        ctx->cached_poll_array_size = j_epoll_count(ctx->epoll) + 1;*/
-/*        ctx->cached_poll_array =*/
-/*            j_new(JEPollEvent, ctx->cached_poll_array_size);*/
-/*    }*/
-
-    allocated_nfds = ctx->cached_poll_array_size;
-    fds = ctx->cached_poll_array;
-
     J_MAIN_CONTEXT_UNLOCK(ctx);
 
     j_main_context_prepare(ctx, &max_priority);
 
-    if ((nfds = j_main_context_query(ctx, max_priority, &timeout)) >
-        allocated_nfds) {
-        J_MAIN_CONTEXT_LOCK(ctx);
-        j_free(fds);
-        ctx->cached_poll_array_size = allocated_nfds = nfds;
-        ctx->cached_poll_array = fds = j_new(JEPollEvent, nfds);
-        J_MAIN_CONTEXT_UNLOCK(ctx);
-    }
+    j_main_context_query(ctx, max_priority, &timeout);
+    nfds = ctx->cached_poll_array_size;
+    fds = ctx->cached_poll_array;
 
     if (!may_block) {
         timeout = 0;
