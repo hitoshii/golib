@@ -11,6 +11,7 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_CC
 
+LT_INIT
 
 AC_PREFIX_DEFAULT(/usr)
 
@@ -48,10 +49,6 @@ jmod_INCLUDE='-I$(top_builddir)'
 AC_SUBST(jmod_INCLUDE)
 jmod_ADD='-L$(top_builddir)/jmod -ljmod'
 AC_SUBST(jmod_ADD)
-
-
-LT_INIT
-
 
 
 AC_OUTPUT([

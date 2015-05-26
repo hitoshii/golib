@@ -592,7 +592,6 @@ PACKAGE_STRING='libjlib 0.1'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_default_prefix=/usr
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -629,10 +628,21 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
+ac_default_prefix=/usr
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+jmod_ADD
+jmod_INCLUDE
+jio_ADD
+jio_INCLUDE
+jconf_ADD
+jconf_INCLUDE
+jlib_ADD
+jlib_INCLUDE
+jlib_includedir
+PTHREAD_LIBS
 CPP
 OTOOL64
 OTOOL
@@ -663,16 +673,6 @@ build_vendor
 build_cpu
 build
 LIBTOOL
-jmod_ADD
-jmod_INCLUDE
-jio_ADD
-jio_INCLUDE
-jconf_ADD
-jconf_INCLUDE
-jlib_ADD
-jlib_INCLUDE
-jlib_includedir
-PTHREAD_LIBS
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -2122,7 +2122,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ac_config_headers="$ac_config_headers config.h"
 
 
-am__api_version='1.14'
+am__api_version='1.15'
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -2323,8 +2323,8 @@ test "$program_suffix" != NONE &&
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
-# expand $ac_aux_dir to an absolute path
-am_aux_dir=`cd $ac_aux_dir && pwd`
+# Expand $ac_aux_dir to an absolute path.
+am_aux_dir=`cd "$ac_aux_dir" && pwd`
 
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
@@ -2343,7 +2343,7 @@ else
 $as_echo "$as_me: WARNING: 'missing' script is too old or missing" >&2;}
 fi
 
-if test x"${install_sh}" != xset; then
+if test x"${install_sh+set}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
     install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
@@ -2671,8 +2671,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
-# We need awk for the "check" target.  The system "awk" is bad on
-# some platforms.
+# We need awk for the "check" target (and possibly the TAP driver).  The
+# system "awk" is bad on some platforms.
 # Always define AMTAR for backward compatibility.  Yes, it's still used
 # in the wild :-(  We should find a proper way to deprecate it ...
 AMTAR='$${TAR-tar}'
@@ -2729,6 +2729,7 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
+
 
 # Check whether --enable-silent-rules was given.
 if test "${enable_silent_rules+set}" = set; then :
@@ -3807,87 +3808,6 @@ else
   am__fastdepCC_TRUE='#'
   am__fastdepCC_FALSE=
 fi
-
-
-
-
-
-
-
-# Check for pthread
-PTHREAD_PRESENT=""
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
-$as_echo_n "checking for pthread_create in -lpthread... " >&6; }
-if ${ac_cv_lib_pthread_pthread_create+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthread $PTHREAD_LIBS
--lpthread  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pthread_create ();
-int
-main ()
-{
-return pthread_create ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthread_pthread_create=yes
-else
-  ac_cv_lib_pthread_pthread_create=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_create" >&5
-$as_echo "$ac_cv_lib_pthread_pthread_create" >&6; }
-if test "x$ac_cv_lib_pthread_pthread_create" = xyes; then :
-  PTHREAD_PRESENT="yes"
-fi
-
-if test "x$PTHREAD_PRESENT" = "xyes"; then
-
-$as_echo "#define HAVE_LIBPTHREAD 1" >>confdefs.h
-
-PTHREAD_LIBS="-lpthread"
-
-fi
-
-jlib_includedir='$(includedir)/jlib-0.1'
-
-
-
-jlib_INCLUDE='-I$(top_builddir)'
-
-jlib_ADD='-L$(top_builddir)/jlib -ljlib'
-
-
-jconf_INCLUDE='-I$(top_builddir)'
-
-jconf_ADD='-L$(top_builddir)/jconf -ljconf'
-
-
-jio_INCLUDE='-I$(top_builddir)'
-
-jio_ADD='-L$(top_builddir)/jio -ljio'
-
-
-jmod_INCLUDE='-I$(top_builddir)'
-
-jmod_ADD='-L$(top_builddir)/jmod -ljmod'
 
 
 
@@ -5474,6 +5394,7 @@ fi
 $as_echo "$lt_cv_sharedlib_from_linklib_cmd" >&6; }
 sharedlib_from_linklib_cmd=$lt_cv_sharedlib_from_linklib_cmd
 test -z "$sharedlib_from_linklib_cmd" && sharedlib_from_linklib_cmd=$ECHO
+
 
 
 
@@ -11478,6 +11399,83 @@ CC="$lt_save_CC"
 # Only expand once:
 
 
+
+
+
+
+# Check for pthread
+PTHREAD_PRESENT=""
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
+$as_echo_n "checking for pthread_create in -lpthread... " >&6; }
+if ${ac_cv_lib_pthread_pthread_create+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread $PTHREAD_LIBS
+-lpthread  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_create ();
+int
+main ()
+{
+return pthread_create ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pthread_pthread_create=yes
+else
+  ac_cv_lib_pthread_pthread_create=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_create" >&5
+$as_echo "$ac_cv_lib_pthread_pthread_create" >&6; }
+if test "x$ac_cv_lib_pthread_pthread_create" = xyes; then :
+  PTHREAD_PRESENT="yes"
+fi
+
+if test "x$PTHREAD_PRESENT" = "xyes"; then
+
+$as_echo "#define HAVE_LIBPTHREAD 1" >>confdefs.h
+
+PTHREAD_LIBS="-lpthread"
+
+fi
+
+jlib_includedir='$(includedir)/jlib-0.1'
+
+
+
+jlib_INCLUDE='-I$(top_builddir)'
+
+jlib_ADD='-L$(top_builddir)/jlib -ljlib'
+
+
+jconf_INCLUDE='-I$(top_builddir)'
+
+jconf_ADD='-L$(top_builddir)/jconf -ljconf'
+
+
+jio_INCLUDE='-I$(top_builddir)'
+
+jio_ADD='-L$(top_builddir)/jio -ljio'
+
+
+jmod_INCLUDE='-I$(top_builddir)'
+
+jmod_ADD='-L$(top_builddir)/jmod -ljmod'
 
 
 
