@@ -132,13 +132,6 @@ typedef struct {
 } JMainWaiter;
 
 
-/*static jint compare_epoll_event(jconstpointer d1, jconstpointer d2)*/
-/*{*/
-/*    JEPollEvent *e1 = (JEPollEvent *) d1;*/
-/*    JEPollEvent *e2 = (JEPollEvent *) d2;*/
-/*    return e1->fd - e2->fd;*/
-/*}*/
-
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
                                                        JEPollEvent * p)
 {
@@ -954,9 +947,117 @@ jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
     return n_ready > 0;
 }
 
+/*
+ * Temporarily remove all this source's file descriptors from the context,
+ * so that if data comes avaiable for one of the file descriptors
+ * we don't continually spin in the epoll_wait()
+ */
+static inline void j_source_block(JSource * src)
+{
+    if (J_SOURCE_IS_BLOCKED(src)) { /* already blocked */
+        return;
+    }
+    JSList *tmp_list;
+    src->flags |= J_SOURCE_FLAG_BLOCKED;
+
+    if (src->context) {
+        tmp_list = src->poll_fds;
+        while (tmp_list) {
+            JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
+            j_main_context_remove_poll_unlocked(src->context,
+                                                &(rec->event));
+            tmp_list = j_slist_next(tmp_list);
+        }
+    }
+    tmp_list = src->children;
+    while (tmp_list) {
+        j_source_block(j_slist_data(tmp_list));
+        tmp_list = j_slist_next(tmp_list);
+    }
+}
+
+static inline void j_source_unblock(JSource * src)
+{
+    JSList *tmp_list;
+    if (!J_SOURCE_IS_BLOCKED(src) || J_SOURCE_IS_DESTROYED(src)) {
+        return;
+    }
+    src->flags &= ~J_SOURCE_FLAG_BLOCKED;
+    tmp_list = src->poll_fds;
+    while (tmp_list) {
+        JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
+        j_main_context_add_poll_unlocked(src->context, src->priority,
+                                         &(rec->event));
+        tmp_list = j_slist_next(tmp_list);
+    }
+    tmp_list = src->children;
+    while (tmp_list) {
+        j_source_unblock(j_slist_data(tmp_list));
+        tmp_list = j_slist_next(tmp_list);
+    }
+}
+
+
+/*
+ * j_main_context_dispatch
+ *
+ * Dispatches all pending sources
+ *
+ * You must have successfully acquired the context with 
+ * j_main_context_acquire() before you may call this function
+ */
 void j_main_context_dispatch(JMainContext * ctx)
 {
-    /* TODO */
+    J_MAIN_CONTEXT_LOCK(ctx);
+    if (j_ptr_array_get_len(ctx->pending_despatches) == 0) {
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+        return;
+    }
+    juint i;
+    for (i = 0; i < j_ptr_array_get_len(ctx->pending_despatches); i += 1) {
+        JSource *src = ctx->pending_despatches->data[i];
+        ctx->pending_despatches->data[i] == NULL;
+        if (src == NULL) {
+            j_error("dispatching a NULL source!!!");
+        }
+        src->flags &= ~J_SOURCE_FLAG_READY;
+        if (!J_SOURCE_IS_DESTROYED(src)) {
+            jboolean was_in_call;
+            jpointer user_data = NULL;
+            JSourceFunc callback = NULL;
+            JSourceCallbackFuncs *cb_funcs;
+            jpointer cb_data;
+            jboolean need_destroy;
+            jboolean(*dispatch) (JSource * src, JSourceFunc, jpointer);
+            JSource *prev_src;
+
+            dispatch = src->funcs->dispatch;
+            cb_funcs = src->callback_funcs;
+            cb_data = src->callback_data;
+
+            if (cb_funcs) {
+                cb_funcs->ref(cb_data);
+            }
+            if ((src->flags & J_SOURCE_FLAG_CAN_RECURSE) == 0) {
+                j_source_block(src);
+            }
+            was_in_call = src->flags & J_SOURCE_FLAG_IN_CALL;
+            src->flags |= J_SOURCE_FLAG_IN_CALL;
+
+            if (cb_funcs) {
+                cb_funcs->get(cb_data, src, &callback, &user_data);
+            }
+            J_MAIN_CONTEXT_UNLOCK(ctx);
+
+            /* These operations are safe because 'current' is thread-local
+             * and not modified from anywhere but this function
+             */
+            /* TODO */
+        }
+        J_SOURCE_UNREF(src, ctx);
+    }
+    j_ptr_array_set_size(ctx->pending_despatches, 0);
+    J_MAIN_CONTEXT_UNLOCK(ctx);
 }
 
 /*
