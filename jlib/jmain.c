@@ -881,12 +881,7 @@ jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
     }
 
 
-    jint i, n_ready = 0;
-
-    for (i = 0; i < n_fds; i += 1) {
-        JEPollRecord *rec = (JEPollRecord *) (fds[i].data);
-        rec->revent |= fds[i].events;
-    }
+    jint n_ready = 0;
 
     /*
      * If the set of poll file descriptors changed, bail out
@@ -967,18 +962,23 @@ void j_main_context_dispatch(JMainContext * ctx)
 /*
  * Hold context lock
  */
-static inline void j_main_context_poll(JMainContext * ctx, jint timeout,
+static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
                                        jint priority, JEPollEvent * fds,
                                        jint n_fds)
 {
+    jint i, n;
     J_MAIN_CONTEXT_LOCK(ctx);
+    n = j_epoll_wait(ctx->epoll, fds, n_fds, timeout);
 #if defined(J_MAIN_EPOLL_DEBUG)
-    j_info("j_epoll_wait() retval: %d\n",
-           j_epoll_wait(ctx->epoll, fds, n_fds, timeout));
-#else
-    j_epoll_wait(ctx->epoll, fds, n_fds, timeout);
+    j_info("j_epoll_wait() retval: %d\n", n);
 #endif
+    for (i = 0; i < n; i += 1) {
+        /* 这里设置相应JSource的poll_records */
+        JEPollRecord *rec = (JEPollRecord *) (fds[i].data);
+        rec->revent |= fds[i].events;
+    }
     J_MAIN_CONTEXT_UNLOCK(ctx);
+    return n;
 }
 
 static inline jboolean j_main_context_iterate(JMainContext * ctx,
@@ -1019,7 +1019,7 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
         timeout = 0;
     }
 
-    j_main_context_poll(ctx, timeout, max_priority, fds, nfds);
+    nfds = j_main_context_poll(ctx, timeout, max_priority, fds, nfds);
 
     some_ready = j_main_context_check(ctx, max_priority, fds, nfds);
 
