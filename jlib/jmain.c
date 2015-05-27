@@ -101,11 +101,14 @@ struct _JMainContext {
     jint in_check_or_prepare;
 
     JWakeup *wakeup;
-    JEPollEvent wakeup_event;
+    JEPollRecord wakeup_record;
 
     JEPoll *epoll;
 
-    JPtrArray *poll_records;    /* JEPollEvent, fd就是文件描述符，events就是events，data是src */
+    /* JEPollEvent, fd就是文件描述符，events就是events，data是JSource中的JEPollRecord
+     * poll_records 中只保存JEPollEvent的指针
+     */
+    JPtrArray *poll_records;
     JEPollEvent *cached_poll_array;
     juint cached_poll_array_size;
     jboolean poll_changed;
@@ -464,8 +467,9 @@ JMainContext *j_main_context_new(void)
     ctx->time_is_fresh = FALSE;
 
     ctx->wakeup = j_wakeup_new();
-    j_wakeup_get_pollfd(ctx->wakeup, &ctx->wakeup_event);
-    j_main_context_add_poll_unlocked(ctx, 0, &ctx->wakeup_event);
+    j_wakeup_get_pollfd(ctx->wakeup, &(ctx->wakeup_record.event));
+    ctx->wakeup_record.event.data = &(ctx->wakeup_record);
+    j_main_context_add_poll_unlocked(ctx, 0, &(ctx->wakeup_record.event));
 
     return ctx;
 }
@@ -842,6 +846,7 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
             j_epoll_add(ctx->epoll, event->fd, event->events, event->data);
         }
     }
+    ctx->wakeup_record.revent = 0;
 
     if (timeout) {
         *timeout = ctx->timeout;
@@ -871,8 +876,17 @@ jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return FALSE;
     }
-    j_wakeup_acknowledge(ctx->wakeup);
+    if (ctx->wakeup_record.revent) {
+        j_wakeup_acknowledge(ctx->wakeup);
+    }
 
+
+    jint i, n_ready = 0;
+
+    for (i = 0; i < n_fds; i += 1) {
+        JEPollRecord *rec = (JEPollRecord *) (fds[i].data);
+        rec->revent |= fds[i].events;
+    }
 
     /*
      * If the set of poll file descriptors changed, bail out
@@ -884,12 +898,6 @@ jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
         return FALSE;
     }
 
-    jint i, n_ready = 0;
-
-    for (i = 0; i < n_fds; i += 1) {
-        JEPollRecord *rec = (JEPollRecord *) (fds[i].data);
-        rec->revent = fds[i].events;
-    }
     JList *tmp_list = ctx->source_lists;
     while (tmp_list) {
         JSource *src = (JSource *) j_list_data(tmp_list);
