@@ -69,9 +69,10 @@ struct _JPrivate {
     JDestroyNotify destroy;
 };
 
-#define J_PRIVATE_DEFINE(name, destroy)  JPrivate name = {NULL, destroy}
+#define J_PRIVATE_DEFINE(name, destroy)  \
+                    JPrivate name = {NULL, (JDestroyNotify)destroy}
 #define J_PRIVATE_DEFINE_STATIC(name, destroy) \
-                    static J_PRIVATE_DEFINE(name, destroy)
+                    static J_PRIVATE_DEFINE(name, (JDestroyNotify)destroy)
 
 jpointer j_private_get(JPrivate * priv);
 void j_private_set(JPrivate * priv, jpointer data);

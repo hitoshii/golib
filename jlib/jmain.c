@@ -132,6 +132,45 @@ typedef struct {
 } JMainWaiter;
 
 
+typedef struct {
+    jint depth;
+    JSource *source;
+} JMainDispatch;
+
+static inline void j_main_dispatch_free(JMainDispatch * dispatch)
+{
+    j_free(dispatch);
+}
+
+static inline JMainDispatch *j_get_dispatch(void)
+{
+    J_PRIVATE_DEFINE_STATIC(depth_private, j_main_dispatch_free);
+    JMainDispatch *dispatch = j_private_get(&depth_private);
+
+    if (!dispatch) {
+        dispatch = j_malloc0(sizeof(JMainDispatch));
+        j_private_set(&depth_private, dispatch);
+    }
+    return dispatch;
+}
+
+jint j_main_depth(void)
+{
+    JMainDispatch *dispatch = j_get_dispatch();
+    return dispatch->depth;
+}
+
+JSource *j_main_current_source(void)
+{
+    JMainDispatch *dispatch = j_get_dispatch();
+    return dispatch->source;
+}
+
+jboolean j_source_is_destroyed(JSource * src)
+{
+    return J_SOURCE_IS_DESTROYED(src);
+}
+
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
                                                        JEPollEvent * p)
 {
@@ -141,6 +180,7 @@ static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
         j_wakeup_signal(ctx->wakeup);
     }
 }
+
 
 static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
                                                     jint priority,
@@ -1009,6 +1049,9 @@ static inline void j_source_unblock(JSource * src)
 void j_main_context_dispatch(JMainContext * ctx)
 {
     J_MAIN_CONTEXT_LOCK(ctx);
+
+    JMainDispatch *current = j_get_dispatch();
+
     if (j_ptr_array_get_len(ctx->pending_despatches) == 0) {
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return;
@@ -1016,7 +1059,7 @@ void j_main_context_dispatch(JMainContext * ctx)
     juint i;
     for (i = 0; i < j_ptr_array_get_len(ctx->pending_despatches); i += 1) {
         JSource *src = ctx->pending_despatches->data[i];
-        ctx->pending_despatches->data[i] == NULL;
+        ctx->pending_despatches->data[i] = NULL;
         if (src == NULL) {
             j_error("dispatching a NULL source!!!");
         }

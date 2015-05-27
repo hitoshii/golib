@@ -87,6 +87,8 @@ void j_source_unref(JSource * src);
  */
 void j_source_destroy(JSource * src);
 
+jboolean j_source_is_destroyed(JSource * src);
+
 
 /*
  * Adds a GSource to a context so that it will be executed within that context.
@@ -151,5 +153,8 @@ void j_main_context_dispatch(JMainContext * ctx);
  * Runs a single iteration
  */
 jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block);
+
+jint j_main_depth(void);
+JSource *j_main_current_source(void);
 
 #endif
