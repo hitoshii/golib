@@ -1,4 +1,13 @@
-JLib
-===========
+JLIB
+=============================
+jlib是[Jacques](https://github.com/jacques-server/jacques)基础库，
 
-The runtime library for [Jacques](https://github.com/jacques-dev/jacques) 
+包含列表(JList)、数组(JPtrArray)、哈系表(JHashTable)等数据结构，
+
+POSIX线程的封装，包括线程(JThread)以及互斥锁(JMutex)和条件锁(JCond)，
+
+各种字符串操作函数(j_str_*)，
+
+事件(JSource)以及处理事件的循环(JMainContext)
+
+jlib的实现，仿照了[glib](https://github.com/GNOME/glib)。

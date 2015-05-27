@@ -98,7 +98,6 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 DIST_COMMON = $(srcdir)/Makefile.am $(jlibsubinclude_HEADERS) \
 	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES = jlib-0.1.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -131,8 +130,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jlibsubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-libjlib_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+libjlib_la_DEPENDENCIES =
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
 	jstack.lo jfileutils.lo jhashtable.lo jarray.lo jatomic.lo \
 	jthread.lo jepoll.lo jslist.lo jwakeup.lo jmain.lo jmessage.lo \
@@ -157,7 +155,7 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
@@ -266,7 +264,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -306,15 +303,9 @@ htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-jconf_ADD = @jconf_ADD@
-jconf_INCLUDE = @jconf_INCLUDE@
-jio_ADD = @jio_ADD@
-jio_INCLUDE = @jio_INCLUDE@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
 jlib_includedir = @jlib_includedir@
-jmod_ADD = @jmod_ADD@
-jmod_INCLUDE = @jmod_INCLUDE@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -363,8 +354,8 @@ libjlib_la_SOURCES = \
 	jmessage.c \
 	jprintf.c
 
-libjlib_la_LDFLAGS = 
-libjlib_la_LIBADD = $(PTHREAD_LIBS)
+libjlib_la_LDFLAGS = -pthread
+libjlib_la_LIBADD = 
 jlibsubincludedir = $(jlib_includedir)/jlib
 jlibsubinclude_HEADERS = \
 	jlib.h \

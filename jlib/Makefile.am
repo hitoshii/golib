@@ -1,7 +1,5 @@
 ## Process this file with automake to produce Makefile.in
 
-## Created by Anjuta
-
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
@@ -33,9 +31,9 @@ libjlib_la_SOURCES = \
 	jmessage.c \
 	jprintf.c
 
-libjlib_la_LDFLAGS =
+libjlib_la_LDFLAGS = -pthread
 
-libjlib_la_LIBADD = $(PTHREAD_LIBS)
+libjlib_la_LIBADD =  
 
 
 

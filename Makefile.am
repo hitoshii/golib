@@ -1,19 +1,16 @@
-## Process this file with automake to produce Makefile.in
-## Created by Anjuta
 
-SUBDIRS = jlib jconf jio jmod test
+ACLOCAL_AMFLAGS = -I m4
+
+SUBDIRS = jlib test
 
 dist_doc_DATA = \
-	README \
-	COPYING \
-	AUTHORS \
-	ChangeLog \
-	INSTALL \
+	README\
+	COPYING\
+	AUTHORS\
+	ChangeLog\
+	INSTALL\
 	NEWS
 
-
-
-# Remove doc directory on uninstall
 uninstall-local:
 	-rm -r $(docdir)
 	-rm -r $(jlib_includedir)

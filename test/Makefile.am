@@ -15,57 +15,26 @@ AM_CFLAGS =\
 	 -g
 
 AM_LDFLAGS =\
-	$(jlib_ADD) \
-	$(jconf_ADD) \
-	$(jio_ADD) \
-	$(jmod_ADD)
+	$(jlib_ADD) 
 
 noinst_PROGRAMS= \
 	test-string \
-	test-file \
-	test-mod \
-	test-socket \
-	test-epoll \
 	test-hashtable \
 	test-array \
-	test-conf \
 	test-thread \
 	test-main \
 	test-message
 
 TESTS=\
     test-string \
-    test-file \
-    test-mod \
-    test-socket \
-    test-epoll \
     test-hashtable \
     test-array \
-    test-conf \
     test-thread \
     test-main \
     test-message
 
-dist_check_DATA = \
-    test.conf
-
-test_conf_SOURCES = \
-    test-conf.c
-
 test_string_SOURCES = \
 	test-string.c
-
-test_file_SOURCES = \
-	test-file.c
-
-test_mod_SOURCES = \
-	test-mod.c
-
-test_socket_SOURCES = \
-	test-socket.c
-
-test_epoll_SOURCES = \
-	test-epoll.c
 
 test_hashtable_SOURCES = \
     test-hashtable.c
@@ -82,13 +51,6 @@ test_main_SOURCES = \
 test_message_SOURCES = \
     test-message.c
 
-module: module.c
-	gcc -shared -fPIC module.c -o module.so
-
-all-local: module
-
-
 clean-local:
 	indent -kr -ts4 -nut *.c
-	rm -rf hello-dir
-	rm -f *~ *.so log.test
+	rm -f *~ 

@@ -1,30 +1,21 @@
-dnl Process this file with autoconf to produce a configure script.
-dnl Created by Anjuta application wizard.
+#This line defines the name of the output tarball
+AC_INIT([jlib],[0.1])
 
-AC_INIT(libjlib, 0.1)
-
-AC_CONFIG_HEADERS([config.h])
-
-AM_INIT_AUTOMAKE([1.11])
-
-AM_SILENT_RULES([yes])
-
-AC_PROG_CC
-
+# libtool
 LT_INIT
 
+#this line defines what compilation flags will be used
+AM_INIT_AUTOMAKE
+
+# DEFINE DEFAULT configure PREFIX
 AC_PREFIX_DEFAULT(/usr)
 
+#this line defines what libraries should be used during building
+# DEFINE YOUR OWN LIBRARY CHECK - DO NOT DELETE THIS LINE
+AC_CHECK_LIB([pthread],[pthread_create], ,[AC_MSG_ERROR(You need to have pthread)])
 
-# Check for pthread
-PTHREAD_PRESENT=""
-AC_CHECK_LIB( pthread, pthread_create, PTHREAD_PRESENT="yes",, $PTHREAD_LIBS
--lpthread )
-if test "x$PTHREAD_PRESENT" = "xyes"; then
-AC_DEFINE(HAVE_LIBPTHREAD, 1, [Define if libpthread is present])
-PTHREAD_LIBS="-lpthread"
-AC_SUBST(PTHREAD_LIBS)
-fi
+
+AC_PROG_CC
 
 jlib_includedir='$(includedir)/jlib-0.1'
 AC_SUBST(jlib_includedir)
@@ -35,31 +26,11 @@ AC_SUBST(jlib_INCLUDE)
 jlib_ADD='-L$(top_builddir)/jlib -ljlib'
 AC_SUBST(jlib_ADD)
 
-jconf_INCLUDE='-I$(top_builddir)'
-AC_SUBST(jconf_INCLUDE)
-jconf_ADD='-L$(top_builddir)/jconf -ljconf'
-AC_SUBST(jconf_ADD)
 
-jio_INCLUDE='-I$(top_builddir)'
-AC_SUBST(jio_INCLUDE)
-jio_ADD='-L$(top_builddir)/jio -ljio'
-AC_SUBST(jio_ADD)
-
-jmod_INCLUDE='-I$(top_builddir)'
-AC_SUBST(jmod_INCLUDE)
-jmod_ADD='-L$(top_builddir)/jmod -ljmod'
-AC_SUBST(jmod_ADD)
-
-
+#This line defines where Makefiles are stored for projects and sources
 AC_OUTPUT([
            Makefile
            jlib/jlib-0.1.pc
            jlib/Makefile
-           jconf/Makefile
-           jconf/jconf-0.1.pc
-           jio/Makefile
-           jio/jio-0.1.pc
-           jmod/Makefile
-           jmod/jmod-0.1.pc
            test/Makefile
            ])
