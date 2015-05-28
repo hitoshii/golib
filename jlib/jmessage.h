@@ -65,4 +65,25 @@ void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
 #define j_info(...) j_log(J_LOG_DOMAIN,J_LOG_LEVEL_INFO,__VA_ARGS__)
 #define j_debug(...) j_log(J_LOG_DOMAIN,J_LOG_LEVEL_DEBUG,__VA_ARGS__)
 
+
+#define STRINGIFY(x) STRINGIFY_ARG(x)
+#define STRINGIFY_ARG(x) #x
+
+#define J_LOGAT __FILE__ ":" STRINGIFY(__LINE__)
+
+void j_return_if_fail_warning(const jchar * domain, const jchar * at,
+                              const jchar * expression);
+
+#define j_return_if_fail(expr)  J_STMT_START\
+        if(J_UNLIKELY(!(expr))){\
+            j_return_if_fail_warning(J_LOG_DOMAIN,J_LOGAT,#expr);\
+            return;\
+        }J_STMT_END
+
+#define j_return_val_if_fail(expr, val)  J_STMT_START\
+        if(J_UNLIKELY(!(expr))){\
+            j_return_if_fail_warning(J_LOG_DOMAIN,J_LOGAT,#expr);\
+            return val;\
+        }J_STMT_END
+
 #endif

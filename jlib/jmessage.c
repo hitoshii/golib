@@ -152,3 +152,11 @@ void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
     j_logv(domain, flag, msg, ap);
     va_end(ap);
 }
+
+
+void j_return_if_fail_warning(const jchar * domain, const jchar * at,
+                              const jchar * expression)
+{
+    j_log(domain, J_LOG_LEVEL_WARNING, "%s: assertion '%s' failed",
+          at, expression);
+}

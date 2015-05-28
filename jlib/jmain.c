@@ -30,10 +30,13 @@
 
 typedef struct {
     JEPollEvent event;
-    jushort revent;
+    jushort revent;             /* epoll_wait 返回的事件 */
 } JEPollRecord;
 
 
+/*
+ * JSource的事件函数
+ */
 struct _JSourceFuncs {
     jboolean(*prepare) (JSource * source, jint * timeout);
     jboolean(*check) (JSource * source);
@@ -211,9 +214,7 @@ jint64 j_get_monotonic_time(void)
 
     result = clock_gettime(CLOCK_MONOTONIC, &ts);
 
-    if (J_UNLIKELY(result != 0)) {
-        return -1;
-    }
+    j_return_val_if_fail(result == 0, -1);
 
     return (((jint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
 }
@@ -226,9 +227,8 @@ jint64 j_get_monotonic_time(void)
  */
 JSource *j_source_new(JSourceFuncs * funcs, juint struct_size)
 {
-    if (J_UNLIKELY(struct_size < sizeof(JSource))) {
-        return NULL;
-    }
+    j_return_val_if_fail(struct_size >= sizeof(JSource), NULL);
+
     JSource *src = (JSource *) j_malloc0(struct_size);
     src->funcs = funcs;
     src->ref = 1;
@@ -245,9 +245,7 @@ const jchar *j_source_get_name(JSource * src)
 
 juint j_source_get_id(JSource * src)
 {
-    if (J_UNLIKELY(src->context == NULL)) {
-        return 0;
-    }
+    j_return_val_if_fail(src->context != NULL, 0);
     J_MAIN_CONTEXT_LOCK(src->context);
     juint result = src->id;
     J_MAIN_CONTEXT_UNLOCK(src->context);
@@ -256,35 +254,30 @@ juint j_source_get_id(JSource * src)
 
 JMainContext *j_source_get_context(JSource * src)
 {
+    j_return_val_if_fail(src != NULL, NULL);
     return src->context;
 }
 
 
 jint64 j_source_get_time(JSource * src)
 {
-    JMainContext *ctx;
-    jint64 result;
+    j_return_val_if_fail(src->context != NULL, 0);
 
-    if (src->context == NULL) {
-        return 0;
-    }
-    ctx = src->context;
+    JMainContext *ctx = src->context;
 
     J_MAIN_CONTEXT_LOCK(ctx);
     if (!ctx->time_is_fresh) {
         ctx->time = j_get_monotonic_time();
         ctx->time_is_fresh = TRUE;
     }
-    result = ctx->time;
+    jint64 result = ctx->time;
     J_MAIN_CONTEXT_UNLOCK(ctx);
     return result;
 }
 
 void j_source_set_ready_time(JSource * src, jint64 ready_time)
 {
-    if (J_UNLIKELY(src == NULL || src->ref <= 0)) {
-        return;
-    }
+    j_return_if_fail(src != NULL && src->ref > 0);
     if (src->ready_time == ready_time) {
         return;
     }
@@ -308,10 +301,8 @@ void j_source_set_ready_time(JSource * src, jint64 ready_time)
 void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
                                     JSourceCallbackFuncs * callback_funcs)
 {
-    if (J_UNLIKELY
-        (src == NULL || callback_funcs == NULL || callback_data == NULL)) {
-        return;
-    }
+    j_return_if_fail(src != NULL && callback_funcs != NULL
+                     && callback_data != NULL);
 
     JMainContext *ctx = src->context;
     if (ctx) {
@@ -367,9 +358,8 @@ static JSourceCallbackFuncs j_source_callback_funcs = {
 void j_source_set_callback(JSource * src, JSourceFunc func,
                            jpointer data, JDestroyNotify destroy)
 {
-    if (J_UNLIKELY(src == NULL)) {
-        return;
-    }
+    j_return_if_fail(src != NULL);
+
     JSourceCallback *new_callback = j_malloc(sizeof(JSourceCallback));
     new_callback->ref = 1;
     new_callback->func = func;
@@ -486,11 +476,10 @@ static inline void j_source_unref_internal(JSource * src,
                                            JMainContext * ctx,
                                            jboolean has_lock)
 {
+    j_return_if_fail(src != NULL);
+
     jpointer old_cb_data = NULL;
     JSourceCallbackFuncs *old_cb_funcs = NULL;
-    if (J_UNLIKELY(src == NULL)) {
-        return;
-    }
 
     if (!has_lock && ctx) {
         J_MAIN_CONTEXT_LOCK(ctx);
@@ -644,9 +633,8 @@ JMainContext *j_main_context_new(void)
  */
 void j_main_context_ref(JMainContext * ctx)
 {
-    if (J_UNLIKELY(j_atomic_int_get(&ctx->ref) <= 0)) {
-        return;
-    }
+    j_return_if_fail(j_atomic_int_get(&ctx->ref) > 0);
+
     j_atomic_int_inc(&ctx->ref);
 }
 
@@ -655,9 +643,7 @@ void j_main_context_ref(JMainContext * ctx)
  */
 void j_main_context_unref(JMainContext * ctx)
 {
-    if (J_UNLIKELY(j_atomic_int_get(&ctx->ref) <= 0)) {
-        return;
-    }
+    j_return_if_fail(j_atomic_int_get(&ctx->ref) > 0);
 
     if (!j_atomic_int_dec_and_test(&ctx->ref)) {
         return;
@@ -1116,9 +1102,8 @@ jboolean j_main_context_check(JMainContext * ctx,
  */
 static inline void j_source_block(JSource * src)
 {
-    if (J_SOURCE_IS_BLOCKED(src)) { /* already blocked */
-        return;
-    }
+    j_return_if_fail(!J_SOURCE_IS_BLOCKED(src));    /* already blocked */
+
     JSList *tmp_list;
     src->flags |= J_SOURCE_FLAG_BLOCKED;
 
@@ -1140,10 +1125,10 @@ static inline void j_source_block(JSource * src)
 
 static inline void j_source_unblock(JSource * src)
 {
+    j_return_if_fail(J_SOURCE_IS_BLOCKED(src)
+                     && !J_SOURCE_IS_DESTROYED(src));
+
     JSList *tmp_list;
-    if (!J_SOURCE_IS_BLOCKED(src) || J_SOURCE_IS_DESTROYED(src)) {
-        return;
-    }
     src->flags &= ~J_SOURCE_FLAG_BLOCKED;
     tmp_list = src->poll_fds;
     while (tmp_list) {
@@ -1360,33 +1345,30 @@ JMainLoop *j_main_loop_new(JMainContext * ctx, jboolean is_running)
 
 jboolean j_main_loop_is_running(JMainLoop * loop)
 {
-    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
-        return FALSE;
-    }
+    j_return_val_if_fail(loop != NULL
+                         && j_atomic_int_get(&loop->ref) > 0, FALSE);
     return loop->is_running;
 }
 
 JMainContext *j_main_loop_get_context(JMainLoop * loop)
 {
-    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
-        return NULL;
-    }
+    j_return_val_if_fail(loop != NULL
+                         && j_atomic_int_get(&loop->ref) > 0, NULL);
+
     return loop->context;
 }
 
 void j_main_loop_ref(JMainLoop * loop)
 {
-    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
-        return;
-    }
+    j_return_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0);
+
     j_atomic_int_inc(&loop->ref);
 }
 
 void j_main_loop_unref(JMainLoop * loop)
 {
-    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
-        return;
-    }
+    j_return_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0);
+
     if (!j_atomic_int_dec_and_test(&loop->ref)) {
         return;
     }
@@ -1399,9 +1381,8 @@ void j_main_loop_unref(JMainLoop * loop)
  */
 void j_main_loop_run(JMainLoop * loop)
 {
-    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
-        return;
-    }
+    j_return_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0);
+
     JThread *self = j_thread_self();
 
     if (!j_main_context_acquire(loop->context)) {
@@ -1454,9 +1435,8 @@ void j_main_loop_run(JMainLoop * loop)
  */
 void j_main_loop_quit(JMainLoop * loop)
 {
-    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
-        return;
-    }
+    j_return_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0);
+
     J_MAIN_CONTEXT_LOCK(loop->context);
     loop->is_running = FALSE;
     j_wakeup_signal(loop->context->wakeup);
@@ -1557,9 +1537,7 @@ juint j_timeout_add_full(juint32 interval,
                          JSourceFunc function, jpointer data,
                          JDestroyNotify destroy)
 {
-    if (J_UNLIKELY(function == NULL)) {
-        return 0;
-    }
+    j_return_val_if_fail(function != NULL, 0);
 
     JSource *src = j_timeout_source_new(interval);
 
