@@ -60,6 +60,12 @@ typedef enum {
 const jchar *j_source_get_name(JSource * src);
 juint j_source_get_id(JSource * src);
 JMainContext *j_source_get_context(JSource * src);
+void j_source_set_ready_time(JSource * src, jint64 ready_time);
+void j_source_set_priority(JSource * src, jint priority);
+void j_source_set_callback(JSource * src, JSourceFunc func,
+                           jpointer data, JDestroyNotify destroy);
+void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
+                                    JSourceCallbackFuncs * callback_funcs);
 
 /*
  * Creates a new JSource structure.
@@ -92,6 +98,9 @@ void j_source_unref(JSource * src);
 void j_source_destroy(JSource * src);
 
 jboolean j_source_is_destroyed(JSource * src);
+
+
+jint64 j_source_get_time(JSource * src);
 
 
 /*
@@ -180,5 +189,18 @@ void j_main_loop_run(JMainLoop * loop);
  * Stops loop from running
  */
 void j_main_loop_quit(JMainLoop * loop);
+
+
+/*
+ * 定时回调
+ */
+typedef struct _JTimeoutSource JTimeoutSource;
+
+JSource *j_timeout_source_new(juint interval);
+
+juint j_timeout_add_full(jint priority, juint32 interval,
+                         JSourceFunc function, jpointer data,
+                         JDestroyNotify destroy);
+juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data);
 
 #endif

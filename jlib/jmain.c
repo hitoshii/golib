@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jmain.h"
+#include "jenviron.h"
 #include "jslist.h"
 #include "jlist.h"
 #include "jhashtable.h"
@@ -74,7 +75,7 @@ struct _JSource {
     jint64 ready_time;
 };
 #define J_SOURCE_IS_DESTROYED(src)  (((src)->flags & J_SOURCE_FLAG_ACTIVE) == 0)
-#define J_SOURCE_IS_BLOCKED(src)    (((src)->flags & J_SOURCE_FLAG_BLOCKED) == 0)
+#define J_SOURCE_IS_BLOCKED(src)    (((src)->flags & J_SOURCE_FLAG_BLOCKED))
 
 #define J_SOURCE_UNREF(src, ctx)    J_STMT_START\
                                     if((src)->ref>1){\
@@ -132,6 +133,13 @@ struct _JMainLoop {
     jint ref;
 };
 
+
+typedef struct {
+    juint ref;
+    JSourceFunc func;
+    jpointer data;
+    JDestroyNotify notify;
+} JSourceCallback;
 
 typedef struct {
     JMutex *mutex;
@@ -252,6 +260,148 @@ juint j_source_get_id(JSource * src)
 JMainContext *j_source_get_context(JSource * src)
 {
     return src->context;
+}
+
+
+jint64 j_source_get_time(JSource * src)
+{
+    JMainContext *ctx;
+    jint64 result;
+
+    if (src->context == NULL) {
+        return 0;
+    }
+    ctx = src->context;
+
+    J_MAIN_CONTEXT_LOCK(ctx);
+    if (!ctx->time_is_fresh) {
+        ctx->time = j_get_monotonic_time();
+        ctx->time_is_fresh = TRUE;
+    }
+    result = ctx->time;
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    return result;
+}
+
+void j_source_set_ready_time(JSource * src, jint64 ready_time)
+{
+    if (J_UNLIKELY(src == NULL || src->ref <= 0)) {
+        return;
+    }
+    if (src->ready_time == ready_time) {
+        return;
+    }
+
+    JMainContext *ctx = src->context;
+
+    if (ctx) {
+        J_MAIN_CONTEXT_LOCK(ctx);
+    }
+
+    src->ready_time = ready_time;
+
+    if (ctx) {
+        if (!J_SOURCE_IS_BLOCKED(src)) {
+            j_wakeup_signal(ctx->wakeup);
+        }
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+    }
+}
+
+static void j_source_set_priority_unlocked(JSource * src,
+                                           JMainContext * ctx,
+                                           jint priority)
+{
+}
+
+void j_source_set_priority(JSource * src, jint priority)
+{
+    if (J_UNLIKELY(src == NULL || src->parent != NULL)) {
+        return;
+    }
+    JMainContext *ctx = src->context;
+    if (ctx) {
+        J_MAIN_CONTEXT_LOCK(ctx);
+    }
+    j_source_set_priority_unlocked(src, ctx, priority);
+    if (ctx) {
+        J_MAIN_CONTEXT_UNLOCK(src->context);
+    }
+}
+
+void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
+                                    JSourceCallbackFuncs * callback_funcs)
+{
+    if (J_UNLIKELY
+        (src == NULL || callback_funcs == NULL || callback_data == NULL)) {
+        return;
+    }
+
+    JMainContext *ctx = src->context;
+    if (ctx) {
+        J_MAIN_CONTEXT_LOCK(ctx);
+    }
+    jpointer old_cb_data = src->callback_data;
+    JSourceCallbackFuncs *old_cb_funcs = src->callback_funcs;
+
+    src->callback_data = callback_data;
+    src->callback_funcs = callback_funcs;
+
+    if (ctx) {
+        J_MAIN_CONTEXT_UNLOCK(ctx);
+    }
+    if (old_cb_funcs) {
+        old_cb_funcs->unref(old_cb_data);
+    }
+}
+
+static void j_source_callback_ref(jpointer cb_data)
+{
+    JSourceCallback *callback = cb_data;
+    callback->ref++;
+}
+
+static void j_source_callback_unref(jpointer cb_data)
+{
+    JSourceCallback *callback = cb_data;
+    callback->ref--;
+    if (callback->ref == 0) {
+        if (callback->notify) {
+            callback->notify(callback->data);
+        }
+        j_free(callback);
+    }
+}
+
+static void j_source_callback_get(jpointer cb_data,
+                                  JSource * src, JSourceFunc * func,
+                                  jpointer * data)
+{
+    JSourceCallback *callback = (JSourceCallback *) cb_data;
+    *func = callback->func;
+    *data = callback->data;
+}
+
+static JSourceCallbackFuncs j_source_callback_funcs = {
+    j_source_callback_ref,
+    j_source_callback_unref,
+    j_source_callback_get,
+};
+
+void j_source_set_callback(JSource * src, JSourceFunc func,
+                           jpointer data, JDestroyNotify destroy)
+{
+    if (J_UNLIKELY(src == NULL)) {
+        return;
+    }
+    JSourceCallback *new_callback = j_malloc(sizeof(JSourceCallback));
+    new_callback->ref = 1;
+    new_callback->func = func;
+    new_callback->data = data;
+    new_callback->notify = destroy;
+
+    j_source_set_callback_indirect(src, new_callback,
+                                   &j_source_callback_funcs);
 }
 
 /*
@@ -887,6 +1037,7 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
         }
     }
     ctx->wakeup_record.revent = 0;
+    ctx->poll_changed = FALSE;
 
     if (timeout) {
         *timeout = ctx->timeout;
@@ -1152,7 +1303,7 @@ static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
     J_MAIN_CONTEXT_LOCK(ctx);
     n = j_epoll_wait(ctx->epoll, fds, n_fds, timeout);
 #if defined(J_MAIN_EPOLL_DEBUG)
-    j_info("j_epoll_wait() retval: %d\n", n);
+    j_info("j_epoll_wait() timeout %d retval: %d\n", timeout, n);
 #endif
     for (i = 0; i < n; i += 1) {
         /* 这里设置相应JSource的poll_records */
@@ -1350,4 +1501,117 @@ void j_main_loop_quit(JMainLoop * loop)
     j_wakeup_signal(loop->context->wakeup);
     j_cond_broadcast(&loop->context->cond);
     J_MAIN_CONTEXT_UNLOCK(loop->context);
+}
+
+
+/*
+ * 定时回调
+ */
+struct _JTimeoutSource {
+    JSource source;
+    juint interval;
+    jboolean seconds;
+};
+
+static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
+                                   jpointer user_data);
+static void j_timeout_set_expiration(JTimeoutSource * src,
+                                     jint64 current_time);
+
+JSourceFuncs j_timeout_funcs = {
+    NULL,                       /* prepare */
+    NULL,                       /* check */
+    j_timeout_dispatch,
+    NULL,
+};
+
+static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
+                                   jpointer user_data)
+{
+    JTimeoutSource *timeout_src = (JTimeoutSource *) src;
+    jboolean again;
+    if (J_UNLIKELY(!callback)) {
+        j_warning("Timeout source dispatched without callback\n"
+                  "You must call j_source_set_callback().");
+        return FALSE;
+    }
+    again = callback(user_data);
+    if (again) {
+        j_timeout_set_expiration(timeout_src, j_source_get_time(src));
+    }
+    return again;
+}
+
+static void j_timeout_set_expiration(JTimeoutSource * src,
+                                     jint64 current_time)
+{
+    jint64 expiration = current_time + (juint64) src->interval * 1000;
+
+    if (src->seconds) {
+        jint64 remainder;
+        static jint timer_perturb = -1;
+
+        if (timer_perturb == -1) {
+            /*
+             * We want a per machine/session unique 'random' value;
+             * use the hostname for hashing
+             */
+            const jchar *hostname = j_getenv("HOSTNAME");
+            if (hostname) {
+                timer_perturb = ABS((jint) j_str_hash(hostname)) % 1000000;
+            } else {
+                timer_perturb = 0;
+            }
+        }
+        /* We want the microseconds part of the timeout to land on the
+         * 'timer_perturb' mark, but we need to make sure we don't try to
+         * set the timeout in the past. We do this by ensuring that we
+         * always only *increase* the expiration time by adding a full
+         * second in the case that the microsecond portion descreses.
+         */
+        expiration -= timer_perturb;
+        remainder = expiration % 1000000;
+        if (remainder >= 1000000 / 4) {
+            expiration += 1000000;
+        }
+        expiration -= remainder;
+        expiration += timer_perturb;
+    }
+    j_source_set_ready_time((JSource *) src, expiration);
+}
+
+JSource *j_timeout_source_new(juint interval)
+{
+    JSource *src = j_source_new(&j_timeout_funcs, sizeof(JTimeoutSource));
+    JTimeoutSource *timeout_src = (JTimeoutSource *) src;
+
+    timeout_src->interval = interval;
+    j_timeout_set_expiration(timeout_src, j_get_monotonic_time());
+
+    return src;
+}
+
+
+juint j_timeout_add_full(jint priority, juint32 interval,
+                         JSourceFunc function, jpointer data,
+                         JDestroyNotify destroy)
+{
+    if (J_UNLIKELY(function == NULL)) {
+        return 0;
+    }
+
+    JSource *src = j_timeout_source_new(interval);
+    j_source_set_priority(src, priority);
+
+    j_source_set_callback(src, function, data, destroy);
+    juint id = j_source_attach(src, NULL);
+    j_source_unref(src);
+
+    return id;
+}
+
+juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data)
+{
+    return j_timeout_add_full(J_PRIORITY_DEFAULT, interval,
+                              function, data, NULL);
 }

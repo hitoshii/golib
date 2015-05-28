@@ -29,7 +29,8 @@ libjlib_la_SOURCES = \
 	jwakeup.c \
 	jmain.c \
 	jmessage.c \
-	jprintf.c
+	jprintf.c \
+	jenviron.c
 
 libjlib_la_LDFLAGS = -pthread
 
@@ -56,7 +57,8 @@ jlibsubinclude_HEADERS= \
 	jslist.h \
 	jmain.h \
 	jmessage.h \
-	jprintf.h
+	jprintf.h \
+	jenviron.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
