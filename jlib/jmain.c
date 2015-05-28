@@ -60,7 +60,6 @@ struct _JSource {
 
     JMainContext *context;
 
-    jint priority;              /* 优先级，当前没有用 */
     juint flags;
 
     juint id;                   /* source id */
@@ -198,7 +197,6 @@ static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
 
 
 static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
-                                                    jint priority,
                                                     JEPollEvent * p)
 {
     j_ptr_array_append_ptr(ctx->poll_records, p);
@@ -236,7 +234,6 @@ JSource *j_source_new(JSourceFuncs * funcs, juint struct_size)
     src->ref = 1;
     src->ready_time = -1;
     src->flags = J_SOURCE_FLAG_ACTIVE;
-    src->priority = J_PRIORITY_DEFAULT;
     return src;
 }
 
@@ -305,27 +302,6 @@ void j_source_set_ready_time(JSource * src, jint64 ready_time)
             j_wakeup_signal(ctx->wakeup);
         }
         J_MAIN_CONTEXT_UNLOCK(ctx);
-    }
-}
-
-static void j_source_set_priority_unlocked(JSource * src,
-                                           JMainContext * ctx,
-                                           jint priority)
-{
-}
-
-void j_source_set_priority(JSource * src, jint priority)
-{
-    if (J_UNLIKELY(src == NULL || src->parent != NULL)) {
-        return;
-    }
-    JMainContext *ctx = src->context;
-    if (ctx) {
-        J_MAIN_CONTEXT_LOCK(ctx);
-    }
-    j_source_set_priority_unlocked(src, ctx, priority);
-    if (ctx) {
-        J_MAIN_CONTEXT_UNLOCK(src->context);
     }
 }
 
@@ -417,8 +393,7 @@ void j_source_add_poll_fd(JSource * src, jint fd, juint io)
     src->poll_fds = j_slist_append(src->poll_fds, e);
     if (src->context) {
         J_MAIN_CONTEXT_LOCK(src->context);
-        j_main_context_add_poll_unlocked(src->context, src->priority,
-                                         &e->event);
+        j_main_context_add_poll_unlocked(src->context, &e->event);
         J_MAIN_CONTEXT_UNLOCK(src->context);
     }
 }
@@ -659,7 +634,7 @@ JMainContext *j_main_context_new(void)
     ctx->wakeup = j_wakeup_new();
     j_wakeup_get_pollfd(ctx->wakeup, &(ctx->wakeup_record.event));
     ctx->wakeup_record.event.data = &(ctx->wakeup_record);
-    j_main_context_add_poll_unlocked(ctx, 0, &(ctx->wakeup_record.event));
+    j_main_context_add_poll_unlocked(ctx, &(ctx->wakeup_record.event));
 
     return ctx;
 }
@@ -870,8 +845,7 @@ static inline juint j_source_attach_unlocked(JSource * src,
         tmp_list = src->poll_fds;
         while (tmp_list) {
             JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
-            j_main_context_add_poll_unlocked(ctx, src->priority,
-                                             &rec->event);
+            j_main_context_add_poll_unlocked(ctx, &rec->event);
             tmp_list = j_slist_next(tmp_list);
         }
     }
@@ -907,11 +881,10 @@ juint j_source_attach(JSource * src, JMainContext * ctx)
     return result;
 }
 
-jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
+jboolean j_main_context_prepare(JMainContext * ctx)
 {
     juint i;
     jint n_ready = 0;
-    jint current_priority = J_MAXINT32;
 
     J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
@@ -939,10 +912,6 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
         jint source_timeout = -1;
         if (J_SOURCE_IS_DESTROYED(src) || J_SOURCE_IS_BLOCKED(src)) {
             goto CONTINUE;
-        }
-        if (n_ready > 0 && src->priority > current_priority) {
-            /* 优先级相关，但现在没有使用优先级 */
-            //break;
         }
         if (!(src->flags & J_SOURCE_FLAG_READY)) {
             /* 如果没有ready，则执行Source的prepare函数，看看会不会ready */
@@ -990,7 +959,6 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
         if (src->flags & J_SOURCE_FLAG_READY) {
             /* 如果已经ready，那么context的timeout就是0 */
             n_ready++;
-            current_priority = src->priority;
             ctx->timeout = 0;
         }
         if (source_timeout >= 0) {
@@ -1005,9 +973,6 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
     }
 
     J_MAIN_CONTEXT_UNLOCK(ctx);
-    if (max_priority) {
-        *max_priority = current_priority;
-    }
     return n_ready > 0;
 }
 
@@ -1022,8 +987,7 @@ jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority)
  *   or, if more than @n_fds records need to be stored, the number
  *   of records that need to be stored
  */
-jint j_main_context_query(JMainContext * ctx, jint max_priority,
-                          jint * timeout)
+jint j_main_context_query(JMainContext * ctx, jint * timeout)
 {
     J_MAIN_CONTEXT_LOCK(ctx);
     jint i, total = j_ptr_array_get_len(ctx->poll_records);
@@ -1057,7 +1021,7 @@ jint j_main_context_query(JMainContext * ctx, jint max_priority,
     return total;
 }
 
-jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
+jboolean j_main_context_check(JMainContext * ctx,
                               JEPollEvent * fds, jint n_fds)
 {
     J_MAIN_CONTEXT_LOCK(ctx);
@@ -1184,8 +1148,7 @@ static inline void j_source_unblock(JSource * src)
     tmp_list = src->poll_fds;
     while (tmp_list) {
         JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
-        j_main_context_add_poll_unlocked(src->context, src->priority,
-                                         &(rec->event));
+        j_main_context_add_poll_unlocked(src->context, &(rec->event));
         tmp_list = j_slist_next(tmp_list);
     }
     tmp_list = src->children;
@@ -1296,8 +1259,7 @@ void j_main_context_dispatch(JMainContext * ctx)
  * Hold context lock
  */
 static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
-                                       jint priority, JEPollEvent * fds,
-                                       jint n_fds)
+                                       JEPollEvent * fds, jint n_fds)
 {
     jint i, n;
     J_MAIN_CONTEXT_LOCK(ctx);
@@ -1322,7 +1284,6 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
                                               jboolean dispatch,
                                               JThread * self)
 {
-    jint max_priority;
     jint timeout;
     jboolean some_ready;
     jint nfds;
@@ -1345,9 +1306,9 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
 
     J_MAIN_CONTEXT_UNLOCK(ctx);
 
-    j_main_context_prepare(ctx, &max_priority);
+    j_main_context_prepare(ctx);
 
-    j_main_context_query(ctx, max_priority, &timeout);
+    j_main_context_query(ctx, &timeout);
     nfds = ctx->cached_poll_array_size;
     fds = ctx->cached_poll_array;
 
@@ -1355,9 +1316,9 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
         timeout = 0;
     }
 
-    nfds = j_main_context_poll(ctx, timeout, max_priority, fds, nfds);
+    nfds = j_main_context_poll(ctx, timeout, fds, nfds);
 
-    some_ready = j_main_context_check(ctx, max_priority, fds, nfds);
+    some_ready = j_main_context_check(ctx, fds, nfds);
 
     if (dispatch) {
         j_main_context_dispatch(ctx);
@@ -1592,7 +1553,7 @@ JSource *j_timeout_source_new(juint interval)
 }
 
 
-juint j_timeout_add_full(jint priority, juint32 interval,
+juint j_timeout_add_full(juint32 interval,
                          JSourceFunc function, jpointer data,
                          JDestroyNotify destroy)
 {
@@ -1601,7 +1562,6 @@ juint j_timeout_add_full(jint priority, juint32 interval,
     }
 
     JSource *src = j_timeout_source_new(interval);
-    j_source_set_priority(src, priority);
 
     j_source_set_callback(src, function, data, destroy);
     juint id = j_source_attach(src, NULL);
@@ -1612,6 +1572,5 @@ juint j_timeout_add_full(jint priority, juint32 interval,
 
 juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data)
 {
-    return j_timeout_add_full(J_PRIORITY_DEFAULT, interval,
-                              function, data, NULL);
+    return j_timeout_add_full(interval, function, data, NULL);
 }

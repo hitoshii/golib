@@ -61,7 +61,6 @@ const jchar *j_source_get_name(JSource * src);
 juint j_source_get_id(JSource * src);
 JMainContext *j_source_get_context(JSource * src);
 void j_source_set_ready_time(JSource * src, jint64 ready_time);
-void j_source_set_priority(JSource * src, jint priority);
 void j_source_set_callback(JSource * src, JSourceFunc func,
                            jpointer data, JDestroyNotify destroy);
 void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
@@ -155,10 +154,9 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
  */
 void j_main_context_wakeup(JMainContext * ctx);
 
-jboolean j_main_context_prepare(JMainContext * ctx, jint * max_priority);
-jint j_main_context_query(JMainContext * ctx, jint max_priority,
-                          jint * timeout);
-jboolean j_main_context_check(JMainContext * ctx, jint max_priority,
+jboolean j_main_context_prepare(JMainContext * ctx);
+jint j_main_context_query(JMainContext * ctx, jint * timeout);
+jboolean j_main_context_check(JMainContext * ctx,
                               JEPollEvent * fds, jint n_fds);
 void j_main_context_dispatch(JMainContext * ctx);
 
@@ -198,7 +196,7 @@ typedef struct _JTimeoutSource JTimeoutSource;
 
 JSource *j_timeout_source_new(juint interval);
 
-juint j_timeout_add_full(jint priority, juint32 interval,
+juint j_timeout_add_full(juint32 interval,
                          JSourceFunc function, jpointer data,
                          JDestroyNotify destroy);
 juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data);
