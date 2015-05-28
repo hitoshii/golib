@@ -126,6 +126,13 @@ struct _JMainContext {
                                     }J_STMT_END
 
 
+struct _JMainLoop {
+    JMainContext *context;
+    jboolean is_running;
+    jint ref;
+};
+
+
 typedef struct {
     JMutex *mutex;
     JCond *cond;
@@ -1125,8 +1132,11 @@ void j_main_context_dispatch(JMainContext * ctx)
                 j_source_destroy_internal(src, ctx, TRUE);
             }
         }
+        /* j_source_attach中增加引用计数 */
         J_SOURCE_UNREF(src, ctx);
     }
+
+    /* 清楚所有Source */
     j_ptr_array_set_size(ctx->pending_despatches, 0);
     J_MAIN_CONTEXT_UNLOCK(ctx);
 }
@@ -1153,6 +1163,9 @@ static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
     return n;
 }
 
+/*
+ * @param self unused
+ */
 static inline jboolean j_main_context_iterate(JMainContext * ctx,
                                               jboolean may_block,
                                               jboolean dispatch,
@@ -1216,4 +1229,125 @@ jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block)
     retval = j_main_context_iterate(ctx, may_block, TRUE, j_thread_self());
     J_MAIN_CONTEXT_UNLOCK(ctx);
     return retval;
+}
+
+
+JMainLoop *j_main_loop_new(JMainContext * ctx, jboolean is_running)
+{
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+    j_main_context_ref(ctx);
+
+    JMainLoop *loop = j_malloc0(sizeof(JMainLoop));
+    loop->context = ctx;
+    loop->is_running = is_running != FALSE;
+    loop->ref = 1;
+    return loop;
+}
+
+jboolean j_main_loop_is_running(JMainLoop * loop)
+{
+    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
+        return FALSE;
+    }
+    return loop->is_running;
+}
+
+JMainContext *j_main_loop_get_context(JMainLoop * loop)
+{
+    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
+        return NULL;
+    }
+    return loop->context;
+}
+
+void j_main_loop_ref(JMainLoop * loop)
+{
+    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
+        return;
+    }
+    j_atomic_int_inc(&loop->ref);
+}
+
+void j_main_loop_unref(JMainLoop * loop)
+{
+    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
+        return;
+    }
+    if (!j_atomic_int_dec_and_test(&loop->ref)) {
+        return;
+    }
+    j_main_context_unref(loop->context);
+    j_free(loop);
+}
+
+/*
+ * Runs a main loop until j_main_loop_quit() is called on this loop
+ */
+void j_main_loop_run(JMainLoop * loop)
+{
+    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
+        return;
+    }
+    JThread *self = j_thread_self();
+
+    if (!j_main_context_acquire(loop->context)) {
+        jboolean got_ownership = FALSE;
+        J_MAIN_CONTEXT_LOCK(loop->context);
+
+        j_atomic_int_inc(&loop->ref);
+        if (!loop->is_running) {
+            loop->is_running = TRUE;
+        }
+
+        while (loop->is_running && !got_ownership) {
+            got_ownership = j_main_context_wait(loop->context,
+                                                &loop->context->cond,
+                                                &loop->context->mutex);
+        }
+
+        if (!loop->is_running) {
+            J_MAIN_CONTEXT_UNLOCK(loop->context);
+            if (got_ownership) {
+                j_main_context_release(loop->context);
+            }
+            j_main_loop_unref(loop);
+            return;
+        }
+    } else {
+        J_MAIN_CONTEXT_LOCK(loop->context);
+    }
+
+    if (loop->context->in_check_or_prepare) {
+        j_warning("j_main_loop_run() called recursively from within a "
+                  "source's check() or prepare() member, iteration not possible.");
+        return;
+    }
+
+    j_atomic_int_inc(&loop->ref);
+    loop->is_running = TRUE;
+    while (loop->is_running) {
+        j_main_context_iterate(loop->context, TRUE, TRUE, self);
+    }
+
+    J_MAIN_CONTEXT_UNLOCK(loop->context);
+    j_main_context_release(loop->context);
+
+    j_main_loop_unref(loop);
+}
+
+/*
+ * Stops loop from running
+ */
+void j_main_loop_quit(JMainLoop * loop)
+{
+    if (J_UNLIKELY(loop == NULL || j_atomic_int_get(&loop->ref) <= 0)) {
+        return;
+    }
+    J_MAIN_CONTEXT_LOCK(loop->context);
+    loop->is_running = FALSE;
+    j_wakeup_signal(loop->context->wakeup);
+    j_cond_broadcast(&loop->context->cond);
+    J_MAIN_CONTEXT_UNLOCK(loop->context);
 }

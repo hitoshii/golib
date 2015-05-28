@@ -37,6 +37,10 @@ typedef struct _JSource JSource;
 typedef struct _JMainContext JMainContext;
 
 
+/* JMainLoop */
+typedef struct _JMainLoop JMainLoop;
+
+
 typedef enum {
     J_SOURCE_FLAG_ACTIVE = 1 << 0,
     J_SOURCE_FLAG_IN_CALL = 1 << 1,
@@ -156,5 +160,25 @@ jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block);
 
 jint j_main_depth(void);
 JSource *j_main_current_source(void);
+
+/*
+ * Creates a new JMainLoop
+ */
+JMainLoop *j_main_loop_new(JMainContext * ctx, jboolean is_running);
+
+jboolean j_main_loop_is_running(JMainLoop * loop);
+JMainContext *j_main_loop_get_context(JMainLoop * loop);
+
+void j_main_loop_ref(JMainLoop * loop);
+void j_main_loop_unref(JMainLoop * loop);
+
+/*
+ * Runs a main loop until j_main_loop_quit() is called on this loop
+ */
+void j_main_loop_run(JMainLoop * loop);
+/*
+ * Stops loop from running
+ */
+void j_main_loop_quit(JMainLoop * loop);
 
 #endif
