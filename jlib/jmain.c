@@ -1095,7 +1095,35 @@ void j_main_context_dispatch(JMainContext * ctx)
             /* These operations are safe because 'current' is thread-local
              * and not modified from anywhere but this function
              */
-            /* TODO */
+            prev_src = current->source;
+            current->source = src;
+            current->depth++;
+
+            need_destroy = !(*dispatch) (src, callback, user_data);
+
+            current->source = prev_src;
+            current->depth--;
+
+            if (cb_funcs) {
+                cb_funcs->unref(cb_data);
+            }
+
+            J_MAIN_CONTEXT_LOCK(ctx);
+
+            if (!was_in_call) {
+                src->flags &= ~J_SOURCE_FLAG_IN_CALL;
+            }
+
+            if (J_SOURCE_IS_BLOCKED(src) && !J_SOURCE_IS_DESTROYED(src)) {
+                j_source_unblock(src);
+            }
+
+            /* Note: this depends on the fact that we can't switch
+             * sources from one main context to another
+             */
+            if (need_destroy && !J_SOURCE_IS_DESTROYED(src)) {
+                j_source_destroy_internal(src, ctx, TRUE);
+            }
         }
         J_SOURCE_UNREF(src, ctx);
     }
