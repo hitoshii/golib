@@ -1,16 +1,17 @@
 #include <jlib/jlib.h>
 #include <stdio.h>
 
+
+static jboolean timeout_seconds(jpointer data)
+{
+    j_main_loop_quit((JMainLoop *) data);
+    return FALSE;
+}
+
 static jboolean timeout(jpointer data)
 {
-    static jint i = 0;
-    j_printf("i=%d\n", i);
-    i++;
-    if (i >= 2) {
-        j_main_loop_quit((JMainLoop *) data);
-        return FALSE;
-    }
-    return TRUE;
+    j_timeout_add_seconds(1, timeout_seconds, data);
+    return FALSE;
 }
 
 int main(int argc, char *argv[])

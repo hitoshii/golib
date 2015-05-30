@@ -1489,7 +1489,6 @@ static void j_timeout_set_expiration(JTimeoutSource * src,
     jint64 expiration = current_time + (juint64) src->interval * 1000;
 
     if (src->seconds) {
-        jint64 remainder;
         static jint timer_perturb = -1;
 
         if (timer_perturb == -1) {
@@ -1511,7 +1510,7 @@ static void j_timeout_set_expiration(JTimeoutSource * src,
          * second in the case that the microsecond portion descreses.
          */
         expiration -= timer_perturb;
-        remainder = expiration % 1000000;
+        jint64 remainder = expiration % 1000000;
         if (remainder >= 1000000 / 4) {
             expiration += 1000000;
         }
@@ -1548,7 +1547,41 @@ juint j_timeout_add_full(juint32 interval,
     return id;
 }
 
+JSource *j_timeout_source_new_seconds(juint interval)
+{
+    JSource *src = j_source_new(&j_timeout_funcs, sizeof(JTimeoutSource));
+    JTimeoutSource *timeout_src = (JTimeoutSource *) src;
+
+    timeout_src->interval = 1000 * interval;
+    timeout_src->seconds = TRUE;
+
+    j_timeout_set_expiration(timeout_src, j_get_monotonic_time());
+
+    return src;
+}
+
 juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data)
 {
+    j_return_val_if_fail(function != NULL, 0);
     return j_timeout_add_full(interval, function, data, NULL);
+}
+
+juint j_timeout_add_seconds_full(juint interval,
+                                 JSourceFunc function, jpointer data,
+                                 JDestroyNotify destroy)
+{
+    j_return_val_if_fail(function != NULL, 0);
+
+    JSource *src = j_timeout_source_new_seconds(interval);
+    j_source_set_callback(src, function, data, destroy);
+    juint id = j_source_attach(src, NULL);
+    j_source_unref(src);
+    return id;
+}
+
+juint j_timeout_add_seconds(juint32 interval, JSourceFunc function,
+                            jpointer data)
+{
+    j_return_val_if_fail(function != NULL, 0);
+    return j_timeout_add_seconds_full(interval, function, data, NULL);
 }

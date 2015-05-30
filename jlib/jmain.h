@@ -201,4 +201,15 @@ juint j_timeout_add_full(juint32 interval,
                          JDestroyNotify destroy);
 juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data);
 
+/*
+ * XXX seconds版本用来减少回调的次数，它并不保证回调及时，可能快一点也可能慢一点
+ */
+JSource *j_timeout_source_new_seconds(juint interval);
+juint j_timeout_add_seconds_full(juint interval,
+                                 JSourceFunc function, jpointer data,
+                                 JDestroyNotify destroy);
+juint j_timeout_add_seconds(juint32 interval, JSourceFunc function,
+                            jpointer data);
+
+
 #endif
