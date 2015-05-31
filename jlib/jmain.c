@@ -96,7 +96,7 @@ struct _JMainContext {
     jint ref;
     JHashTable *sources;        /* juint -> JSource */
 
-    JPtrArray *pending_despatches;
+    JPtrArray *pending_dispatches;
     jint timeout;               /* timeout for current iteration */
 
     juint next_id;
@@ -617,7 +617,7 @@ JMainContext *j_main_context_new(void)
     ctx->cached_poll_array = NULL;
     ctx->cached_poll_array_size = 0;
 
-    ctx->pending_despatches = j_ptr_array_new();
+    ctx->pending_dispatches = j_ptr_array_new();
     ctx->time_is_fresh = FALSE;
 
     ctx->wakeup = j_wakeup_new();
@@ -651,8 +651,8 @@ void j_main_context_unref(JMainContext * ctx)
 
     jint i;
     /* Free pending dispatches */
-    for (i = 0; i < ctx->pending_despatches->len; i++) {
-        j_source_unref_internal(ctx->pending_despatches->data[i], ctx,
+    for (i = 0; i < ctx->pending_dispatches->len; i++) {
+        j_source_unref_internal(ctx->pending_dispatches->data[i], ctx,
                                 FALSE);
     }
 
@@ -671,7 +671,7 @@ void j_main_context_unref(JMainContext * ctx)
 
     j_hash_table_free(ctx->sources);
 
-    j_ptr_array_free(ctx->pending_despatches, TRUE);
+    j_ptr_array_free(ctx->pending_dispatches, TRUE);
     j_free(ctx->cached_poll_array);
 
     j_wakeup_free(ctx->wakeup);
@@ -882,13 +882,13 @@ jboolean j_main_context_prepare(JMainContext * ctx)
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return FALSE;
     }
-    for (i = 0; i < ctx->pending_despatches->len; i += 1) {
-        if (ctx->pending_despatches->data[i]) {
-            J_SOURCE_UNREF((JSource *) ctx->pending_despatches->data[i],
+    for (i = 0; i < ctx->pending_dispatches->len; i += 1) {
+        if (ctx->pending_dispatches->data[i]) {
+            J_SOURCE_UNREF((JSource *) ctx->pending_dispatches->data[i],
                            ctx);
         }
     }
-    j_ptr_array_set_size(ctx->pending_despatches, 0);
+    j_ptr_array_set_size(ctx->pending_dispatches, 0);
 
     /* Prepare all sources */
     ctx->timeout = -1;          /* -1 表示无限大 */
@@ -1085,7 +1085,7 @@ jboolean j_main_context_check(JMainContext * ctx,
         }
         if (src->flags & J_SOURCE_FLAG_READY) {
             src->ref++;
-            j_ptr_array_append_ptr(ctx->pending_despatches, src);
+            j_ptr_array_append_ptr(ctx->pending_dispatches, src);
             n_ready++;
         }
       CONTINUE:
@@ -1158,14 +1158,14 @@ void j_main_context_dispatch(JMainContext * ctx)
 
     JMainDispatch *current = j_get_dispatch();
 
-    if (j_ptr_array_get_len(ctx->pending_despatches) == 0) {
+    if (j_ptr_array_get_len(ctx->pending_dispatches) == 0) {
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return;
     }
     juint i;
-    for (i = 0; i < j_ptr_array_get_len(ctx->pending_despatches); i += 1) {
-        JSource *src = ctx->pending_despatches->data[i];
-        ctx->pending_despatches->data[i] = NULL;
+    for (i = 0; i < j_ptr_array_get_len(ctx->pending_dispatches); i += 1) {
+        JSource *src = ctx->pending_dispatches->data[i];
+        ctx->pending_dispatches->data[i] = NULL;
         if (src == NULL) {
             j_error("dispatching a NULL source!!!");
         }
@@ -1231,12 +1231,12 @@ void j_main_context_dispatch(JMainContext * ctx)
                 j_source_destroy_internal(src, ctx, TRUE);
             }
         }
-        /* j_source_attach中增加引用计数 */
+        /* JSource在添加到pending_despatches中时增加了引用计数 */
         J_SOURCE_UNREF(src, ctx);
     }
 
     /* 清楚所有Source */
-    j_ptr_array_set_size(ctx->pending_despatches, 0);
+    j_ptr_array_set_size(ctx->pending_dispatches, 0);
     J_MAIN_CONTEXT_UNLOCK(ctx);
 }
 
@@ -1445,9 +1445,8 @@ void j_main_loop_quit(JMainLoop * loop)
 }
 
 
-/*
- * 定时回调
- */
+/***************************** TIMEOUT ****************************/
+
 struct _JTimeoutSource {
     JSource source;
     juint interval;
@@ -1483,6 +1482,9 @@ static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
     return again;
 }
 
+/*
+ * 设置超时时间
+ */
 static void j_timeout_set_expiration(JTimeoutSource * src,
                                      jint64 current_time)
 {
@@ -1562,7 +1564,6 @@ JSource *j_timeout_source_new_seconds(juint interval)
 
 juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data)
 {
-    j_return_val_if_fail(function != NULL, 0);
     return j_timeout_add_full(interval, function, data, NULL);
 }
 
@@ -1582,6 +1583,62 @@ juint j_timeout_add_seconds_full(juint interval,
 juint j_timeout_add_seconds(juint32 interval, JSourceFunc function,
                             jpointer data)
 {
-    j_return_val_if_fail(function != NULL, 0);
     return j_timeout_add_seconds_full(interval, function, data, NULL);
+}
+
+/********************************* IDLE ***************************/
+
+static jboolean j_idle_prepare(JSource * src, jint * timeout);
+static jboolean j_idle_check(JSource * src);
+static jboolean j_idle_dispatch(JSource * src, JSourceFunc callback,
+                                jpointer user_data);
+
+JSourceFuncs j_idle_funcs = {
+    j_idle_prepare,
+    j_idle_check,
+    j_idle_dispatch,
+    NULL,
+};
+
+
+static jboolean j_idle_prepare(JSource * src, jint * timeout)
+{
+    *timeout = 0;
+    return TRUE;
+}
+
+static jboolean j_idle_check(JSource * src)
+{
+    return TRUE;
+}
+
+static jboolean j_idle_dispatch(JSource * src, JSourceFunc callback,
+                                jpointer user_data)
+{
+    return callback(user_data);
+}
+
+JSource *j_idle_source_new(void)
+{
+    JSource *src = j_source_new(&j_idle_funcs, sizeof(JSource));
+    return src;
+}
+
+
+juint j_idle_add_full(JSourceFunc function, jpointer data,
+                      JDestroyNotify destroy)
+{
+    j_return_val_if_fail(function != NULL, 0);
+
+    JSource *src = j_idle_source_new();
+
+    j_source_set_callback(src, function, data, destroy);
+    juint id = j_source_attach(src, NULL);
+    j_source_unref(src);
+    return id;
+}
+
+juint j_idle_add(JSourceFunc function, jpointer data)
+{
+    return j_idle_add_full(function, data, NULL);
 }

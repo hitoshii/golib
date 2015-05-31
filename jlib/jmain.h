@@ -211,5 +211,13 @@ juint j_timeout_add_seconds_full(juint interval,
 juint j_timeout_add_seconds(juint32 interval, JSourceFunc function,
                             jpointer data);
 
+/*
+ * 空闲回调
+ */
+JSource *j_idle_source_new(void);
+juint j_idle_add_full(JSourceFunc function, jpointer data,
+                      JDestroyNotify destroy);
+juint j_idle_add(JSourceFunc function, jpointer data);
+
 
 #endif
