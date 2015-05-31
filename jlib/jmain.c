@@ -734,6 +734,20 @@ void j_main_context_release(JMainContext * ctx)
 }
 
 /*
+ * 检查当前线程是否拥有了该JMainContext
+ */
+jboolean j_main_context_is_owner(JMainContext * ctx)
+{
+    if (ctx == NULL) {
+        ctx = j_main_context_default();
+    }
+    J_MAIN_CONTEXT_LOCK(ctx);
+    jboolean is_owner = ctx->owner == j_thread_self();
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    return is_owner;
+}
+
+/*
  * Tries to become the owner of the specified context,
  * as with g_main_context_acquire().
  * But if another thread is the owner, atomically drop mutex and wait on

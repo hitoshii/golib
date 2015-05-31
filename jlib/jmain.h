@@ -142,6 +142,12 @@ jboolean j_main_context_acquire(JMainContext * ctx);
  */
 void j_main_context_release(JMainContext * ctx);
 
+
+/*
+ * 检查当前线程是否拥有了该JMainContext
+ */
+jboolean j_main_context_is_owner(JMainContext * ctx);
+
 /*
  * Tries to become the owner of the specified context, as with g_main_context_acquire().
  * But if another thread is the owner, atomically drop mutex and wait on cond until that owner releases ownership or until cond is signaled, then try again (once) to become the owner.
