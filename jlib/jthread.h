@@ -109,4 +109,5 @@ void j_thread_yield();
  */
 JThread *j_thread_self(void);
 
+
 #endif

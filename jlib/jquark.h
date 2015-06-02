@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,30 +15,31 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
+#ifndef __JLIB_QUARK_H__
+#define __JLIB_QUARK_H__
 
-#ifndef __JLIB_H__
-#define __JLIB_H__
 
-#include "jmacros.h"
 #include "jtypes.h"
-#include "jmem.h"
-#include "jquark.h"
-#include "jenviron.h"
-#include "jprintf.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jthreadpool.h"
-#include "jmessage.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jarray.h"
-#include "jepoll.h"
-#include "jmain.h"
+
+
+typedef juint32 JQuark;
+
+/*
+ * JQuark 实现字符串和一个整数的唯一映射
+ * 使用j_quark_from_string()或者j_quark_from_static_string()从字符串创建JQuark
+ */
+
+/*
+ * string可以为NULL
+ * 根据string得到一个JQuark
+ * 如果string为NULL或者没有对应的JQuark，则返回0
+ * 如果你想要JQuark不存在时自动生成，使用j_quark_from_string()
+ * 或者j_quark_from_static_string()
+ */
+JQuark j_quark_try_string(const jchar * string);
+JQuark j_quark_from_static_string(const jchar * string);
+JQuark j_quark_from_string(const jchar * string);
+const jchar *j_quark_to_string(JQuark quark) J_GNUC_CONST;
 
 
 #endif

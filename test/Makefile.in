@@ -90,10 +90,10 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT)
+	test-message$(EXEEXT) test-quark$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT)
+	test-message$(EXEEXT) test-quark$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -120,6 +120,9 @@ test_main_LDADD = $(LDADD)
 am_test_message_OBJECTS = test-message.$(OBJEXT)
 test_message_OBJECTS = $(am_test_message_OBJECTS)
 test_message_LDADD = $(LDADD)
+am_test_quark_OBJECTS = test-quark.$(OBJEXT)
+test_quark_OBJECTS = $(am_test_quark_OBJECTS)
+test_quark_LDADD = $(LDADD)
 am_test_string_OBJECTS = test-string.$(OBJEXT)
 test_string_OBJECTS = $(am_test_string_OBJECTS)
 test_string_LDADD = $(LDADD)
@@ -162,10 +165,12 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_array_SOURCES) $(test_hashtable_SOURCES) \
 	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES)
+	$(test_quark_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_hashtable_SOURCES) \
 	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES)
+	$(test_quark_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -547,6 +552,9 @@ test_main_SOURCES = \
 test_message_SOURCES = \
     test-message.c
 
+test_quark_SOURCES = \
+    test-quark.c
+
 all: all-am
 
 .SUFFIXES:
@@ -606,6 +614,10 @@ test-message$(EXEEXT): $(test_message_OBJECTS) $(test_message_DEPENDENCIES) $(EX
 	@rm -f test-message$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_message_OBJECTS) $(test_message_LDADD) $(LIBS)
 
+test-quark$(EXEEXT): $(test_quark_OBJECTS) $(test_quark_DEPENDENCIES) $(EXTRA_test_quark_DEPENDENCIES) 
+	@rm -f test-quark$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_quark_OBJECTS) $(test_quark_LDADD) $(LIBS)
+
 test-string$(EXEEXT): $(test_string_OBJECTS) $(test_string_DEPENDENCIES) $(EXTRA_test_string_DEPENDENCIES) 
 	@rm -f test-string$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_string_OBJECTS) $(test_string_LDADD) $(LIBS)
@@ -624,6 +636,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-quark.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-string.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-thread.Po@am__quote@
 
@@ -885,6 +898,13 @@ test-main.log: test-main$(EXEEXT)
 test-message.log: test-message$(EXEEXT)
 	@p='test-message$(EXEEXT)'; \
 	b='test-message'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-quark.log: test-quark$(EXEEXT)
+	@p='test-quark$(EXEEXT)'; \
+	b='test-quark'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

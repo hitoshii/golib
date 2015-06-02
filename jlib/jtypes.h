@@ -83,5 +83,6 @@ typedef const void *jconstpointer;
  */
 typedef void (*JDestroyNotify) (jpointer data);
 typedef int (*JCompareFunc) (jconstpointer data, jconstpointer user_data);
+typedef void (*JFunc) (jpointer data, jpointer user_data);
 
 #endif

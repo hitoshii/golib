@@ -23,7 +23,8 @@ noinst_PROGRAMS= \
 	test-array \
 	test-thread \
 	test-main \
-	test-message
+	test-message \
+	test-quark
 
 TESTS=\
     test-string \
@@ -31,7 +32,8 @@ TESTS=\
     test-array \
     test-thread \
     test-main \
-    test-message
+    test-message \
+    test-quark
 
 test_string_SOURCES = \
 	test-string.c
@@ -50,6 +52,9 @@ test_main_SOURCES = \
 
 test_message_SOURCES = \
     test-message.c
+
+test_quark_SOURCES = \
+    test-quark.c
 
 clean-local:
 	indent -kr -ts4 -nut *.c
