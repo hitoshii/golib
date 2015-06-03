@@ -107,6 +107,9 @@ jchar *j_strndup(const jchar * str, juint count);
 
 jchar *j_strnmdup(const jchar * str, juint n, juint m);
 
+jchar *j_stpcpy(jchar * dest, const jchar * src);
+jchar *j_strconcat(const jchar * string1, ...) J_GNUC_MALLOC;
+
 /*
  * Creates a NULL-terminated array of strings, which has count strings.
  * This function duplicates the strings.

@@ -32,7 +32,8 @@ libjlib_la_SOURCES = \
     jprintf.c \
     jenviron.c \
     jthreadpool.c \
-    jquark.c
+    jquark.c \
+    jerror.c
 
 libjlib_la_LDFLAGS = -pthread
 
@@ -62,7 +63,8 @@ jlibsubinclude_HEADERS= \
     jprintf.h \
     jenviron.h \
     jthreadpool.h \
-    jquark.h
+    jquark.h \
+    jerror.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

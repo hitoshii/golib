@@ -23,6 +23,7 @@
 #include "jtypes.h"
 #include "jmem.h"
 #include "jquark.h"
+#include "jerror.h"
 #include "jenviron.h"
 #include "jprintf.h"
 #include "jatomic.h"

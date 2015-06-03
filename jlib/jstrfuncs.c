@@ -19,6 +19,7 @@
 #include "jstrfuncs.h"
 #include "jstring.h"
 #include "jmem.h"
+#include "jmessage.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -142,6 +143,51 @@ jchar *j_strnmdup(const jchar * str, juint n, juint m)
     return j_strndup(str + n, m - n);
 }
 
+jchar *j_stpcpy(jchar * dest, const jchar * src)
+{
+    j_return_val_if_fail(dest != NULL && src != NULL, NULL);
+#ifndef HAVE_STPCPY
+    return stpcpy(dest, src);
+#else
+    jchar *d = dest;
+    const jchar *s = src;
+
+    do {
+        *d++ = *s;
+    } while (*s++ != '\0');
+    return d - 1;
+#endif
+}
+
+jchar *j_strconcat(const jchar * string1, ...)
+{
+    j_return_val_if_fail(string1 != NULL, NULL);
+
+    jsize l = 1 + j_strlen(string1);
+
+    va_list args;
+    va_start(args, string1);
+    jchar *s = va_arg(args, jchar *);
+    while (s) {
+        l += strlen(s);
+        s = va_arg(args, jchar *);
+    }
+    va_end(args);
+
+    jchar *concat = (jchar *) j_new(jchar, l);
+    jchar *ptr = concat;
+
+    ptr = j_stpcpy(ptr, string1);
+    va_start(args, string1);
+    s = va_arg(args, jchar *);
+    while (s) {
+        ptr = j_stpcpy(ptr, s);
+        s = va_arg(args, jchar *);
+    }
+    va_end(args);
+
+    return concat;
+}
 
 /*
  * Removes trailing whitespace from a string.
