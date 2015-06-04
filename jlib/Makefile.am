@@ -33,7 +33,9 @@ libjlib_la_SOURCES = \
     jenviron.c \
     jthreadpool.c \
     jquark.c \
-    jerror.c
+    jerror.c \
+    jqueue.c \
+    jasyncqueue.c
 
 libjlib_la_LDFLAGS = -pthread
 
@@ -64,7 +66,9 @@ jlibsubinclude_HEADERS= \
     jenviron.h \
     jthreadpool.h \
     jquark.h \
-    jerror.h
+    jerror.h \
+    jqueue.h \
+    jasyncqueue.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

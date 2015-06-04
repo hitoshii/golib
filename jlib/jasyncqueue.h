@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,33 +15,15 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
+#ifndef __JLIB_ASYNC_QUEUE_H__
+#define __JLIB_ASYNC_QUEUE_H__
 
-#ifndef __JLIB_H__
-#define __JLIB_H__
-
-#include "jmacros.h"
-#include "jtypes.h"
-#include "jmem.h"
-#include "jquark.h"
-#include "jerror.h"
-#include "jenviron.h"
-#include "jmessage.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jqueue.h"
-#include "jasyncqueue.h"
-#include "jprintf.h"
-#include "jatomic.h"
 #include "jthread.h"
-#include "jthreadpool.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jarray.h"
-#include "jepoll.h"
-#include "jmain.h"
+
+typedef struct _JAsyncQueue JAsyncQueue;
+
+
+JAsyncQueue *j_async_queue_new(void);
 
 
 #endif

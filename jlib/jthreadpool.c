@@ -16,3 +16,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jthreadpool.h"
+
+
+typedef struct {
+    JThreadPool pool;
+} JRealThreadPool;
+
+
+/*
+ * 创建一个线程池
+ * @max_threads: 最大的线程数量，-1表示没有限制
+ * @exclusive: 线程池是否与其他线程池共享线程
+ */
+JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
+                               jint max_threads, jboolean exlusive,
+                               JError ** error)
+{
+    return NULL;
+}

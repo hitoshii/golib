@@ -56,18 +56,12 @@ JList *j_list_append(JList * l, jpointer data);
  */
 JList *j_list_prepend(JList * l, jpointer data);
 
-
 /*
- * Finds an element in a JList, using a supplied function to find the desired element. 
- * It iterates over the list, calling the given function which should return 0 
- * when the desired element is found. 
- * The function takes two gconstpointer arguments, the JList element's data 
- * as the first argument and the given user data.
+ * 查找包含data的元素
  */
-JList *j_list_find(JList * l, JCompareFunc compare,
-                   jconstpointer user_data);
-jpointer j_list_find_data(JList * l, JCompareFunc compare,
-                          jconstpointer user_data);
+JList *j_list_find(JList * l, jconstpointer data);
+jpointer j_list_find_custom(JList * l, JCompareFunc compare,
+                            jconstpointer user_data);
 
 /*
  * Returns the first element of the list
@@ -102,11 +96,35 @@ int j_list_compare(JList * l1, JList * l2, JCompareFunc compare);
  * If none of the elements contain the data, JList is unchanged.
  */
 JList *j_list_remove(JList * l, jpointer data);
+JList *j_list_remove_link(JList * l, JList * link);
 
 /*
  * Removes the node link from the list and frees it
  */
 JList *j_list_delete_link(JList * l, JList * link);
+
+JList *j_list_insert_before(JList * list, JList * sibling, jpointer data);
+
+/*
+ * 将双向列表倒转
+ */
+JList *j_list_reverse(JList * list);
+
+
+/*
+ * 排序
+ */
+JList *j_list_sort_with_data(JList * list, JCompareDataFunc compare,
+                             jpointer user_data);
+
+/*
+ * 查找link在list中的位置 
+ */
+jint j_list_position(JList * list, JList * link);
+/*
+ * 查找data在list中的位置
+ */
+jint j_list_index(JList * list, jconstpointer data);
 
 
 #endif
