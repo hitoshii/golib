@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
@@ -18,6 +18,7 @@
 #include "jhashtable.h"
 #include "jstrfuncs.h"
 #include "jmem.h"
+#include "jarray.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,7 +62,8 @@ struct _JHashTable {
     JKeyDestroyFunc key_func;
     JValueDestroyFunc value_func;
 
-    JList *keys;
+    // JList *keys;
+    JPtrArray *keys;
 
     JList **buckets;            /* buckets */
 };
@@ -129,7 +131,7 @@ JHashTable *j_hash_table_new(jushort index,
     h->size = prime_mod[index];
     h->mod = prime_mod[index];
     h->buckets = (JList **) calloc(sizeof(JList *), h->size);   /* init to NULL */
-    h->keys = NULL;
+    h->keys = j_ptr_array_new();
     h->equal_func = equal_func;
     h->hash_func = hash_func;
     h->key_func = key_func;
@@ -143,7 +145,7 @@ JHashTable *j_hash_table_new(jushort index,
  */
 juint j_hash_table_length(JHashTable * h)
 {
-    return j_list_length(h->keys);
+    return j_ptr_array_get_len(h->keys);
 }
 
 /*
@@ -160,25 +162,28 @@ static inline juint32 j_hash_table_index(JHashTable * h, jpointer key)
  * return the node that contains given key
  */
 static inline JHashTableNode *j_hash_table_find_node(JHashTable * h,
-                                                     jconstpointer key)
+                                                     jconstpointer
+                                                     user_data)
 {
-    JList *lp = h->keys;
-    while (lp) {
-        if (h->equal_func(lp->data, key) == 0) {
+    juint i, len = j_ptr_array_get_len(h->keys);
+    jpointer key = NULL;
+    for (i = 0; i < len; ++i) {
+        jpointer data = j_ptr_array_get_ptr(h->keys, i);
+        if (h->equal_func(data, user_data) == 0) {
+            key = data;
             break;
         }
-        lp = j_list_next(lp);
     }
-    if (lp == NULL) {
+    if (key == NULL) {
         return NULL;
     }
 
-    juint32 index = j_hash_table_index(h, lp->data);
+    juint32 index = j_hash_table_index(h, key);
     JList *bucket = h->buckets[index];
     JHashTableNode *node = NULL;
     while (bucket) {
         JHashTableNode *data = (JHashTableNode *) bucket->data;
-        if (data->key == lp->data) {
+        if (data->key == key) {
             node = data;
             break;
         }
@@ -194,7 +199,7 @@ jboolean j_hash_table_insert(JHashTable * h, jpointer key, jpointer value)
         juint32 index = j_hash_table_index(h, key);
         node = j_hash_table_node_new(key, value);
         h->buckets[index] = j_list_append(h->buckets[index], node);
-        h->keys = j_list_append(h->keys, node->key);
+        j_ptr_array_append_ptr(h->keys, node->key);
         return TRUE;
     }
     /* if already exists, update */
@@ -233,7 +238,7 @@ static inline jpointer j_hash_table_remove_internal(JHashTable * h,
 
     if (node) {
         juint32 index = j_hash_table_index(h, key);
-        h->keys = j_list_remove(h->keys, node->key);
+        j_ptr_array_remove(h->keys, node->key);
         h->buckets[index] = j_list_remove(h->buckets[index], node);
         if (value_func == NULL) {
             value = node->value;
@@ -274,17 +279,17 @@ jboolean j_hash_table_contains(JHashTable * h, jconstpointer key)
 void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func,
                           jpointer data)
 {
-    JList *key = h->keys;
-    while (key) {
-        JHashTableNode *node = j_hash_table_find_node(h, key->data);
+    juint i, len = j_ptr_array_get_len(h->keys);
+    for (i = 0; i < len; i++) {
+        jpointer data = j_ptr_array_get_ptr(h->keys, i);
+        JHashTableNode *node = j_hash_table_find_node(h, data);
         if (node) {
             node_func(node->key, node->value, data);
         }
-        key = j_list_next(key);
     }
 }
 
-JList *j_hash_table_get_keys(JHashTable * h)
+JPtrArray *j_hash_table_get_keys(JHashTable * h)
 {
     return h->keys;
 }
@@ -307,7 +312,7 @@ static void j_hash_table_free_internal(JHashTable * h,
         }
     }
     j_free(h->buckets);
-    j_list_free(h->keys);
+    j_ptr_array_free(h->keys, FALSE);
     j_free(h);
 }
 

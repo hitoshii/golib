@@ -156,7 +156,7 @@ jboolean j_epoll_has(JEPoll * p, jint fd)
 /*
  * 获取所有注册的文件描述符号
  */
-JList *j_epoll_fds(JEPoll * p)
+JPtrArray *j_epoll_fds(JEPoll * p)
 {
     return j_hash_table_get_keys(p->fds);
 }

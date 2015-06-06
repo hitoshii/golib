@@ -62,6 +62,7 @@ juint j_ptr_array_append_ptr(JPtrArray * pa, jpointer ptr);
 void j_ptr_array_append(JPtrArray * pa, ...);   /* Ends with NULL */
 void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index);
 
+#define j_ptr_array_get_ptr(a, i)  ((a)->data[i])
 jpointer j_ptr_array_get(JPtrArray * pa, juint index);
 jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
                           jpointer user_data);
@@ -69,14 +70,14 @@ jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
                             jpointer user_data);
 
 /*
- * Removes the first occurrence of the given pointer from the pointer array. 
- * The following elements are moved down one place. 
+ * Removes the first occurrence of the given pointer from the pointer array.
+ * The following elements are moved down one place.
  * If array has a non-NULL GDestroyNotify function it is called for the removed element.
  */
 jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr);
 
 /*
- * Removes the pointer at the given index from the pointer array. 
+ * Removes the pointer at the given index from the pointer array.
  * The following elements are moved down one place.
  * If array has a non-NULL GDestroyNotify function it is called for the removed element.
  */

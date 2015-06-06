@@ -19,7 +19,7 @@
 #define __JLIB_EPOLL_H__
 
 #include "jtypes.h"
-#include "jlist.h"
+#include "jarray.h"
 #include <sys/epoll.h>
 
 typedef struct _JEPoll JEPoll;
@@ -81,6 +81,6 @@ jboolean j_epoll_has(JEPoll * p, jint fd);
 /*
  * 获取所有注册的文件描述符号
  */
-JList *j_epoll_fds(JEPoll * p);
+JPtrArray *j_epoll_fds(JEPoll * p);
 
 #endif
