@@ -283,8 +283,8 @@ void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func,
     for (i = 0; i < len; i++) {
         jpointer data = j_ptr_array_get_ptr(h->keys, i);
         JHashTableNode *node = j_hash_table_find_node(h, data);
-        if (node) {
-            node_func(node->key, node->value, data);
+        if (!node_func(node->key, node->value, data)) {
+            break;
         }
     }
 }

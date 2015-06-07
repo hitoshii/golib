@@ -3,10 +3,10 @@
 #include <stdlib.h>
 
 
-int node(void *key, void *value, void *data)
+jboolean node(void *key, void *value, void *data)
 {
     printf("%s:%s\n", (char *) key, (char *) value);
-    return 0;
+    return TRUE;
 }
 
 int main(int argc, char *argv[])

@@ -54,8 +54,8 @@ typedef JDestroyNotify JValueDestroyFunc;
 /*
  *
  */
-typedef jint(*JNodeFunc) (jpointer key, jpointer value,
-                          jpointer user_data);
+typedef jboolean(*JNodeFunc) (jpointer key, jpointer value,
+                              jpointer user_data);
 
 /*
  * create a new WHastTable
