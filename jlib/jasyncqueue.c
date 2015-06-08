@@ -16,9 +16,68 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jasyncqueue.h"
+#include "jqueue.h"
+#include "jmem.h"
+#include "jmessage.h"
+#include "jatomic.h"
 
 
 struct _JAsyncQueue {
     JMutex mutex;
     JCond cond;
+    JQueue queue;
+    JDestroyNotify free_func;
+    juint waiting_threads;
+    jint ref;
 };
+
+JAsyncQueue *j_async_queue_new(void)
+{
+    return j_async_queue_new_full(NULL);
+}
+
+JAsyncQueue *j_async_queue_new_full(JDestroyNotify free_func)
+{
+    JAsyncQueue *queue = j_malloc(sizeof(JAsyncQueue));
+    j_mutex_init(&queue->mutex);
+    j_cond_init(&queue->cond);
+    j_queue_init(&queue->queue);
+    queue->waiting_threads = 0;
+    queue->ref = 1;
+    queue->free_func = free_func;
+
+    return queue;
+}
+
+void j_async_queue_ref(JAsyncQueue * queue)
+{
+    j_return_if_fail(queue != NULL);
+    j_atomic_int_inc(&queue->ref);
+}
+
+void j_async_queue_unref(JAsyncQueue * queue)
+{
+    j_return_if_fail(queue != NULL);
+    if (j_atomic_int_dec_and_test(&queue->ref)) {
+        j_return_if_fail(queue->waiting_threads == 0);
+        j_mutex_clear(&queue->mutex);
+        j_cond_clear(&queue->cond);
+        if (queue->free_func) {
+            j_queue_foreach(&queue->queue, (JFunc) queue->free_func, NULL);
+        }
+        j_queue_clear(&queue->queue);
+        j_free(queue);
+    }
+}
+
+void j_async_queue_lock(JAsyncQueue * queue)
+{
+    j_return_if_fail(queue != NULL);
+    j_mutex_lock(&queue->mutex);
+}
+
+void j_async_queue_unlock(JAsyncQueue * queue)
+{
+    j_return_if_fail(queue != NULL);
+    j_mutex_unlock(&queue->mutex);
+}

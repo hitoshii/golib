@@ -24,6 +24,14 @@ typedef struct _JAsyncQueue JAsyncQueue;
 
 
 JAsyncQueue *j_async_queue_new(void);
+JAsyncQueue *j_async_queue_new_full(JDestroyNotify free_func);
+
+void j_async_queue_ref(JAsyncQueue * queue);
+void j_async_queue_unref(JAsyncQueue * queue);
+
+void j_async_queue_lock(JAsyncQueue * queue);
+void j_async_queue_unlock(JAsyncQueue * queue);
+
 
 
 #endif
