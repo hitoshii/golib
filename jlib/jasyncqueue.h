@@ -32,6 +32,13 @@ void j_async_queue_unref(JAsyncQueue * queue);
 void j_async_queue_lock(JAsyncQueue * queue);
 void j_async_queue_unlock(JAsyncQueue * queue);
 
+void j_async_queue_push(JAsyncQueue * queue, jpointer data);
+void j_async_queue_push_unlocked(JAsyncQueue * queue, jpointer data);
+void j_async_queue_push_sorted(JAsyncQueue * queue, jpointer data,
+                               JCompareDataFunc func, jpointer user_data);
+void j_async_queue_push_sorted_unlocked(JAsyncQueue * queue, jpointer data,
+                                        JCompareDataFunc func,
+                                        jpointer user_data);
 
 
 #endif

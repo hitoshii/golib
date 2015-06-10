@@ -81,3 +81,54 @@ void j_async_queue_unlock(JAsyncQueue * queue)
     j_return_if_fail(queue != NULL);
     j_mutex_unlock(&queue->mutex);
 }
+
+void j_async_queue_push(JAsyncQueue * queue, jpointer data)
+{
+    j_return_if_fail(queue != NULL && data != NULL);
+    j_mutex_lock(&queue->mutex);
+    j_async_queue_push_unlocked(queue, data);
+    j_mutex_unlock(&queue->mutex);
+}
+
+void j_async_queue_push_unlocked(JAsyncQueue * queue, jpointer data)
+{
+    j_return_if_fail(queue != NULL && data != NULL);
+    j_queue_push_head(&queue->queue, data);
+    if (queue->waiting_threads > 0) {
+        j_cond_signal(&queue->cond);
+    }
+}
+
+void j_async_queue_push_sorted(JAsyncQueue * queue, jpointer data,
+                               JCompareDataFunc func, jpointer user_data)
+{
+    j_return_if_fail(queue != NULL);
+    j_mutex_lock(&queue->mutex);
+    j_async_queue_push_sorted_unlocked(queue, data, func, user_data);
+    j_mutex_unlock(&queue->mutex);
+}
+
+typedef struct {
+    JCompareDataFunc func;
+    jpointer user_data;
+} SortData;
+
+static jint j_async_queue_invert_compare(jpointer v1, jpointer v2,
+                                         SortData * sd)
+{
+    return -sd->func(v1, v2, sd->user_data);
+}
+
+void j_async_queue_push_sorted_unlocked(JAsyncQueue * queue, jpointer data,
+                                        JCompareDataFunc func,
+                                        jpointer user_data)
+{
+    j_return_if_fail(queue != NULL);
+    SortData sd = { func, user_data };
+    j_queue_insert_sorted(&queue->queue, data,
+                          (JCompareDataFunc) j_async_queue_invert_compare,
+                          &sd);
+    if (queue->waiting_threads > 0) {
+        j_cond_signal(&queue->cond);
+    }
+}
