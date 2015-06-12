@@ -31,7 +31,7 @@ typedef struct {
 static JHashTableNode *j_hash_table_node_new(jpointer key, jpointer value)
 {
     JHashTableNode *node =
-        (JHashTableNode *) malloc(sizeof(JHashTableNode));
+        (JHashTableNode *) j_malloc(sizeof(JHashTableNode));
     node->key = key;
     node->value = value;
     return node;
@@ -127,7 +127,7 @@ JHashTable *j_hash_table_new(jushort index,
         index = W_HASH_TABLE_DEFAULT_INDEX;
     }
 
-    JHashTable *h = (JHashTable *) malloc(sizeof(JHashTable));
+    JHashTable *h = (JHashTable *) j_malloc(sizeof(JHashTable));
     h->size = prime_mod[index];
     h->mod = prime_mod[index];
     h->buckets = (JList **) calloc(sizeof(JList *), h->size);   /* init to NULL */
