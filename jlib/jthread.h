@@ -59,6 +59,10 @@ void j_cond_init(JCond * cond);
 void j_cond_clear(JCond * cond);
 
 void j_cond_wait(JCond * cond, JMutex * mutex);
+/*
+ * 收到信号返回TRUE，如果是因为end_time超时则返回FALSE
+ */
+jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time);
 void j_cond_signal(JCond * cond);
 void j_cond_broadcast(JCond * cond);
 

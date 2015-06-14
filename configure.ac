@@ -6,6 +6,7 @@ LT_INIT
 
 #this line defines what compilation flags will be used
 AM_INIT_AUTOMAKE
+AM_SILENT_RULES([yes])
 
 # DEFINE DEFAULT configure PREFIX
 AC_PREFIX_DEFAULT(/usr)

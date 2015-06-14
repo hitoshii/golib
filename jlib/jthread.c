@@ -77,6 +77,15 @@ void j_cond_wait(JCond * cond, JMutex * mutex)
     pthread_cond_wait(&cond->impl, &mutex->impl);
 }
 
+jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time)
+{
+    struct timespec ts;
+    ts.tv_sec = end_time / 1000000;
+    ts.tv_nsec = (end_time % 1000000) * 1000;
+    jint status = pthread_cond_timedwait(&cond->impl, &mutex->impl, &ts);
+    return status == 0;
+}
+
 void j_cond_signal(JCond * cond)
 {
     pthread_cond_signal(&cond->impl);

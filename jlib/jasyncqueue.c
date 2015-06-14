@@ -108,27 +108,36 @@ void j_async_queue_push_sorted(JAsyncQueue * queue, jpointer data,
     j_mutex_unlock(&queue->mutex);
 }
 
-typedef struct {
-    JCompareDataFunc func;
-    jpointer user_data;
-} SortData;
-
-static jint j_async_queue_invert_compare(jpointer v1, jpointer v2,
-                                         SortData * sd)
-{
-    return -sd->func(v1, v2, sd->user_data);
-}
-
 void j_async_queue_push_sorted_unlocked(JAsyncQueue * queue, jpointer data,
                                         JCompareDataFunc func,
                                         jpointer user_data)
 {
     j_return_if_fail(queue != NULL);
-    SortData sd = { func, user_data };
-    j_queue_insert_sorted(&queue->queue, data,
-                          (JCompareDataFunc) j_async_queue_invert_compare,
-                          &sd);
+    j_queue_insert_sorted(&queue->queue, data, func, user_data);
     if (queue->waiting_threads > 0) {
         j_cond_signal(&queue->cond);
     }
+}
+
+static jpointer j_async_queue_pop_internal_unlocked(JAsyncQueue * queue,
+                                                    jboolean wait,
+                                                    jint64 end_time)
+{
+    if (!j_queue_peek_tail_link(&queue->queue) && wait) {
+        /* 如果队列的最后一个元素为空，且需要等待 */
+        queue->waiting_threads++;
+        while (!j_queue_peek_tail_link(&queue->queue)) {
+            if (end_time == -1) {
+                j_cond_wait(&queue->cond, &queue->mutex);
+            } else {
+                if (!j_cond_wait_until
+                    (&queue->cond, &queue->mutex, end_time)) {
+                    break;
+                }
+            }
+        }
+        queue->waiting_threads--;
+    }
+    jpointer retval = j_queue_pop_tail(&queue->queue);
+    return retval;
 }

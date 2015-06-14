@@ -53,7 +53,13 @@ void j_queue_push_tail_link(JQueue * queue, JList * link);
 void j_queue_push_nth_link(JQueue * queue, jint n, JList * link);
 jpointer j_queue_pop_head(JQueue * queue);
 jpointer j_queue_pop_head_link(JQueue * queue);
+/*
+ * 返回队列的第一个元素
+ */
 JList *j_queue_peek_head_link(JQueue * queue);
+/*
+ * 返回队列的最后一个元素
+ */
 JList *j_queue_peek_tail_link(JQueue * queue);
 jpointer j_queue_pop_tail(JQueue * queue);
 jpointer j_queue_pop_nth(JQueue * queue, juint n);
