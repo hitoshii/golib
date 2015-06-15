@@ -141,3 +141,34 @@ static jpointer j_async_queue_pop_internal_unlocked(JAsyncQueue * queue,
     jpointer retval = j_queue_pop_tail(&queue->queue);
     return retval;
 }
+
+jpointer j_async_queue_pop(JAsyncQueue * queue)
+{
+    j_return_val_if_fail(queue != NULL, NULL);
+    j_mutex_lock(&queue->mutex);
+    jpointer retval = j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
+    j_mutex_unlock(&queue->mutex);
+    return retval;
+}
+
+jpointer j_async_queue_pop_unlocked(JAsyncQueue * queue)
+{
+    j_return_val_if_fail(queue != NULL, NULL);
+    return j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
+}
+
+jpointer j_async_queue_try_pop(JAsyncQueue * queue)
+{
+    j_return_val_if_fail(queue != NULL, NULL);
+    j_mutex_lock(&queue->mutex);
+    jpointer retval =
+        j_async_queue_pop_internal_unlocked(queue, FALSE, -1);
+    j_mutex_unlock(&queue->mutex);
+    return retval;
+}
+
+jpointer j_async_queue_try_pop_unlocked(JAsyncQueue * queue)
+{
+    j_return_val_if_fail(queue != NULL, NULL);
+    return j_async_queue_pop_internal_unlocked(queue, FALSE, -1);
+}
