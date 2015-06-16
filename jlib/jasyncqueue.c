@@ -51,13 +51,11 @@ JAsyncQueue *j_async_queue_new_full(JDestroyNotify free_func)
 
 void j_async_queue_ref(JAsyncQueue * queue)
 {
-    j_return_if_fail(queue != NULL);
     j_atomic_int_inc(&queue->ref);
 }
 
 void j_async_queue_unref(JAsyncQueue * queue)
 {
-    j_return_if_fail(queue != NULL);
     if (j_atomic_int_dec_and_test(&queue->ref)) {
         j_return_if_fail(queue->waiting_threads == 0);
         j_mutex_clear(&queue->mutex);
@@ -72,19 +70,17 @@ void j_async_queue_unref(JAsyncQueue * queue)
 
 void j_async_queue_lock(JAsyncQueue * queue)
 {
-    j_return_if_fail(queue != NULL);
     j_mutex_lock(&queue->mutex);
 }
 
 void j_async_queue_unlock(JAsyncQueue * queue)
 {
-    j_return_if_fail(queue != NULL);
     j_mutex_unlock(&queue->mutex);
 }
 
 void j_async_queue_push(JAsyncQueue * queue, jpointer data)
 {
-    j_return_if_fail(queue != NULL && data != NULL);
+    j_return_if_fail(data != NULL);
     j_mutex_lock(&queue->mutex);
     j_async_queue_push_unlocked(queue, data);
     j_mutex_unlock(&queue->mutex);
@@ -92,7 +88,7 @@ void j_async_queue_push(JAsyncQueue * queue, jpointer data)
 
 void j_async_queue_push_unlocked(JAsyncQueue * queue, jpointer data)
 {
-    j_return_if_fail(queue != NULL && data != NULL);
+    j_return_if_fail(data != NULL);
     j_queue_push_head(&queue->queue, data);
     if (queue->waiting_threads > 0) {
         j_cond_signal(&queue->cond);
@@ -102,7 +98,6 @@ void j_async_queue_push_unlocked(JAsyncQueue * queue, jpointer data)
 void j_async_queue_push_sorted(JAsyncQueue * queue, jpointer data,
                                JCompareDataFunc func, jpointer user_data)
 {
-    j_return_if_fail(queue != NULL);
     j_mutex_lock(&queue->mutex);
     j_async_queue_push_sorted_unlocked(queue, data, func, user_data);
     j_mutex_unlock(&queue->mutex);
@@ -112,7 +107,6 @@ void j_async_queue_push_sorted_unlocked(JAsyncQueue * queue, jpointer data,
                                         JCompareDataFunc func,
                                         jpointer user_data)
 {
-    j_return_if_fail(queue != NULL);
     j_queue_insert_sorted(&queue->queue, data, func, user_data);
     if (queue->waiting_threads > 0) {
         j_cond_signal(&queue->cond);
@@ -144,7 +138,6 @@ static jpointer j_async_queue_pop_internal_unlocked(JAsyncQueue * queue,
 
 jpointer j_async_queue_pop(JAsyncQueue * queue)
 {
-    j_return_val_if_fail(queue != NULL, NULL);
     j_mutex_lock(&queue->mutex);
     jpointer retval = j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
     j_mutex_unlock(&queue->mutex);
@@ -153,13 +146,11 @@ jpointer j_async_queue_pop(JAsyncQueue * queue)
 
 jpointer j_async_queue_pop_unlocked(JAsyncQueue * queue)
 {
-    j_return_val_if_fail(queue != NULL, NULL);
     return j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
 }
 
 jpointer j_async_queue_try_pop(JAsyncQueue * queue)
 {
-    j_return_val_if_fail(queue != NULL, NULL);
     j_mutex_lock(&queue->mutex);
     jpointer retval =
         j_async_queue_pop_internal_unlocked(queue, FALSE, -1);
@@ -169,6 +160,5 @@ jpointer j_async_queue_try_pop(JAsyncQueue * queue)
 
 jpointer j_async_queue_try_pop_unlocked(JAsyncQueue * queue)
 {
-    j_return_val_if_fail(queue != NULL, NULL);
     return j_async_queue_pop_internal_unlocked(queue, FALSE, -1);
 }
