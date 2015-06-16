@@ -249,21 +249,13 @@ JList *j_queue_peek_tail_link(JQueue * queue)
 
 jpointer j_queue_pop_tail(JQueue * queue)
 {
-    if (queue->tail) {
-        JList *node = queue->tail;
-        jpointer data = j_list_data(queue->tail);
-
-        queue->tail = j_list_prev(node);
-        if (queue->tail) {
-            queue->tail->next = NULL;
-        } else {
-            queue->head = NULL;
-        }
-        j_list_free1(queue->tail, NULL);
-        queue->length--;
-        return data;
+    jpointer data = NULL;
+    JList *node = j_queue_pop_tail_link(queue);
+    if (node) {
+        data = j_list_data(node);
+        j_list_free1(node, NULL);
     }
-    return NULL;
+    return data;
 }
 
 jpointer j_queue_pop_nth(JQueue * queue, juint n)

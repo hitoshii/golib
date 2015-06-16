@@ -90,10 +90,12 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT)
+	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT) \
+	test-asyncqueue$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT)
+	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT) \
+	test-asyncqueue$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -111,6 +113,9 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_asyncqueue_OBJECTS = test-asyncqueue.$(OBJEXT)
+test_asyncqueue_OBJECTS = $(am_test_asyncqueue_OBJECTS)
+test_asyncqueue_LDADD = $(LDADD)
 am_test_hashtable_OBJECTS = test-hashtable.$(OBJEXT)
 test_hashtable_OBJECTS = $(am_test_hashtable_OBJECTS)
 test_hashtable_LDADD = $(LDADD)
@@ -166,14 +171,16 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test_array_SOURCES) $(test_hashtable_SOURCES) \
-	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_quark_SOURCES) $(test_queue_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES)
-DIST_SOURCES = $(test_array_SOURCES) $(test_hashtable_SOURCES) \
-	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_quark_SOURCES) $(test_queue_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES)
+SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
+	$(test_hashtable_SOURCES) $(test_main_SOURCES) \
+	$(test_message_SOURCES) $(test_quark_SOURCES) \
+	$(test_queue_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES)
+DIST_SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
+	$(test_hashtable_SOURCES) $(test_main_SOURCES) \
+	$(test_message_SOURCES) $(test_quark_SOURCES) \
+	$(test_queue_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -561,6 +568,9 @@ test_quark_SOURCES = \
 test_queue_SOURCES = \
     test-queue.c
 
+test_asyncqueue_SOURCES = \
+    test-asyncqueue.c
+
 all: all-am
 
 .SUFFIXES:
@@ -608,6 +618,10 @@ test-array$(EXEEXT): $(test_array_OBJECTS) $(test_array_DEPENDENCIES) $(EXTRA_te
 	@rm -f test-array$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_array_OBJECTS) $(test_array_LDADD) $(LIBS)
 
+test-asyncqueue$(EXEEXT): $(test_asyncqueue_OBJECTS) $(test_asyncqueue_DEPENDENCIES) $(EXTRA_test_asyncqueue_DEPENDENCIES) 
+	@rm -f test-asyncqueue$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_asyncqueue_OBJECTS) $(test_asyncqueue_LDADD) $(LIBS)
+
 test-hashtable$(EXEEXT): $(test_hashtable_OBJECTS) $(test_hashtable_DEPENDENCIES) $(EXTRA_test_hashtable_DEPENDENCIES) 
 	@rm -f test-hashtable$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_hashtable_OBJECTS) $(test_hashtable_LDADD) $(LIBS)
@@ -643,6 +657,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-array.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-asyncqueue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
@@ -923,6 +938,13 @@ test-quark.log: test-quark$(EXEEXT)
 test-queue.log: test-queue$(EXEEXT)
 	@p='test-queue$(EXEEXT)'; \
 	b='test-queue'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-asyncqueue.log: test-asyncqueue$(EXEEXT)
+	@p='test-asyncqueue$(EXEEXT)'; \
+	b='test-asyncqueue'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

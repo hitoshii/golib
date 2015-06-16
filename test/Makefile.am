@@ -25,7 +25,8 @@ noinst_PROGRAMS= \
     test-main \
     test-message \
     test-quark \
-    test-queue
+    test-queue \
+    test-asyncqueue
 
 TESTS=\
     test-string \
@@ -35,7 +36,8 @@ TESTS=\
     test-main \
     test-message \
     test-quark \
-    test-queue
+    test-queue \
+    test-asyncqueue
 
 test_string_SOURCES = \
 	test-string.c
@@ -60,6 +62,9 @@ test_quark_SOURCES = \
 
 test_queue_SOURCES = \
     test-queue.c
+
+test_asyncqueue_SOURCES = \
+    test-asyncqueue.c
 
 clean-local:
 	indent -kr -ts4 -nut *.c

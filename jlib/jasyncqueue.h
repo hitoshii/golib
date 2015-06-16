@@ -44,4 +44,17 @@ jpointer j_async_queue_pop(JAsyncQueue * queue);
 jpointer j_async_queue_pop_unlocked(JAsyncQueue * queue);
 jpointer j_async_queue_try_pop(JAsyncQueue * queue);
 
+jpointer j_async_queue_timeout_pop(JAsyncQueue * queue, juint64 timeout);
+jpointer j_async_queue_timeout_pop_unlocked(JAsyncQueue * queue,
+                                            juint64 timeout);
+
+jint j_async_queue_length(JAsyncQueue * queue);
+jint j_async_queue_length_unlocked(JAsyncQueue * queue);
+
+void j_async_queue_sort(JAsyncQueue * queue, JCompareDataFunc func,
+                        jpointer user_data);
+void j_async_queue_sort_unlocked(JAsyncQueue * queue,
+                                 JCompareDataFunc func,
+                                 jpointer user_data);
+
 #endif
