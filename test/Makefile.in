@@ -90,10 +90,10 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT) test-quark$(EXEEXT)
+	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT) test-quark$(EXEEXT)
+	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -123,6 +123,9 @@ test_message_LDADD = $(LDADD)
 am_test_quark_OBJECTS = test-quark.$(OBJEXT)
 test_quark_OBJECTS = $(am_test_quark_OBJECTS)
 test_quark_LDADD = $(LDADD)
+am_test_queue_OBJECTS = test-queue.$(OBJEXT)
+test_queue_OBJECTS = $(am_test_queue_OBJECTS)
+test_queue_LDADD = $(LDADD)
 am_test_string_OBJECTS = test-string.$(OBJEXT)
 test_string_OBJECTS = $(am_test_string_OBJECTS)
 test_string_LDADD = $(LDADD)
@@ -165,12 +168,12 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_array_SOURCES) $(test_hashtable_SOURCES) \
 	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_quark_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES)
+	$(test_quark_SOURCES) $(test_queue_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_hashtable_SOURCES) \
 	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_quark_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES)
+	$(test_quark_SOURCES) $(test_queue_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -520,19 +523,19 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = \
-	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
-	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
-	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
-	-DPACKAGE_TEST_DIR=\""$(top_srcdir)/test"\" \
-	$(jlib_INCLUDE)
+    -DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
+    -DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
+    -DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+    -DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
+    -DPACKAGE_TEST_DIR=\""$(top_srcdir)/test"\" \
+    $(jlib_INCLUDE)
 
 AM_CFLAGS = \
-	 -Wall\
-	 -g
+    -Wall\
+    -g
 
 AM_LDFLAGS = \
-	$(jlib_ADD) 
+    $(jlib_ADD)
 
 test_string_SOURCES = \
 	test-string.c
@@ -554,6 +557,9 @@ test_message_SOURCES = \
 
 test_quark_SOURCES = \
     test-quark.c
+
+test_queue_SOURCES = \
+    test-queue.c
 
 all: all-am
 
@@ -618,6 +624,10 @@ test-quark$(EXEEXT): $(test_quark_OBJECTS) $(test_quark_DEPENDENCIES) $(EXTRA_te
 	@rm -f test-quark$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_quark_OBJECTS) $(test_quark_LDADD) $(LIBS)
 
+test-queue$(EXEEXT): $(test_queue_OBJECTS) $(test_queue_DEPENDENCIES) $(EXTRA_test_queue_DEPENDENCIES) 
+	@rm -f test-queue$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_queue_OBJECTS) $(test_queue_LDADD) $(LIBS)
+
 test-string$(EXEEXT): $(test_string_OBJECTS) $(test_string_DEPENDENCIES) $(EXTRA_test_string_DEPENDENCIES) 
 	@rm -f test-string$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_string_OBJECTS) $(test_string_LDADD) $(LIBS)
@@ -637,6 +647,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-quark.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-queue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-string.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-thread.Po@am__quote@
 
@@ -909,6 +920,13 @@ test-quark.log: test-quark$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-queue.log: test-queue$(EXEEXT)
+	@p='test-queue$(EXEEXT)'; \
+	b='test-queue'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -1084,7 +1102,7 @@ uninstall-am:
 
 clean-local:
 	indent -kr -ts4 -nut *.c
-	rm -f *~ 
+	rm -f *~
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -53,6 +53,12 @@ void j_queue_clear(JQueue * queue)
     j_queue_init(queue);
 }
 
+void j_queue_clear_full(JQueue * queue, JDestroyNotify destroy)
+{
+    j_list_free_full(queue->head, destroy);
+    j_queue_init(queue);
+}
+
 jboolean j_queue_is_empty(JQueue * queue)
 {
     return queue->length == 0;

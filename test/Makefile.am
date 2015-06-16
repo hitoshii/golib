@@ -3,28 +3,29 @@
 ## Created by Anjuta
 
 AM_CPPFLAGS = \
-	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
-	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
-	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
-	-DPACKAGE_TEST_DIR=\""$(top_srcdir)/test"\" \
-	$(jlib_INCLUDE)
+    -DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
+    -DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
+    -DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+    -DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
+    -DPACKAGE_TEST_DIR=\""$(top_srcdir)/test"\" \
+    $(jlib_INCLUDE)
 
 AM_CFLAGS =\
-	 -Wall\
-	 -g
+    -Wall\
+    -g
 
 AM_LDFLAGS =\
-	$(jlib_ADD) 
+    $(jlib_ADD)
 
 noinst_PROGRAMS= \
-	test-string \
-	test-hashtable \
-	test-array \
-	test-thread \
-	test-main \
-	test-message \
-	test-quark
+    test-string \
+    test-hashtable \
+    test-array \
+    test-thread \
+    test-main \
+    test-message \
+    test-quark \
+    test-queue
 
 TESTS=\
     test-string \
@@ -33,7 +34,8 @@ TESTS=\
     test-thread \
     test-main \
     test-message \
-    test-quark
+    test-quark \
+    test-queue
 
 test_string_SOURCES = \
 	test-string.c
@@ -56,6 +58,9 @@ test_message_SOURCES = \
 test_quark_SOURCES = \
     test-quark.c
 
+test_queue_SOURCES = \
+    test-queue.c
+
 clean-local:
 	indent -kr -ts4 -nut *.c
-	rm -f *~ 
+	rm -f *~

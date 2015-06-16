@@ -35,6 +35,7 @@ void j_queue_free(JQueue * queue);
 void j_queue_free_full(JQueue * queue, JDestroyNotify destroy);
 void j_queue_init(JQueue * queue);
 void j_queue_clear(JQueue * queue);
+void j_queue_clear_full(JQueue * queue, JDestroyNotify destroy);
 jboolean j_queue_is_empty(JQueue * queue);
 juint j_queue_get_length(JQueue * queue);
 void j_queue_reverse(JQueue * queue);
