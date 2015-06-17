@@ -35,8 +35,11 @@ typedef struct {
  * @exclusive: 线程池是否与其他线程池共享线程
  */
 JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
-                               jint max_threads, jboolean exlusive,
+                               jint max_threads, jboolean exclusive,
                                JError ** error);
+
+void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
+                        jboolean wait);
 
 
 #endif

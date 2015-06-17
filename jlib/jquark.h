@@ -41,5 +41,8 @@ JQuark j_quark_from_static_string(const jchar * string);
 JQuark j_quark_from_string(const jchar * string);
 const jchar *j_quark_to_string(JQuark quark) J_GNUC_CONST;
 
+const jchar *j_internal_string(const jchar * string);
+const jchar *j_internal_static_string(const jchar * string);
+
 
 #endif

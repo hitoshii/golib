@@ -19,7 +19,9 @@
 #include "jmem.h"
 #include "jstrfuncs.h"
 #include "jatomic.h"
+#include "jquark.h"
 #include <stdlib.h>
+#include <string.h>
 
 struct _JThread {
     pthread_t posix;
@@ -36,6 +38,16 @@ struct _JThread {
     jint ref;
     jpointer retval;
 };
+
+#define J_THREAD_ERROR j_thread_error_quark()
+JQuark j_thread_error_quark(void)
+{
+    return j_quark_from_static_string("thread_error");
+}
+
+typedef enum {
+    J_THREAD_ERROR_AGAIN
+} JThreadError;
 
 void j_mutex_init(JMutex * mutex)
 {
@@ -154,36 +166,45 @@ static jpointer thread_func_proxy(jpointer data)
     return NULL;
 }
 
-static inline JThread *j_thread_new_internal(JThreadFunc func,
-                                             jpointer data)
+static inline JThread *j_thread_new_internal(const jchar * name,
+                                             JThreadFunc func,
+                                             jpointer data,
+                                             JError ** error)
 {
+    J_LOCK(j_thread_new);
     JThread *thread = (JThread *) j_malloc(sizeof(JThread));
     jint ret =
         pthread_create(&thread->posix, NULL, thread_func_proxy, thread);
     if (ret) {
         j_free(thread);
+        j_set_error(error, J_THREAD_ERROR, J_THREAD_ERROR_AGAIN,
+                    "Error creating thread: %s", strerror(ret));
         return NULL;
     }
     j_mutex_init(&thread->lock);
+    thread->name = j_strdup(name);
+    thread->joinable = TRUE;
+    thread->joined = FALSE;
+    thread->func = func;
+    thread->data = data;
+    thread->jlibs = TRUE;
+    thread->ref = 2;
+    J_UNLOCK(j_thread_new);
     return thread;
 }
 
 JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data)
 {
-    JThread *thread = NULL;
-    J_LOCK(j_thread_new);
-    thread = j_thread_new_internal(func, data);
-    if (thread) {
-        thread->name = j_strdup(name);
-        thread->joinable = TRUE;
-        thread->joined = FALSE;
-        thread->func = func;
-        thread->data = data;
-        thread->jlibs = TRUE;
-        thread->ref = 2;
-    }
-    J_UNLOCK(j_thread_new);
+    JThread *thread = j_thread_new_internal(name, func, data, NULL);
     return thread;
+}
+
+JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
+                          jpointer data, JError ** error)
+{
+    JThread *thread = j_thread_new_internal(name, func, data, error);
+    return thread;
+
 }
 
 static inline void j_thread_join_internal(JThread * thread)

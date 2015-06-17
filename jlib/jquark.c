@@ -170,3 +170,27 @@ static inline JQuark quark_from_string(const jchar * string,
 
     return quark;
 }
+
+const jchar *j_internal_string(const jchar * string)
+{
+    if (!string) {
+        return NULL;
+    }
+    J_LOCK(quark_global);
+    JQuark quark = quark_from_string(string, TRUE);
+    const jchar *result = quarks[quark];
+    J_UNLOCK(quark_global);
+    return result;
+}
+
+const jchar *j_internal_static_string(const jchar * string)
+{
+    if (!string) {
+        return NULL;
+    }
+    J_LOCK(quark_global);
+    JQuark quark = quark_from_string(string, FALSE);
+    const jchar *result = quarks[quark];
+    J_UNLOCK(quark_global);
+    return result;
+}
