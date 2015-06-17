@@ -41,11 +41,20 @@ typedef struct {
 static JAsyncQueue *unused_thread_queue = NULL;
 
 
+static void j_thread_pool_free_internal(JRealThreadPool * pool);
+
+
 /* 启动线程池的线程 */
 static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
                                            JError ** error);
 /* 线程代理 */
 static jpointer j_thread_pool_thread_proxy(jpointer data);
+/* 如果该函数返回NULL，则线程会进入公共线程池 */
+static jpointer j_thread_pool_wait_for_new_task(JRealThreadPool * pool);
+
+static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool);
+
+static JRealThreadPool *j_thread_pool_wait_for_new_pool(void);
 
 /*
  * 创建一个线程池
@@ -129,6 +138,113 @@ static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
 }
 
 static jpointer j_thread_pool_thread_proxy(jpointer data)
+{
+    JRealThreadPool *pool = (JRealThreadPool *) data;
+
+    j_async_queue_lock(pool->queue);
+
+    while (TRUE) {
+        jpointer task = j_thread_pool_wait_for_new_task(pool);
+        if (task) {
+            if (pool->running || !pool->immediate) {
+                /* 收到一个任务，并且线程池还是活跃的，执行任务 */
+                j_async_queue_unlock(pool->queue);
+                pool->pool.func(task, pool->pool.user_data);
+                j_async_queue_lock(pool->queue);
+                continue;
+            }
+        }
+        /* "善后"工作 */
+        jboolean free_pool = FALSE;
+        pool->num_threads--;
+        if (!pool->running) {
+            if (!pool->waiting) {
+                if (pool->num_threads == 0) {
+                    /* 如果线程池已经不活跃，没有线程在等待线程池结束，
+                     * 而且这是最后的线程，则释放该线程池 */
+                    free_pool = TRUE;
+                } else {
+                    /* 如果线程池已经不再活跃，没有线程在等待
+                     * 但此线程不是最后的线程，队列里也没有剩余的任务，
+                     * 则唤醒其他线程 */
+                    if (j_async_queue_length_unlocked(pool->queue) ==
+                        -pool->num_threads) {
+                        j_thread_pool_wakeup_and_stop_all(pool);
+                    }
+                }
+            } else if (pool->immediate ||
+                       j_async_queue_length_unlocked(pool->queue) <= 0) {
+                /* 如果线程池已经不活跃，但是有线程在等待它结束，
+                 * 没有额外的任务或者线程池被要求立即中止
+                 * 通知在等待的线程该线程的状态已经改变
+                 */
+                j_cond_broadcast(&pool->cond);
+            }
+        }
+        j_async_queue_unlock(pool->queue);
+        if (free_pool) {
+            j_thread_pool_free_internal(pool);
+        }
+        if ((pool = j_thread_pool_wait_for_new_pool()) == NULL) {
+            break;
+        }
+
+        j_async_queue_lock(pool->queue);
+    }
+    return NULL;
+}
+
+static jpointer j_thread_pool_wait_for_new_task(JRealThreadPool * pool)
+{
+    jpointer task = NULL;
+    if (pool->running || (pool->immediate == FALSE &&
+                          j_async_queue_length_unlocked(pool->queue) >
+                          0)) {
+        /* 该线程池是活跃的 */
+        if (pool->num_threads > pool->max_threads
+            && pool->max_threads != -1) {
+            /* 线程过多 */
+            j_debug("superfluous thread %p in pool %p.", j_thread_self(),
+                    pool);
+        } else if (pool->pool.exclusive) {
+            /* 如果线程池是独占的，那么该线程池创建的线程永远都只为该线程池服务 */
+            task = j_async_queue_pop_unlocked(pool->queue);
+        } else {
+            /* 如果线程池不是独占的，那么该线程池创建的线程等待500毫秒后进入公共线程池 */
+            task = j_async_queue_timeout_pop_unlocked(pool->queue, 500000);
+        }
+    } else {
+        j_debug("pool %p not active, thread %p will go to global pool"
+                "(running: %s, immediate: %s, len: %d)",
+                pool, j_thread_self(), pool->running ? "true" : "false",
+                pool->immediate ? "true" : "false",
+                j_async_queue_length_unlocked(pool->queue));
+    }
+    return task;
+}
+
+static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool)
+{
+    j_return_if_fail(pool->running == FALSE);
+    j_return_if_fail(pool->num_threads != 0);
+    pool->immediate = TRUE;
+
+    jint i;
+    /* 给线程发送1后，线程会第一次会发现线程已经不再活跃，不会执行任何任务
+     * 第三次执行j_thread_pool_wait_for_new_task()会返回NULL
+     * 这时它会进入"善后"工作
+     */
+    for (i = 0; i < pool->num_threads; i++) {
+        j_async_queue_push_unlocked(pool->queue, JUINT_TO_JPOINTER(1));
+    }
+}
+
+static void j_thread_pool_free_internal(JRealThreadPool * pool)
+{
+    /* TODO */
+}
+
+static JRealThreadPool *j_thread_pool_wait_for_new_pool(void)
 {
     return NULL;
 }
