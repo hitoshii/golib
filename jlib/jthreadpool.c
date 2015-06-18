@@ -51,10 +51,11 @@ static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
 static jpointer j_thread_pool_thread_proxy(jpointer data);
 /* 如果该函数返回NULL，则线程会进入公共线程池 */
 static jpointer j_thread_pool_wait_for_new_task(JRealThreadPool * pool);
-
-static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool);
-
+/* 为线程寻找一个合适的线程池 */
 static JRealThreadPool *j_thread_pool_wait_for_new_pool(void);
+
+/* 唤醒线程池中其他所有的线程，并结束线程池 */
+static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool);
 
 /*
  * 创建一个线程池
@@ -231,7 +232,6 @@ static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool)
 
     jint i;
     /* 给线程发送1后，线程会第一次会发现线程已经不再活跃，不会执行任何任务
-     * 第三次执行j_thread_pool_wait_for_new_task()会返回NULL
      * 这时它会进入"善后"工作
      */
     for (i = 0; i < pool->num_threads; i++) {
@@ -241,10 +241,17 @@ static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool)
 
 static void j_thread_pool_free_internal(JRealThreadPool * pool)
 {
-    /* TODO */
+    j_return_if_fail(pool->running == FALSE);
+    j_return_if_fail(pool->num_threads == 0);
+
+    j_async_queue_unref(pool->queue);
+    j_cond_clear(&pool->cond);
+
+    j_free(pool);
 }
 
 static JRealThreadPool *j_thread_pool_wait_for_new_pool(void)
 {
+    /* TODO */
     return NULL;
 }
