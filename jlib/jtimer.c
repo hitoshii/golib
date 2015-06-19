@@ -17,3 +17,20 @@
  */
 
 #include "jtimer.h"
+#include <time.h>
+#include <errno.h>
+
+
+/*
+ * 睡眠微秒
+ * 1秒=1000000微秒
+ */
+void j_usleep(julong microseconds)
+{
+    struct timespec request, remaining;
+    request.tv_sec = microseconds / 1000000;
+    request.tv_nsec = 1000 * (microseconds % 1000000);
+    while (nanosleep(&request, &remaining) == -1 && errno == EINTR) {
+        request = remaining;
+    }
+}

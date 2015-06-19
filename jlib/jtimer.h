@@ -18,6 +18,13 @@
 #ifndef __JLIB_TIMER_H__
 #define __JLIB_TIMER_H__
 
+#include "jtypes.h"
 
+
+/*
+ * 睡眠微秒
+ * 1秒=1000000微秒
+ */
+void j_usleep(julong microseconds);
 
 #endif

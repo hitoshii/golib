@@ -19,6 +19,8 @@
 #include "jasyncqueue.h"
 #include "jmessage.h"
 #include "jthread.h"
+#include "jatomic.h"
+#include "jtimer.h"
 #include "jmem.h"
 
 
@@ -37,8 +39,16 @@ typedef struct {
 } JRealThreadPool;
 
 
+static const jpointer wakeup_thread_marker =
+    (jpointer) & j_thread_pool_new;
+static jint wakeup_thread_serial = 0;
+
 /* 未被使用的线程都等待unused_thread_queue */
 static JAsyncQueue *unused_thread_queue = NULL;
+static jint unused_threads = 0;
+static jint max_unused_threads = 2;
+static jint kill_unused_threads = 0;
+static jint max_idle_time = 15 * 1000;
 
 
 static void j_thread_pool_free_internal(JRealThreadPool * pool);
@@ -252,6 +262,56 @@ static void j_thread_pool_free_internal(JRealThreadPool * pool)
 
 static JRealThreadPool *j_thread_pool_wait_for_new_pool(void)
 {
-    /* TODO */
-    return NULL;
+    jint local_wakeup_thread_serial;
+    juint local_max_unused_threads;
+    jint local_max_idle_time;
+    jint last_wakeup_thread_serial;
+    jboolean have_relayed_thread_marker = FALSE;
+
+    local_max_unused_threads = j_atomic_int_get(&max_unused_threads);
+    local_max_idle_time = j_atomic_int_get(&max_idle_time);
+    last_wakeup_thread_serial = j_atomic_int_get(&wakeup_thread_serial);
+
+    j_atomic_int_inc(&unused_threads);
+
+    JRealThreadPool *pool = NULL;
+    do {
+        if (j_atomic_int_get(&unused_threads) >= local_max_unused_threads) {
+            /* 未使用的线程数量过多 */
+            pool = NULL;
+        } else if (local_max_idle_time > 0) {
+            /* 如果最大等待时间设置了，那么等待该时间 */
+            pool = j_async_queue_timeout_pop(unused_thread_queue,
+                                             local_max_idle_time * 1000);
+        } else {                /* 否则永久等待 */
+            pool = j_async_queue_pop(unused_thread_queue);
+        }
+
+        if (pool == wakeup_thread_marker) {
+            local_wakeup_thread_serial =
+                j_atomic_int_get(&wakeup_thread_serial);
+            if (local_wakeup_thread_serial == last_wakeup_thread_serial) {
+                if (!have_relayed_thread_marker) {
+                    /* 如果该唤醒指针第二次收到了，则重新放入队列 */
+                    j_async_queue_push(unused_thread_queue,
+                                       wakeup_thread_marker);
+                    have_relayed_thread_marker = TRUE;
+                    j_usleep(100);
+                }
+            }
+        } else {
+            if (j_atomic_int_add(&kill_unused_threads, -1) > 0) {
+                pool = NULL;
+                break;
+            }
+            local_max_unused_threads =
+                j_atomic_int_get(&max_unused_threads);
+            local_max_idle_time = j_atomic_int_get(&max_idle_time);
+            last_wakeup_thread_serial = local_wakeup_thread_serial;
+
+            have_relayed_thread_marker = FALSE;
+        }
+    } while (pool == wakeup_thread_marker);
+    j_atomic_int_add(&unused_threads, -1);
+    return pool;
 }
