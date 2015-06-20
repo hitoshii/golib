@@ -39,7 +39,7 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
                                JError ** error);
 
 void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
-                        jboolean wait);
+                        jboolean waiting);
 
 
 #endif

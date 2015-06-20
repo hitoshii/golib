@@ -32,13 +32,16 @@ typedef struct {
     jint num_threads;           /* 当前线程数 */
     jboolean running;           /* 线程池正在执行 */
     jboolean immediate;         /* 线程池是否立即关闭 */
-    jboolean waiting;           /* 调用函数是否等待任务结束 */
+    jboolean waiting;           /* 调用函数是否等待线程池结束 */
 
     JCompareDataFunc sort_func;
     jpointer sort_user_data;
 } JRealThreadPool;
 
 
+/*
+ * wakeup_thread_marker可以是任意的非空指针，用来唤醒队列中的等待线程
+ */
 static const jpointer wakeup_thread_marker =
     (jpointer) & j_thread_pool_new;
 static jint wakeup_thread_serial = 0;
@@ -59,9 +62,9 @@ static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
                                            JError ** error);
 /* 线程代理 */
 static jpointer j_thread_pool_thread_proxy(jpointer data);
-/* 如果该函数返回NULL，则线程会进入公共线程池 */
+/* 线程等待新任务，如果该函数返回NULL，则线程会进入公共线程池 */
 static jpointer j_thread_pool_wait_for_new_task(JRealThreadPool * pool);
-/* 为线程寻找一个合适的线程池 */
+/* 线程现在空闲，为它寻找一个新的线程池 */
 static JRealThreadPool *j_thread_pool_wait_for_new_pool(void);
 
 /* 唤醒线程池中其他所有的线程，并结束线程池 */
@@ -112,6 +115,46 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
         j_async_queue_unlock(pool->queue);
     }
     return (JThreadPool *) pool;
+}
+
+void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
+                        jboolean waiting)
+{
+    JRealThreadPool *real = (JRealThreadPool *) pool;
+    j_return_if_fail(real->running);
+
+    /* 如果线程池中不允许有线程，并且任务不为空，那么应该立即结束 */
+    j_return_if_fail(immediate || real->max_threads != 0 ||
+                     j_async_queue_length(real->queue) == 0);
+
+    j_async_queue_lock(real->queue);
+    real->running = FALSE;
+    real->immediate = immediate;
+    real->waiting = waiting;
+
+    if (waiting) {
+        while (j_async_queue_length_unlocked(real->queue) !=
+               -real->num_threads && !(immediate
+                                       && real->num_threads == 0)) {
+            /* 等待线程完成任务 */
+            j_cond_wait(&real->cond, j_async_queue_get_mutex(real->queue));
+        }
+    }
+
+    if (immediate
+        || j_async_queue_length_unlocked(real->queue) ==
+        -real->num_threads) {
+        if (real->num_threads == 0) {
+            /* 如果已经没有线程在执行了，做最后的清理 */
+            j_async_queue_unlock(real->queue);
+            j_thread_pool_free_internal(real);
+            return;
+        }
+        j_thread_pool_wakeup_and_stop_all(real);
+    }
+    /* 最后一个线程执行线程池的清理 */
+    real->waiting = FALSE;
+    j_async_queue_unlock(real->queue);
 }
 
 
@@ -205,6 +248,7 @@ static jpointer j_thread_pool_thread_proxy(jpointer data)
     return NULL;
 }
 
+/* 线程等待新任务，如果该函数返回NULL，则线程会进入公共线程池 */
 static jpointer j_thread_pool_wait_for_new_task(JRealThreadPool * pool)
 {
     jpointer task = NULL;
@@ -260,6 +304,7 @@ static void j_thread_pool_free_internal(JRealThreadPool * pool)
     j_free(pool);
 }
 
+/* 线程现在空闲，为它寻找一个新的线程池 */
 static JRealThreadPool *j_thread_pool_wait_for_new_pool(void)
 {
     jint local_wakeup_thread_serial;

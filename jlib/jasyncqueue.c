@@ -208,3 +208,8 @@ void j_async_queue_sort_unlocked(JAsyncQueue * queue,
 {
     j_queue_sort(&queue->queue, func, user_data);
 }
+
+JMutex *j_async_queue_get_mutex(JAsyncQueue * queue)
+{
+    return &queue->mutex;
+}

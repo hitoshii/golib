@@ -48,6 +48,12 @@ jpointer j_async_queue_timeout_pop(JAsyncQueue * queue, juint64 timeout);
 jpointer j_async_queue_timeout_pop_unlocked(JAsyncQueue * queue,
                                             juint64 timeout);
 
+/*
+ * 该长度是队列中实际数据数量减去等待该队列的线程数量
+ * 因此它可能小与0
+ * 当该长度小与0时，表示有线程阻塞在该队列
+ * 当该长度大与0时，表示队列中有多余的数据，调用j_async_queue_pop*()不会阻塞
+ */
 jint j_async_queue_length(JAsyncQueue * queue);
 jint j_async_queue_length_unlocked(JAsyncQueue * queue);
 
@@ -56,5 +62,7 @@ void j_async_queue_sort(JAsyncQueue * queue, JCompareDataFunc func,
 void j_async_queue_sort_unlocked(JAsyncQueue * queue,
                                  JCompareDataFunc func,
                                  jpointer user_data);
+
+JMutex *j_async_queue_get_mutex(JAsyncQueue * queue);
 
 #endif
