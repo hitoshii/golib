@@ -360,3 +360,28 @@ static JRealThreadPool *j_thread_pool_wait_for_new_pool(void)
     j_atomic_int_add(&unused_threads, -1);
     return pool;
 }
+
+/* 获取最大的和当前正在执行的线程数量 */
+jint j_thread_pool_get_max_threads(JThreadPool * pool)
+{
+    JRealThreadPool *real = (JRealThreadPool *) pool;
+    j_return_val_if_fail(real->running, 0);
+
+    j_async_queue_lock(real->queue);
+    jint max_threads = real->max_threads;
+    j_async_queue_unlock(real->queue);
+
+    return max_threads;
+}
+
+jint j_thread_pool_get_num_threads(JThreadPool * pool)
+{
+    JRealThreadPool *real = (JRealThreadPool *) pool;
+    j_return_val_if_fail(real->running, 0);
+
+    j_async_queue_lock(real->queue);
+    jint max_threads = real->num_threads;
+    j_async_queue_unlock(real->queue);
+
+    return max_threads;
+}

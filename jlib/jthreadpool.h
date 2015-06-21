@@ -41,5 +41,8 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
 void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
                         jboolean waiting);
 
+/* 获取最大的和当前正在执行的线程数量 */
+jint j_thread_pool_get_max_threads(JThreadPool * pool);
+jint j_thread_pool_get_num_threads(JThreadPool * pool);
 
 #endif
