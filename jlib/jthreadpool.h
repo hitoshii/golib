@@ -38,11 +38,30 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
                                jint max_threads, jboolean exclusive,
                                JError ** error);
 
+/*
+ * 释放线程池
+ * immediate：线程池是否立即终止，还是等待任务都完成
+ * waiting：调用者是否等待线程池结束
+ */
 void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
                         jboolean waiting);
+
+/*
+ * 将任务加入到线程池中
+ */
+jboolean j_thread_pool_push(JThreadPool * pool, jpointer data,
+                            JError ** error);
 
 /* 获取最大的和当前正在执行的线程数量 */
 jint j_thread_pool_get_max_threads(JThreadPool * pool);
 jint j_thread_pool_get_num_threads(JThreadPool * pool);
+
+/*
+ * 获取和设置线程池中线程等待下一个任务的最长等待时间，毫秒计
+ * 如果是0则表示无限等待
+ * 这是一个全局设置
+ */
+juint j_thread_pool_get_max_idle_time(void);
+void j_thread_pool_set_max_idle_time(juint interval);
 
 #endif

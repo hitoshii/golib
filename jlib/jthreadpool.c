@@ -39,6 +39,9 @@ typedef struct {
 } JRealThreadPool;
 
 
+#define j_real_thread_pool_lock(pool) j_async_queue_lock((pool)->queue)
+#define j_real_thread_pool_unlock(pool) j_async_queue_unlock((pool)->queue)
+
 /*
  * wakeup_thread_marker可以是任意的非空指针，用来唤醒队列中的等待线程
  */
@@ -69,6 +72,10 @@ static JRealThreadPool *j_thread_pool_wait_for_new_pool(void);
 
 /* 唤醒线程池中其他所有的线程，并结束线程池 */
 static void j_thread_pool_wakeup_and_stop_all(JRealThreadPool * pool);
+
+/* 往线程池里添加新任务 */
+static void j_thread_pool_queue_push_unlocked(JRealThreadPool * pool,
+                                              jpointer data);
 
 /*
  * 创建一个线程池
@@ -104,7 +111,7 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
     J_UNLOCK(init);
 
     if (pool->pool.exclusive) {
-        j_async_queue_lock(pool->queue);
+        j_real_thread_pool_lock(pool);
         while (pool->num_threads < pool->max_threads) {
             JError *local_error = NULL;
             if (!j_thread_pool_start_thread(pool, &local_error)) {
@@ -112,11 +119,16 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
                 break;
             }
         }
-        j_async_queue_unlock(pool->queue);
+        j_real_thread_pool_unlock(pool);
     }
     return (JThreadPool *) pool;
 }
 
+/*
+ * 释放线程池
+ * immediate：线程池是否立即终止，还是等待任务都完成
+ * waiting：调用者是否等待线程池结束
+ */
 void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
                         jboolean waiting)
 {
@@ -127,7 +139,7 @@ void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
     j_return_if_fail(immediate || real->max_threads != 0 ||
                      j_async_queue_length(real->queue) == 0);
 
-    j_async_queue_lock(real->queue);
+    j_real_thread_pool_lock(real);
     real->running = FALSE;
     real->immediate = immediate;
     real->waiting = waiting;
@@ -146,7 +158,7 @@ void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
         -real->num_threads) {
         if (real->num_threads == 0) {
             /* 如果已经没有线程在执行了，做最后的清理 */
-            j_async_queue_unlock(real->queue);
+            j_real_thread_pool_unlock(real);
             j_thread_pool_free_internal(real);
             return;
         }
@@ -154,7 +166,48 @@ void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
     }
     /* 最后一个线程执行线程池的清理 */
     real->waiting = FALSE;
-    j_async_queue_unlock(real->queue);
+    j_real_thread_pool_unlock(real);
+}
+
+/*
+ * 将任务加入到线程池中
+ */
+jboolean j_thread_pool_push(JThreadPool * pool, jpointer data,
+                            JError ** error)
+{
+    JRealThreadPool *real = (JRealThreadPool *) pool;
+
+    j_return_val_if_fail(real->running, FALSE);
+
+    jboolean result = TRUE;
+
+    j_real_thread_pool_lock(real);
+    if (j_async_queue_length_unlocked(real->queue) >= 0) {
+        /* 当前没有线程在等待，则“启动“一个新线程 */
+        JError *local_error = NULL;
+        if (!j_thread_pool_start_thread(real, &local_error)) {
+            j_propagate_error(error, local_error);
+            result = FALSE;
+        }
+    }
+
+    j_thread_pool_queue_push_unlocked(real, data);
+    j_real_thread_pool_unlock(real);
+
+    return result;
+}
+
+/* 往线程池里添加新任务 */
+static void j_thread_pool_queue_push_unlocked(JRealThreadPool * pool,
+                                              jpointer data)
+{
+    if (pool->sort_func) {
+        j_async_queue_push_sorted_unlocked(pool->queue, data,
+                                           pool->sort_func,
+                                           pool->sort_user_data);
+    } else {
+        j_async_queue_push_unlocked(pool->queue, data);
+    }
 }
 
 
@@ -195,16 +248,16 @@ static jpointer j_thread_pool_thread_proxy(jpointer data)
 {
     JRealThreadPool *pool = (JRealThreadPool *) data;
 
-    j_async_queue_lock(pool->queue);
+    j_real_thread_pool_lock(pool);
 
     while (TRUE) {
         jpointer task = j_thread_pool_wait_for_new_task(pool);
         if (task) {
             if (pool->running || !pool->immediate) {
                 /* 收到一个任务，并且线程池还是活跃的，执行任务 */
-                j_async_queue_unlock(pool->queue);
+                j_real_thread_pool_unlock(pool);
                 pool->pool.func(task, pool->pool.user_data);
-                j_async_queue_lock(pool->queue);
+                j_real_thread_pool_lock(pool);
                 continue;
             }
         }
@@ -235,7 +288,7 @@ static jpointer j_thread_pool_thread_proxy(jpointer data)
                 j_cond_broadcast(&pool->cond);
             }
         }
-        j_async_queue_unlock(pool->queue);
+        j_real_thread_pool_unlock(pool);
         if (free_pool) {
             j_thread_pool_free_internal(pool);
         }
@@ -243,7 +296,7 @@ static jpointer j_thread_pool_thread_proxy(jpointer data)
             break;
         }
 
-        j_async_queue_lock(pool->queue);
+        j_real_thread_pool_lock(pool);
     }
     return NULL;
 }
@@ -361,15 +414,43 @@ static JRealThreadPool *j_thread_pool_wait_for_new_pool(void)
     return pool;
 }
 
+/*
+ * 获取线程池中线程等待下一个任务的最长等待时间
+ * 如果是0则表示无限等待
+ * 这是一个全局设置
+ */
+juint j_thread_pool_get_max_idle_time(void)
+{
+    return j_atomic_int_get(&max_idle_time);
+}
+
+void j_thread_pool_set_max_idle_time(juint interval)
+{
+    j_atomic_int_set(&max_idle_time, interval);
+
+    juint i = j_atomic_int_get(&unused_threads);
+    if (i > 0) {
+        /* 唤醒等待中的线程，让他们根据新的等待时间等待 */
+        j_atomic_int_inc(&wakeup_thread_serial);
+        j_async_queue_lock(unused_thread_queue);
+        do {
+            j_async_queue_push_unlocked(unused_thread_queue,
+                                        wakeup_thread_marker);
+        } while (--i);
+
+        j_async_queue_unlock(unused_thread_queue);
+    }
+}
+
 /* 获取最大的和当前正在执行的线程数量 */
 jint j_thread_pool_get_max_threads(JThreadPool * pool)
 {
     JRealThreadPool *real = (JRealThreadPool *) pool;
     j_return_val_if_fail(real->running, 0);
 
-    j_async_queue_lock(real->queue);
+    j_real_thread_pool_lock(real);
     jint max_threads = real->max_threads;
-    j_async_queue_unlock(real->queue);
+    j_real_thread_pool_unlock(real);
 
     return max_threads;
 }
@@ -379,9 +460,9 @@ jint j_thread_pool_get_num_threads(JThreadPool * pool)
     JRealThreadPool *real = (JRealThreadPool *) pool;
     j_return_val_if_fail(real->running, 0);
 
-    j_async_queue_lock(real->queue);
+    j_real_thread_pool_lock(real);
     jint max_threads = real->num_threads;
-    j_async_queue_unlock(real->queue);
+    j_real_thread_pool_unlock(real);
 
     return max_threads;
 }
