@@ -69,6 +69,11 @@ jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
 jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
                             jpointer user_data);
 
+/* 判断数组中是否包含元素data */
+jboolean j_ptr_array_contains(JPtrArray * array, jpointer data);
+/* 插入指针，保证不重复 */
+void j_ptr_array_append_unique_ptr(JPtrArray * array, jpointer data);
+
 /*
  * Removes the first occurrence of the given pointer from the pointer array.
  * The following elements are moved down one place.

@@ -316,3 +316,25 @@ void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr)
     j_free(real->data);
     j_free(real);
 }
+
+/* 判断数组中是否包含元素data */
+jboolean j_ptr_array_contains(JPtrArray * array, jpointer data)
+{
+    JRealPtrArray *real = (JRealPtrArray *) array;
+    jint i;
+    for (i = 0; i < real->len; i++) {
+        if (real->data[i] == data) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/* 插入指针，保证不重复 */
+void j_ptr_array_append_unique_ptr(JPtrArray * array, jpointer data)
+{
+    if (j_ptr_array_contains(array, data)) {
+        return;
+    }
+    j_ptr_array_append_ptr(array, data);
+}
