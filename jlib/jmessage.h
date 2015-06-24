@@ -38,7 +38,7 @@ typedef void (*JLogFunc) (const jchar * domain, JLogLevelFlag level,
                           const jchar * message, jpointer user_data);
 
 /*
- * the default log handler 
+ * the default log handler
  */
 void j_log_default_handler(const jchar * domain, JLogLevelFlag level,
                            const jchar * message, jpointer user_data);
@@ -56,7 +56,7 @@ void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
 void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
            ...) J_GNUC_PRINTF(3, 4);
 
-#define J_LOG_DOMAIN    (NULL)
+#define J_LOG_DOMAIN    ("")
 
 #define j_error(...) j_log(J_LOG_DOMAIN,J_LOG_LEVEL_ERROR,__VA_ARGS__)
 #define j_critical(...) j_log(J_LOG_DOMAIN,J_LOG_LEVEL_CRITICAL,__VA_ARGS__)

@@ -85,7 +85,11 @@ void j_log_default_handler(const jchar * domain, JLogLevelFlag flag,
         break;
     default:
         level = "Debug";
+#ifndef JLIB_DEBUG
+        return;
+#else
         break;
+#endif
     }
     if (!error) {
         j_printf("%s: %s\n", level, message);
