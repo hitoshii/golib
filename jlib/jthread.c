@@ -24,7 +24,7 @@
 #include <string.h>
 
 struct _JThread {
-    pthread_t posix;
+    pthread_t impl;
     JMutex lock;
     jboolean joined;
 
@@ -111,13 +111,12 @@ void j_cond_broadcast(JCond * cond)
 static inline pthread_key_t *j_private_get_key(JPrivate * priv)
 {
     pthread_key_t *key =
-        (pthread_key_t *) j_atomic_pointer_get(&priv->posix);
+        (pthread_key_t *) j_atomic_pointer_get(&priv->impl);
     if (J_UNLIKELY(key == NULL)) {
         key = (pthread_key_t *) j_malloc(sizeof(pthread_key_t));
-        if (!j_atomic_pointer_compare_and_exchange
-            (&priv->posix, NULL, key)) {
+        if (!j_atomic_pointer_compare_and_exchange(&priv->impl, NULL, key)) {
             j_free(key);
-            key = priv->posix;
+            key = priv->impl;
         } else {
             pthread_key_create(key, priv->destroy);
         }
@@ -174,7 +173,7 @@ static inline JThread *j_thread_new_internal(const jchar * name,
     J_LOCK(j_thread_new);
     JThread *thread = (JThread *) j_malloc(sizeof(JThread));
     jint ret =
-        pthread_create(&thread->posix, NULL, thread_func_proxy, thread);
+        pthread_create(&thread->impl, NULL, thread_func_proxy, thread);
     if (ret) {
         j_free(thread);
         j_set_error(error, J_THREAD_ERROR, J_THREAD_ERROR_AGAIN,
@@ -211,7 +210,7 @@ static inline void j_thread_join_internal(JThread * thread)
 {
     j_mutex_lock(&thread->lock);
     if (!thread->joined) {
-        pthread_join(thread->posix, NULL);
+        pthread_join(thread->impl, NULL);
         thread->joined = TRUE;
     }
 
@@ -238,7 +237,7 @@ static void j_thread_cleanup(jpointer data)
 static inline void j_thread_free(JThread * thread)
 {
     if (!thread->joined) {
-        pthread_detach(thread->posix);
+        pthread_detach(thread->impl);
     }
     j_free(thread->name);
     j_mutex_clear(&thread->lock);

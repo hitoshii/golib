@@ -70,7 +70,7 @@ void j_cond_broadcast(JCond * cond);
 typedef struct _JPrivate JPrivate;
 
 struct _JPrivate {
-    pthread_key_t *posix;
+    pthread_key_t *impl;
     JDestroyNotify destroy;
 };
 
