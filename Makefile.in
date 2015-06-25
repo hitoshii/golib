@@ -325,6 +325,7 @@ htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
+jio_ADD = @jio_ADD@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
 jlib_includedir = @jlib_includedir@
@@ -348,7 +349,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = jlib test
+SUBDIRS = jlib jio test
 dist_doc_DATA = \
 	README\
 	COPYING\

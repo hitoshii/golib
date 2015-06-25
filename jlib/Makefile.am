@@ -7,7 +7,6 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS =\
     -Wall\
-    -O0 \
     -g
 
 lib_LTLIBRARIES = libjlib.la
@@ -40,7 +39,7 @@ libjlib_la_SOURCES = \
 
 libjlib_la_LDFLAGS = -pthread
 
-libjlib_la_LIBADD =  
+libjlib_la_LIBADD =
 
 
 

@@ -5,10 +5,9 @@ datarootdir=@datarootdir@
 datadir=@datadir@
 includedir=@includedir@/jlib-0.1
 
-Name: JLib
-Description: C Utility Library.
+Name: JIO
+Description: JLib I/O library.
 Version: @VERSION@
-Requires:
-Libs: -L${libdir} -ljlib
-Libs.private: -pthread
+Requires: jlib-0.1
+Libs: -L${libdir} -ljio
 Cflags: -I${includedir}
