@@ -19,7 +19,7 @@
 #define __JIO_SOCKET_H__
 
 #include <jlib/jlib.h>
-
+#include "jsocketaddress.h"
 
 typedef struct _JSocket JSocket;
 

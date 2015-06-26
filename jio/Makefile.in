@@ -131,7 +131,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jiosubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjio_la_LIBADD =
-am_libjio_la_OBJECTS = libjio_la-jsocket.lo
+am_libjio_la_OBJECTS = libjio_la-jsocket.lo \
+	libjio_la-jsocketaddress.lo
 libjio_la_OBJECTS = $(am_libjio_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -334,7 +335,8 @@ AM_CFLAGS = \
 
 lib_LTLIBRARIES = libjio.la
 libjio_la_SOURCES = \
-    jsocket.c
+    jsocket.c \
+    jsocketaddress.c
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 libjlib_la_LDFLAGS = 
@@ -342,7 +344,9 @@ libjlib_la_LIBADD =
 jiosubincludedir = $(jlib_includedir)/jio
 jiosubinclude_HEADERS = \
     jio.h \
-    jsocket.h
+    jsocket.h \
+    jioenum.h \
+    jsocketaddress.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jio-0.1.pc
@@ -430,6 +434,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjio_la-jsocket.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjio_la-jsocketaddress.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -458,6 +463,13 @@ libjio_la-jsocket.lo: jsocket.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jsocket.c' object='libjio_la-jsocket.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjio_la_CFLAGS) $(CFLAGS) -c -o libjio_la-jsocket.lo `test -f 'jsocket.c' || echo '$(srcdir)/'`jsocket.c
+
+libjio_la-jsocketaddress.lo: jsocketaddress.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjio_la_CFLAGS) $(CFLAGS) -MT libjio_la-jsocketaddress.lo -MD -MP -MF $(DEPDIR)/libjio_la-jsocketaddress.Tpo -c -o libjio_la-jsocketaddress.lo `test -f 'jsocketaddress.c' || echo '$(srcdir)/'`jsocketaddress.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjio_la-jsocketaddress.Tpo $(DEPDIR)/libjio_la-jsocketaddress.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jsocketaddress.c' object='libjio_la-jsocketaddress.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjio_la_CFLAGS) $(CFLAGS) -c -o libjio_la-jsocketaddress.lo `test -f 'jsocketaddress.c' || echo '$(srcdir)/'`jsocketaddress.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

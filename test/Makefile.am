@@ -15,7 +15,8 @@ AM_CFLAGS =\
     -g
 
 AM_LDFLAGS =\
-    $(jlib_ADD)
+    $(jlib_ADD) \
+    $(jio_ADD)
 
 noinst_PROGRAMS= \
     test-string \
@@ -27,7 +28,8 @@ noinst_PROGRAMS= \
     test-quark \
     test-queue \
     test-asyncqueue \
-    test-threadpool
+    test-threadpool \
+    test-socketaddress
 
 TESTS=\
     test-string \
@@ -39,7 +41,8 @@ TESTS=\
     test-quark \
     test-queue \
     test-asyncqueue \
-    test-threadpool
+    test-threadpool \
+    test-socketaddress
 
 test_string_SOURCES = \
 	test-string.c
@@ -70,6 +73,9 @@ test_asyncqueue_SOURCES = \
 
 test_threadpool_SOURCES = \
     test-threadpool.c
+
+test_socketaddress_SOURCES = \
+    test-socketaddress.c
 
 clean-local:
 	indent -kr -ts4 -nut *.c

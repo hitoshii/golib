@@ -17,7 +17,14 @@
  */
 #include "jsocket.h"
 
-
 struct _JSocket {
+    JSocketFamily family;
+    JSocketType type;
+    JSocketProtocol protocol;
     jint fd;
+
+    jint listen_backlog;
+    juint timeout;
+    JError *construct_error;
+    JSocketAddress *remote_address;
 };

@@ -18,6 +18,8 @@
 #ifndef __JIO_H__
 #define __JIO_H__
 
+#include "jioenum.h"
+#include "jsocketaddress.h"
 #include "jsocket.h"
 
 
