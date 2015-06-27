@@ -28,14 +28,31 @@ typedef struct _JSocketInetAddress JSocketInetAddress;
 typedef struct _JSocketUnixAddress JSocketUnixAddress;
 typedef struct _JInetAddress JInetAddress;
 
+
+struct _JInetAddress {
+    JSocketFamily family;
+    union {
+        struct in_addr ipv4;
+        struct in6_addr ipv6;
+    } addr;
+};
+
 /*
  * JInetAddress IP地址结构，不包含端口号
  */
 JInetAddress *j_inet_address_new_any(JSocketFamily family);
+void j_inet_address_init_any(JInetAddress * addr, JSocketFamily family);
 JInetAddress *j_inet_address_new_loopback(JSocketFamily family);
+void j_inet_address_init_loopback(JInetAddress * addr,
+                                  JSocketFamily family);
 JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
                                             const juint8 * bytes);
+void j_inet_address_init_from_bytes(JInetAddress * addr,
+                                    JSocketFamily family,
+                                    const juint8 * bytes);
 JInetAddress *j_inet_address_new_from_string(const jchar * string);
+jboolean j_inet_address_init_from_string(JInetAddress * addr,
+                                         const jchar * string);
 JSocketFamily j_inet_address_get_family(JInetAddress * addr);
 jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another);
 const juint8 *j_inet_address_to_bytes(JInetAddress * addr);

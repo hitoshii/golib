@@ -31,21 +31,21 @@ struct _JSocketUnixAddress {
 
 };
 
-struct _JInetAddress {
-    JSocketFamily family;
-    union {
-        struct in_addr ipv4;
-        struct in6_addr ipv6;
-    } addr;
-};
-
 #define J_INET_ADDRESS_FAMILY_IS_VALID(family) ((family)==J_SOCKET_FAMILY_INET||(family)==J_SOCKET_FAMILY_INET6)
 #define j_inet_address_is_inet(addr) ((addr)->family==J_SOCKET_FAMILY_INET)
 
 JInetAddress *j_inet_address_new_any(JSocketFamily family)
 {
     j_return_val_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family), NULL);
+
     JInetAddress *addr = (JInetAddress *) j_malloc(sizeof(JInetAddress));
+    j_inet_address_init_any(addr, family);
+    return addr;
+}
+
+void j_inet_address_init_any(JInetAddress * addr, JSocketFamily family)
+{
+    j_return_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family));
     addr->family = family;
     if (family == J_SOCKET_FAMILY_INET) {
         addr->addr.ipv4.s_addr = htonl(INADDR_ANY);
@@ -53,13 +53,20 @@ JInetAddress *j_inet_address_new_any(JSocketFamily family)
         memcpy(&addr->addr.ipv6, in6addr_any.s6_addr,
                sizeof(addr->addr.ipv6));
     }
-    return addr;
 }
 
 JInetAddress *j_inet_address_new_loopback(JSocketFamily family)
 {
     j_return_val_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family), NULL);
     JInetAddress *addr = (JInetAddress *) j_malloc(sizeof(JInetAddress));
+    j_inet_address_init_loopback(addr, family);
+    return addr;
+}
+
+void j_inet_address_init_loopback(JInetAddress * addr,
+                                  JSocketFamily family)
+{
+    j_return_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family));
     addr->family = family;
     if (family == J_SOCKET_FAMILY_INET) {
         addr->addr.ipv4.s_addr = htonl(INADDR_LOOPBACK);
@@ -67,7 +74,6 @@ JInetAddress *j_inet_address_new_loopback(JSocketFamily family)
         memcpy(&addr->addr.ipv6, in6addr_loopback.s6_addr,
                sizeof(addr->addr.ipv6));
     }
-    return addr;
 }
 
 JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
@@ -75,13 +81,21 @@ JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
 {
     j_return_val_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family), NULL);
     JInetAddress *addr = (JInetAddress *) j_malloc(sizeof(JInetAddress));
+    j_inet_address_init_from_bytes(addr, family, bytes);
+    return addr;
+}
+
+void j_inet_address_init_from_bytes(JInetAddress * addr,
+                                    JSocketFamily family,
+                                    const juint8 * bytes)
+{
+    j_return_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family));
     addr->family = family;
     if (j_inet_address_is_inet(addr)) {
         memcpy(&addr->addr, bytes, sizeof(addr->addr.ipv4));
     } else {
         memcpy(&addr->addr, bytes, sizeof(addr->addr.ipv6));
     }
-    return addr;
 }
 
 JInetAddress *j_inet_address_new_from_string(const jchar * string)
@@ -97,6 +111,24 @@ JInetAddress *j_inet_address_new_from_string(const jchar * string)
                                              (juint8 *) & addr6);
     }
     return NULL;
+}
+
+jboolean j_inet_address_init_from_string(JInetAddress * addr,
+                                         const jchar * string)
+{
+    struct in_addr addr4;
+    struct in6_addr addr6;
+
+    if (inet_pton(AF_INET, string, &addr4) > 0) {
+        j_inet_address_init_from_bytes(addr, J_SOCKET_FAMILY_INET,
+                                       (juint8 *) & addr4);
+    } else if (inet_pton(AF_INET6, string, &addr6) > 0) {
+        j_inet_address_init_from_bytes(addr, J_SOCKET_FAMILY_INET6,
+                                       (juint8 *) & addr6);
+    } else {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 JSocketFamily j_inet_address_get_family(JInetAddress * addr)

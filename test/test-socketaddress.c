@@ -10,18 +10,23 @@ int main(int argc, char const *argv[])
     }
     j_inet_address_free(addr);
 
-    addr = j_inet_address_new_loopback(J_SOCKET_FAMILY_INET);
-    if (!j_inet_address_is_loopback(addr)) {
+    JInetAddress address;
+    j_inet_address_init_loopback(&address, J_SOCKET_FAMILY_INET);
+    if (!j_inet_address_is_loopback(&address)) {
         return 2;
     }
-    j_inet_address_free(addr);
+    j_inet_address_init_loopback(&address, J_SOCKET_FAMILY_INET6);
+    if (!j_inet_address_is_loopback(&address)) {
+        return 2;
+    }
 
-    addr = j_inet_address_new_from_string("115.28.32.21");
-    jchar *string = j_inet_address_to_string(addr);
-    if (j_strcmp0(string, "115.28.32.21")) {
+    if (!j_inet_address_init_from_string(&address, "115.28.32.123")) {
         return 3;
     }
+    jchar *string = j_inet_address_to_string(&address);
+    if (j_strcmp0(string, "115.28.32.123")) {
+        return 4;
+    }
     j_free(string);
-    j_inet_address_free(addr);
     return 0;
 }
