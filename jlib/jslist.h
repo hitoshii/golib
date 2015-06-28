@@ -49,10 +49,11 @@ void j_slist_free_full(JSList * l, JDestroyNotify destroy);
 
 void j_slist_free1(JSList * l, JDestroyNotify destroy);
 
-JSList *j_slist_find(JSList * l, JCompareFunc compare,
-                     jconstpointer user_data);
-jpointer j_slist_find_data(JSList * l, JCompareFunc compare,
-                           jconstpointer user_data);
+JSList *j_slist_find(JSList * l, jpointer data);
+JSList *j_slist_find_custom(JSList * l, JCompareFunc compare,
+                            jconstpointer user_data);
+jpointer j_slist_find_data_custom(JSList * l, JCompareFunc compare,
+                                  jconstpointer user_data);
 
 
 /*

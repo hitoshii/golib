@@ -21,6 +21,15 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
+/* UNIX套接字的地址类型 */
+typedef enum {
+    J_UNIX_SOCKET_ADDRESS_INVALID,
+    J_UNIX_SOCKET_ADDRESS_ANONYMOUS,
+    J_UNIX_SOCKET_ADDRESS_PATH,
+    J_UNIX_SOCKET_ADDRESS_ABSTRACT,
+    J_UNIX_SOCKET_ADDRESS_ABSTRACT_PADDED,
+} JUnixSocketAddressType;
+
 /* 套接字协议族 */
 typedef enum {
     J_SOCKET_FAMILY_INVALID,

@@ -21,14 +21,16 @@
 
 #include "jioenum.h"
 #include <jlib/jlib.h>
+#include <sys/un.h>
 
 /* 套接字地址结构 */
 typedef struct _JSocketAddress JSocketAddress;
-typedef struct _JSocketInetAddress JSocketInetAddress;
-typedef struct _JSocketUnixAddress JSocketUnixAddress;
+typedef struct _JInetSocketAddress JInetSocketAddress;
+typedef struct _JUnixSocketAddress JUnixSocketAddress;
 typedef struct _JInetAddress JInetAddress;
 
 
+/* 地址结构类型 */
 struct _JInetAddress {
     JSocketFamily family;
     union {
@@ -36,6 +38,41 @@ struct _JInetAddress {
         struct in6_addr ipv6;
     } addr;
 };
+
+struct _JInetSocketAddress {
+    JInetAddress address;
+    juint16 port;
+    juint32 flowinfo;
+    juint32 scope_id;
+};
+
+#define UNIX_PATH_MAX (sizeof(((struct sockaddr_un *)0)->sun_path) + 1)
+
+struct _JUnixSocketAddress {
+    jchar path[UNIX_PATH_MAX];
+    JUnixSocketAddressType type;
+};
+
+struct _JSocketAddress {
+    JSocketFamily family;
+    union {
+        JInetSocketAddress inet;    /* J_SOCKET_FAMILY_INET/J_SOCKET_FAMILY_INET6 */
+        JUnixSocketAddress local;   /* J_SOCKET_FAMILY_UNIX 不能取变量名为unix，是一个默认的宏定义 */
+    } addr;
+};
+
+#define j_socket_address_free(addr) j_free(addr)
+
+/*
+ * 从一个sockaddr结构创建
+ */
+JSocketAddress *j_socket_address_new_from_native(jpointer native,
+                                                 juint size);
+/* 创建一个网络地址  */
+JSocketAddress *j_inet_socket_address_new(JInetAddress * addr,
+                                          juint16 port);
+JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
+                                                      address, juint port);
 
 /*
  * JInetAddress IP地址结构，不包含端口号
@@ -62,13 +99,6 @@ jboolean j_inet_address_is_any(JInetAddress * addr);    /* 该地址是否表示
 jboolean j_inet_address_is_loopback(JInetAddress * addr);   /* 判断是否是回环地址，127.0.0.0/8 */
 jboolean j_inet_address_is_multicast(JInetAddress * addr);  /* 判断是否是广播地址 */
 #define j_inet_address_free(addr) j_free(addr);
-
-/*
- * 根据struct sockaddr结构创建JSocketAddress
- */
-JSocketAddress *j_socket_address_from_native(jpointer native, juint size);
-/* 获取地址结构的协议族 */
-JSocketFamily j_socket_address_get_family(JSocketAddress * addr);
 
 
 #endif

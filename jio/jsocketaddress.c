@@ -18,18 +18,63 @@
 #include "jsocketaddress.h"
 #include <string.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
-struct _JSocketAddress {
-    JSocketFamily family;
-};
+JSocketAddress *j_inet_socket_address_new(JInetAddress * iaddr,
+                                          juint16 port)
+{
+    JSocketAddress *addr = j_malloc(sizeof(JSocketAddress));
+    addr->family = j_inet_address_get_family(iaddr);
+    memcpy(&addr->addr.inet.address, iaddr,
+           sizeof(addr->addr.inet.address));
+    addr->addr.inet.port = htons(port);
+    return addr;
+}
 
-struct _JSocketInetAddress {
+JSocketAddress *j_socket_address_new_from_native(jpointer native,
+                                                 juint size)
+{
+    return NULL;
+}
 
-};
-
-struct _JSocketUnixAddress {
-
-};
+/* 创建一个网络地址  */
+JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
+                                                      address, juint port)
+{
+    JSocketAddress *addr = NULL;
+    if (strchr(address, ':')) {
+        /* 可能是IPv6地址 */
+        static struct addrinfo *hints, hints_struct;
+        struct addrinfo *res;
+        if (J_UNLIKELY(j_once_init_enter(&hints))) {
+            hints_struct.ai_family = AF_UNSPEC;
+            hints_struct.ai_socktype = SOCK_STREAM,
+                hints_struct.ai_protocol = 0;
+            hints_struct.ai_flags = AI_NUMERICHOST;
+            j_once_init_leave(&hints, &hints_struct);
+        }
+        jint status = getaddrinfo(address, NULL, hints, &res);
+        if (status != 0) {
+            return NULL;
+        }
+        if (res->ai_family == AF_INET6
+            && res->ai_addrlen == sizeof(struct sockaddr_in6)) {
+            ((struct sockaddr_in6 *) res->ai_addr)->sin6_port =
+                htons(port);
+            addr =
+                j_socket_address_new_from_native(res->ai_addr,
+                                                 res->ai_addrlen);
+        }
+        freeaddrinfo(res);
+    } else {
+        /* 可能是IPv4地址 */
+        JInetAddress iaddr;
+        if (j_inet_address_init_from_string(&iaddr, address)) {
+            addr = j_inet_socket_address_new(&iaddr, port);
+        }
+    }
+    return addr;
+}
 
 #define J_INET_ADDRESS_FAMILY_IS_VALID(family) ((family)==J_SOCKET_FAMILY_INET||(family)==J_SOCKET_FAMILY_INET6)
 #define j_inet_address_is_inet(addr) ((addr)->family==J_SOCKET_FAMILY_INET)
@@ -195,27 +240,4 @@ jboolean j_inet_address_is_multicast(JInetAddress * addr)
         return IN_MULTICAST(addr4);
     }
     return IN6_IS_ADDR_MULTICAST(&addr->addr.ipv6);
-}
-
-/*
- * 根据struct sockaddr结构创建JSocketAddress
- */
-JSocketAddress *j_socket_address_from_native(jpointer native, juint size)
-{
-    jshort family = ((struct sockaddr *) native)->sa_family;
-
-    if (family == AF_UNSPEC) {
-        return NULL;
-    } else if (family == AF_INET) {
-        struct sockaddr_in *addr = (struct sockaddr_in *) native;
-    } else if (family == AF_INET6) {
-        struct sockaddr_in6 *addr = (struct sockaddr_in6 *) native;
-    }
-    return NULL;
-}
-
-/* 获取地址结构的协议族 */
-JSocketFamily j_socket_address_get_family(JSocketAddress * addr)
-{
-    return addr->family;
 }

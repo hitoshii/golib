@@ -7,6 +7,16 @@ J_PRIVATE_DEFINE_STATIC(private, NULL);
 
 static jpointer thread_func1(jpointer data)
 {
+    static jchar *once = NULL;
+    jboolean init = FALSE;
+    if (j_once_init_enter(&once)) {
+        j_once_init_leave(&once, "hello all");
+        j_printf("once!\n");
+        init = TRUE;
+    }
+    if (!init) {
+        return NULL;
+    }
     JWakeup *wakeup = (JWakeup *) data;
     sleep(1);
     j_wakeup_signal(wakeup);
@@ -18,18 +28,26 @@ static jpointer thread_func(jpointer data)
     JWakeup *wakeup = j_wakeup_new();
     JThread *thread = j_thread_new("test-thread", thread_func1,
                                    wakeup);
+    j_thread_unref(thread);
+    thread = j_thread_new("test-thread", thread_func1, wakeup);
+    j_thread_unref(thread);
+    thread = j_thread_new("test-thread", thread_func1, wakeup);
+    j_thread_unref(thread);
+    thread = j_thread_new("test-thread", thread_func1, wakeup);
+    j_thread_unref(thread);
+    thread = j_thread_new("test-thread", thread_func1, wakeup);
+    j_thread_unref(thread);
+
     JEPoll *ep = j_epoll_new();
     JEPollEvent e;
     j_wakeup_get_pollfd(wakeup, &e);
     j_epoll_ctl(ep, e.fd, J_EPOLL_CTL_ADD, e.events, NULL, NULL);
     JEPollEvent event[1];
     jint n = j_epoll_wait(ep, event, 1, -1);
-    j_wakeup_acknowledge(wakeup);
-    jpointer retval = j_thread_join(thread);
-    if (n != 1 || j_strcmp0((const jchar *) retval, "hello")) {
+    if (n != 1) {
         return NULL;
     }
-    j_thread_unref(thread);
+    j_wakeup_acknowledge(wakeup);
     j_epoll_close(ep);
     j_wakeup_free(wakeup);
     printf("%s\n", (const jchar *) data);

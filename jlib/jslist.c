@@ -90,8 +90,19 @@ juint j_slist_length(JSList * l)
     return len;
 }
 
-JSList *j_slist_find(JSList * l, JCompareFunc compare,
-                     jconstpointer user_data)
+JSList *j_slist_find(JSList * l, jpointer data)
+{
+    while (l) {
+        if (j_slist_data(l) == data) {
+            return l;
+        }
+        l = j_slist_next(l);
+    }
+    return NULL;
+}
+
+JSList *j_slist_find_custom(JSList * l, JCompareFunc compare,
+                            jconstpointer user_data)
 {
     while (l) {
         if (compare(j_slist_data(l), user_data) == 0) {
@@ -102,10 +113,10 @@ JSList *j_slist_find(JSList * l, JCompareFunc compare,
     return NULL;
 }
 
-jpointer j_slist_find_data(JSList * l, JCompareFunc compare,
-                           jconstpointer user_data)
+jpointer j_slist_find_data_custom(JSList * l, JCompareFunc compare,
+                                  jconstpointer user_data)
 {
-    l = j_slist_find(l, compare, user_data);
+    l = j_slist_find_custom(l, compare, user_data);
     if (l) {
         return j_slist_data(l);
     }

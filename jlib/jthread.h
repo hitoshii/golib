@@ -116,5 +116,15 @@ void j_thread_yield();
  */
 JThread *j_thread_self(void);
 
+/*
+ * 设置静态变量的值，线程安全
+ * static struct A *a=NULL;
+ * if(j_once_init_enter(&a)){
+ *     struct A *t=malloc(sizeof(struct A));
+ *     j_once_init_leave(&a, t);
+ * }
+ */
+jboolean j_once_init_enter(volatile void *location);
+void j_once_init_leave(volatile void *location, jpointer result);
 
 #endif

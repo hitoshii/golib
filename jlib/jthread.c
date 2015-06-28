@@ -287,3 +287,46 @@ void j_thread_exit(jpointer retval)
     thread->retval = retval;
     pthread_exit(NULL);
 }
+
+#include "jslist.h"
+
+J_MUTEX_DEFINE_STATIC(j_once_mutex);
+J_COND_DEFINE_STATIC(j_once_cond);
+static JSList *j_once_init_list = NULL;
+
+jboolean j_once_init_enter(volatile void *location)
+{
+    volatile jpointer *value_location = location;
+    jboolean need_init = FALSE;
+    j_mutex_lock(&j_once_mutex);
+    if (j_atomic_pointer_get(value_location) == NULL) {
+        if (!j_slist_find(j_once_init_list, value_location)) {
+            need_init = TRUE;
+            j_once_init_list =
+                j_slist_append(j_once_init_list, value_location);
+        } else {                /* 初始化已经在另外一个线程执行，等待该线程执行完毕 */
+            do {
+                j_cond_wait(&j_once_cond, &j_once_mutex);
+            } while (j_slist_find
+                     (j_once_init_list, (void *) value_location));
+        }
+    }
+    j_mutex_unlock(&j_once_mutex);
+    return need_init;
+}
+
+void j_once_init_leave(volatile void *location, jpointer result)
+{
+    volatile jpointer *value_location = location;
+    if (j_atomic_pointer_get(value_location) != NULL || result == NULL
+        || j_once_init_list == NULL) {
+        return;
+    }
+
+    j_atomic_pointer_set(value_location, result);
+    j_mutex_lock(&j_once_mutex);
+    j_once_init_list =
+        j_slist_remove(j_once_init_list, (void *) value_location);
+    j_cond_broadcast(&j_once_cond);
+    j_mutex_unlock(&j_once_mutex);
+}

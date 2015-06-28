@@ -28,5 +28,12 @@ int main(int argc, char const *argv[])
         return 4;
     }
     j_free(string);
+
+    JSocketAddress *saddr =
+        j_inet_socket_address_new_from_string("115.23.12.41", 12345);
+    if (saddr == NULL) {
+        return 5;
+    }
+    j_socket_address_free(saddr);
     return 0;
 }
