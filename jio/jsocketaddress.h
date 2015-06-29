@@ -23,7 +23,7 @@
 #include <jlib/jlib.h>
 #include <sys/un.h>
 
-/* 套接字地址结构 */
+/* 套接字地址结构，所有结构都以网络字节序存储数据 */
 typedef struct _JSocketAddress JSocketAddress;
 typedef struct _JInetSocketAddress JInetSocketAddress;
 typedef struct _JUnixSocketAddress JUnixSocketAddress;
@@ -48,6 +48,7 @@ struct _JInetSocketAddress {
 
 #define UNIX_PATH_MAX (sizeof(((struct sockaddr_un *)0)->sun_path) + 1)
 
+/* XXX 还没有实现 */
 struct _JUnixSocketAddress {
     jchar path[UNIX_PATH_MAX];
     JUnixSocketAddressType type;

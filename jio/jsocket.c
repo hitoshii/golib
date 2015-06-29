@@ -17,6 +17,9 @@
  */
 #include "jsocket.h"
 
+/* j_socket_receive_from()的接收者缓存长度 */
+#define RECV_ADDR_CACHE_SIZE 8
+
 struct _JSocket {
     JSocketFamily family;
     JSocketType type;
@@ -27,4 +30,20 @@ struct _JSocket {
     juint timeout;
     JError *construct_error;
     JSocketAddress *remote_address;
+
+    juint inited:1;
+    juint blocking:1;
+    juint keepalive:1;
+    juint closed:1;
+    juint connected:1;
+    juint listening:1;
+    juint timed_out:1;
+    juint connect_pending:1;
+
+    struct {
+        JSocketAddress *addr;
+        struct sockaddr *native;
+        jint native_len;
+        juint64 last_used;
+    } recv_addr_cache[RECV_ADDR_CACHE_SIZE];
 };
