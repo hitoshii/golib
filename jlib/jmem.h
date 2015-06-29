@@ -29,7 +29,7 @@ jpointer j_realloc(jpointer mem, juint size);
 void j_free(jpointer ptr);
 
 /*
- * Duplicates
+ * 复制一份内存
  */
 jpointer j_memdup(jconstpointer data, juint len);
 

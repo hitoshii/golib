@@ -79,11 +79,18 @@ jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
  */
 JSocketAddress *j_socket_address_new_from_native(jpointer native,
                                                  juint size);
+jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
+                                           jpointer native, juint size);
 /* 创建一个网络地址  */
 JSocketAddress *j_inet_socket_address_new(JInetAddress * addr,
                                           juint16 port);
+void j_inet_socket_address_init(JSocketAddress * saddr,
+                                JInetAddress * addr, juint16 port);
 JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
                                                       address, juint port);
+jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
+                                                const jchar * address,
+                                                juint port);
 
 /* 获取地址和端口号 */
 jushort j_inet_socket_address_get_port(JSocketAddress * addr);
