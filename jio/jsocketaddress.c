@@ -20,6 +20,50 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+/*
+ * 转化为一个struct sockaddr结构
+ */
+juint j_socket_address_get_native_size(JSocketAddress * addr)
+{
+    if (j_socket_address_is_unix(addr)) {
+        return 0;
+    }
+    return j_inet_address_get_native_size(&addr->addr.inet.address);
+}
+
+jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
+                                    juint len, JError ** error)
+{
+    if (len < j_socket_address_get_native_size(addr)) {
+        j_prefix_error(error, "memory space is too small");
+        return FALSE;
+    }
+
+    if (j_socket_address_is_unix(addr)) {
+        return FALSE;
+    } else if (j_socket_address_is_inet(addr)) {
+        JInetAddress *iaddr = &addr->addr.inet.address;
+        jushort port = addr->addr.inet.port;
+        struct sockaddr_in *addr4 = (struct sockaddr_in *) dest;
+        memcpy(&addr4->sin_addr.s_addr, j_inet_address_to_bytes(iaddr),
+               sizeof(addr4->sin_addr.s_addr));
+        addr4->sin_port = port;
+        addr4->sin_family = AF_INET;
+        return TRUE;
+    } else if (j_socket_address_is_inet6(addr)) {
+        JInetAddress *iaddr = &addr->addr.inet.address;
+        jushort port = addr->addr.inet.port;
+        struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) dest;
+        memcpy(&addr6->sin6_addr.s6_addr, j_inet_address_to_bytes(iaddr),
+               sizeof(addr6->sin6_addr.s6_addr));
+        addr6->sin6_port = port;
+        addr6->sin6_family = AF_INET6;
+        return TRUE;
+    }
+    j_prefix_error(error, "invalid JSocketAddress");
+    return FALSE;
+}
+
 JSocketAddress *j_inet_socket_address_new(JInetAddress * iaddr,
                                           juint16 port)
 {
@@ -34,6 +78,47 @@ JSocketAddress *j_inet_socket_address_new(JInetAddress * iaddr,
 JSocketAddress *j_socket_address_new_from_native(jpointer native,
                                                  juint size)
 {
+    j_return_val_if_fail(size >= sizeof(jshort), NULL);
+
+    jshort family = ((struct sockaddr *) native)->sa_family;
+    if (family == AF_INET) {
+        struct sockaddr_in *addr = (struct sockaddr_in *) native;
+        if (size < sizeof(*addr)) {
+            return NULL;
+        }
+        JInetAddress iaddr;
+        j_inet_address_init_from_bytes(&iaddr, J_SOCKET_FAMILY_INET,
+                                       (juint8 *) & (addr->sin_addr));
+        JSocketAddress *saddr =
+            j_inet_socket_address_new(&iaddr, ntohs(addr->sin_port));
+        return saddr;
+    } else if (family == AF_INET6) {
+        struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) native;
+        if (size < sizeof(*addr6)) {
+            return NULL;
+        }
+        JInetAddress iaddr;
+        if (IN6_IS_ADDR_V4MAPPED(&(addr6->sin6_addr))) {
+            struct sockaddr_in sin_addr;
+            sin_addr.sin_family = AF_INET;
+            sin_addr.sin_port = addr6->sin6_port;
+            memcpy(&(sin_addr.sin_addr.s_addr),
+                   addr6->sin6_addr.s6_addr + 12, 4);
+            j_inet_address_init_from_bytes(&iaddr, J_SOCKET_FAMILY_INET,
+                                           (juint8 *) &
+                                           (sin_addr.sin_addr));
+        } else {
+            j_inet_address_init_from_bytes(&iaddr, J_SOCKET_FAMILY_INET6,
+                                           (juint8 *) &
+                                           (addr6->sin6_addr));
+        }
+        JSocketAddress *saddr =
+            j_inet_socket_address_new(&iaddr, ntohs(addr6->sin6_port));
+        saddr->addr.inet.flowinfo = addr6->sin6_flowinfo;
+        saddr->addr.inet.scope_id = addr6->sin6_scope_id;
+        return saddr;
+    } else if (family == AF_UNIX || family == AF_LOCAL) {
+    }
     return NULL;
 }
 
@@ -74,6 +159,35 @@ JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
         }
     }
     return addr;
+}
+
+/* 获取地址和端口号 */
+jushort j_inet_socket_address_get_port(JSocketAddress * addr)
+{
+    if (j_socket_address_is_unix(addr)) {
+        return 0;
+    }
+    return addr->addr.inet.port;
+}
+
+JInetAddress *j_inet_socket_address_get_address(JSocketAddress * addr)
+{
+    if (j_socket_address_is_unix(addr)) {
+        return NULL;
+    }
+    return &addr->addr.inet.address;
+}
+
+/* 生成地址的字符串形式，如127.0.0.1:1234 */
+jchar *j_inet_socket_address_to_string(JSocketAddress * addr)
+{
+    if (j_socket_address_is_unix(addr)) {
+        return NULL;
+    } else {
+        return j_inet_address_to_string_with_port(&addr->addr.inet.address,
+                                                  htons(addr->addr.inet.
+                                                        port));
+    }
 }
 
 #define J_INET_ADDRESS_FAMILY_IS_VALID(family) ((family)==J_SOCKET_FAMILY_INET||(family)==J_SOCKET_FAMILY_INET6)
@@ -197,7 +311,19 @@ jchar *j_inet_address_to_string(JInetAddress * addr)
     return j_strdup(buffer);
 }
 
-juint j_inet_address_get_size(JInetAddress * addr)
+jchar *j_inet_address_to_string_with_port(JInetAddress * addr,
+                                          jushort port)
+{
+    jchar buffer[INET6_ADDRSTRLEN];
+    if (j_inet_address_is_inet(addr)) {
+        inet_ntop(AF_INET, &addr->addr.ipv4, buffer, sizeof(buffer));
+    } else {
+        inet_ntop(AF_INET6, &addr->addr.ipv6, buffer, sizeof(buffer));
+    }
+    return j_strdup_printf("%s:%u", buffer, port);
+}
+
+juint j_inet_address_get_native_size(JInetAddress * addr)
 {
     if (j_inet_address_is_inet(addr)) {
         return sizeof(addr->addr.ipv4);
@@ -212,7 +338,7 @@ jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another)
     }
     return memcmp(j_inet_address_to_bytes(addr),
                   j_inet_address_to_bytes(another),
-                  j_inet_address_get_size(addr)) == 0;
+                  j_inet_address_get_native_size(addr)) == 0;
 }
 
 jboolean j_inet_address_is_any(JInetAddress * addr)

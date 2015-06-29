@@ -300,15 +300,16 @@ jboolean j_once_init_enter(volatile void *location)
     jboolean need_init = FALSE;
     j_mutex_lock(&j_once_mutex);
     if (j_atomic_pointer_get(value_location) == NULL) {
-        if (!j_slist_find(j_once_init_list, value_location)) {
+        if (!j_slist_find(j_once_init_list, (jpointer) value_location)) {
             need_init = TRUE;
             j_once_init_list =
-                j_slist_append(j_once_init_list, value_location);
+                j_slist_append(j_once_init_list,
+                               (jpointer) value_location);
         } else {                /* 初始化已经在另外一个线程执行，等待该线程执行完毕 */
             do {
                 j_cond_wait(&j_once_cond, &j_once_mutex);
             } while (j_slist_find
-                     (j_once_init_list, (void *) value_location));
+                     (j_once_init_list, (jpointer) value_location));
         }
     }
     j_mutex_unlock(&j_once_mutex);

@@ -1,4 +1,5 @@
 #include <jio/jio.h>
+#include <arpa/inet.h>
 
 
 int main(int argc, char const *argv[])
@@ -34,6 +35,33 @@ int main(int argc, char const *argv[])
     if (saddr == NULL) {
         return 5;
     }
+    j_socket_address_free(saddr);
+    saddr =
+        j_inet_socket_address_new_from_string("fe80::665a:4ff:fea0:cbaa",
+                                              23456);
+    if (saddr == NULL) {
+        return 6;
+    }
+    string = j_inet_socket_address_to_string(saddr);
+    if (j_strcmp0(string, "fe80::665a:4ff:fea0:cbaa:23456")) {
+        return 7;
+    }
+    j_free(string);
+
+    struct sockaddr_in6 buf;
+    if (!j_socket_address_to_native
+        (saddr, &buf, j_socket_address_get_native_size(saddr), NULL)
+        || buf.sin6_family != AF_INET6) {
+        return 8;
+    }
+    char buffer[256];
+    string =
+        j_inet_address_to_string(j_inet_socket_address_get_address(saddr));
+    if (inet_ntop(AF_INET6, &buf.sin6_addr.s6_addr, buffer, sizeof(buffer))
+        == NULL || j_strcmp0(string, "fe80::665a:4ff:fea0:cbaa")) {
+        return 9;
+    }
+    j_free(string);
     j_socket_address_free(saddr);
     return 0;
 }

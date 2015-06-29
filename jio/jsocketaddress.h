@@ -61,8 +61,18 @@ struct _JSocketAddress {
     } addr;
 };
 
+#define j_socket_address_get_family(addr)   ((addr)->family)
+#define j_socket_address_is_inet(addr)  (j_socket_address_get_family(addr)==J_SOCKET_FAMILY_INET)
+#define j_socket_address_is_inet6(addr) (j_socket_address_get_family(addr)==J_SOCKET_FAMILY_INET6)
+#define j_socket_address_is_unix(addr)  (j_socket_address_get_family(addr)==J_SOCKET_FAMILY_UNIX)
 #define j_socket_address_free(addr) j_free(addr)
 
+/*
+ * 转化为一个struct sockaddr结构
+ */
+juint j_socket_address_get_native_size(JSocketAddress * addr);
+jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
+                                    juint len, JError ** error);
 /*
  * 从一个sockaddr结构创建
  */
@@ -73,6 +83,12 @@ JSocketAddress *j_inet_socket_address_new(JInetAddress * addr,
                                           juint16 port);
 JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
                                                       address, juint port);
+
+/* 获取地址和端口号 */
+jushort j_inet_socket_address_get_port(JSocketAddress * addr);
+JInetAddress *j_inet_socket_address_get_address(JSocketAddress * addr);
+/* 生成地址的字符串形式，如127.0.0.1:1234 */
+jchar *j_inet_socket_address_to_string(JSocketAddress * addr);
 
 /*
  * JInetAddress IP地址结构，不包含端口号
@@ -94,7 +110,9 @@ JSocketFamily j_inet_address_get_family(JInetAddress * addr);
 jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another);
 const juint8 *j_inet_address_to_bytes(JInetAddress * addr);
 jchar *j_inet_address_to_string(JInetAddress * addr);
-juint j_inet_address_get_size(JInetAddress * addr);
+jchar *j_inet_address_to_string_with_port(JInetAddress * addr,
+                                          jushort port);
+juint j_inet_address_get_native_size(JInetAddress * addr);
 jboolean j_inet_address_is_any(JInetAddress * addr);    /* 该地址是否表示任意地址 */
 jboolean j_inet_address_is_loopback(JInetAddress * addr);   /* 判断是否是回环地址，127.0.0.0/8 */
 jboolean j_inet_address_is_multicast(JInetAddress * addr);  /* 判断是否是广播地址 */
