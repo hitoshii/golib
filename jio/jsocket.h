@@ -26,4 +26,15 @@ typedef struct _JSocket JSocket;
 JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol);
 
+/*
+ * 获取套接字的选项
+ * @level API level，如SOL_SOCKET
+ * @optname 选项名字，如SO_BROADCAST
+ * @value 返回选项值的指针
+ */
+jboolean j_socket_get_option(JSocket * socket, jint level, jint optname,
+                             jint * value);
+jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
+                             jint value);
+
 #endif

@@ -5,12 +5,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
@@ -77,6 +77,9 @@ typedef const void *jconstpointer;
 #define J_PI_2  1.5707963267948966192313216916397514420985846996876
 #define J_PI_4  0.78539816339744830961566084581987572104929234984378
 #define J_SQRT2 1.4142135623730950488016887242096980785696718753769
+
+#define J_BIG_ENDIAN    4321
+#define J_LITTLE_ENDIAN 1234
 
 /*
  * Functions
