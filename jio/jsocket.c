@@ -16,6 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jsocket.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 
 /* j_socket_receive_from()的接收者缓存长度 */
 #define RECV_ADDR_CACHE_SIZE 8
@@ -28,7 +30,6 @@ struct _JSocket {
 
     jint listen_backlog;
     juint timeout;
-    JError *construct_error;
     JSocketAddress *remote_address;
 
     juint inited:1;
@@ -47,3 +48,10 @@ struct _JSocket {
         juint64 last_used;
     } recv_addr_cache[RECV_ADDR_CACHE_SIZE];
 };
+
+JSocket *j_socket_new(JSocketFamily family, JSocketType type,
+                      JSocketProtocol protocol)
+{
+    JSocket socket;
+    return NULL;
+}

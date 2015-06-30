@@ -20,7 +20,6 @@
 #define __JLIB_THREAD_H__
 
 #include "jtypes.h"
-#include "jerror.h"
 #include <pthread.h>
 
 typedef struct _JMutext JMutex;
@@ -91,7 +90,7 @@ typedef struct _JThread JThread;
 
 JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data);
 JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
-                          jpointer data, JError ** error);
+                          jpointer data);
 
 void j_thread_unref(JThread * thread);
 void j_thread_ref(JThread * thread);

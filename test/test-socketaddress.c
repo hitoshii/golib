@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
 
     struct sockaddr_in6 buf;
     if (!j_socket_address_to_native
-        (saddr, &buf, j_socket_address_get_native_size(saddr), NULL)
+        (saddr, &buf, j_socket_address_get_native_size(saddr))
         || buf.sin6_family != AF_INET6) {
         return 8;
     }

@@ -32,10 +32,9 @@ juint j_socket_address_get_native_size(JSocketAddress * addr)
 }
 
 jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
-                                    juint len, JError ** error)
+                                    juint len)
 {
     if (len < j_socket_address_get_native_size(addr)) {
-        j_prefix_error(error, "memory space is too small");
         return FALSE;
     }
 
@@ -60,7 +59,6 @@ jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
         addr6->sin6_family = AF_INET6;
         return TRUE;
     }
-    j_prefix_error(error, "invalid JSocketAddress");
     return FALSE;
 }
 
@@ -163,7 +161,7 @@ jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
         }
         jint status = getaddrinfo(address, NULL, hints, &res);
         if (status != 0) {
-            return NULL;
+            return FALSE;
         }
         if (res->ai_family == AF_INET6
             && res->ai_addrlen == sizeof(struct sockaddr_in6)) {

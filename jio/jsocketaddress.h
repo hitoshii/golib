@@ -73,7 +73,7 @@ struct _JSocketAddress {
  */
 juint j_socket_address_get_native_size(JSocketAddress * addr);
 jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
-                                    juint len, JError ** error);
+                                    juint len);
 /*
  * 从一个sockaddr结构创建
  */

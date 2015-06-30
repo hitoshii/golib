@@ -23,4 +23,7 @@
 
 typedef struct _JSocket JSocket;
 
+JSocket *j_socket_new(JSocketFamily family, JSocketType type,
+                      JSocketProtocol protocol);
+
 #endif

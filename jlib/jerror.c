@@ -19,6 +19,19 @@
 #include "jmessage.h"
 #include "jmem.h"
 #include "jstrfuncs.h"
+#include <errno.h>
+#include <string.h>
+
+/* 获取系统调用的错误码 */
+jint j_errno(void)
+{
+    return errno;
+}
+
+jboolean j_strerror(jint errnum, jchar * buf, juint buflen)
+{
+    return strerror_r(errnum, buf, buflen) == 0;
+}
 
 
 JError *j_error_new(JQuark domain, jint code, const jchar * format, ...)

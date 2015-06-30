@@ -22,6 +22,12 @@
 #include <stdarg.h>
 #include "jquark.h"
 
+
+/* 获取系统调用的错误码 */
+jint j_errno(void);
+jboolean j_strerror(jint errnum, jchar * buf, juint buflen);
+
+
 typedef struct {
     JQuark domain;
     jint code;

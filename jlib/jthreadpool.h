@@ -35,8 +35,7 @@ typedef struct {
  * @exclusive: 线程池是否与其他线程池共享线程
  */
 JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
-                               jint max_threads, jboolean exclusive,
-                               JError ** error);
+                               jint max_threads, jboolean exclusive);
 
 /*
  * 释放线程池
@@ -49,8 +48,7 @@ void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
 /*
  * 将任务加入到线程池中
  */
-jboolean j_thread_pool_push(JThreadPool * pool, jpointer data,
-                            JError ** error);
+jboolean j_thread_pool_push(JThreadPool * pool, jpointer data);
 
 /* 获取最大的和当前正在执行的线程数量 */
 jint j_thread_pool_get_max_threads(JThreadPool * pool);

@@ -61,8 +61,7 @@ static void j_thread_pool_free_internal(JRealThreadPool * pool);
 
 
 /* 启动线程池的线程 */
-static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
-                                           JError ** error);
+static jboolean j_thread_pool_start_thread(JRealThreadPool * pool);
 /* 线程代理 */
 static jpointer j_thread_pool_thread_proxy(jpointer data);
 /* 线程等待新任务，如果该函数返回NULL，则线程会进入公共线程池 */
@@ -83,8 +82,7 @@ static void j_thread_pool_queue_push_unlocked(JRealThreadPool * pool,
  * @exclusive: 线程池是否与其他线程池共享线程
  */
 JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
-                               jint max_threads, jboolean exclusive,
-                               JError ** error)
+                               jint max_threads, jboolean exclusive)
 {
     j_return_val_if_fail(func != NULL && max_threads >= -1, NULL);
     j_return_val_if_fail(!exclusive || max_threads != -1, NULL);
@@ -113,9 +111,7 @@ JThreadPool *j_thread_pool_new(JFunc func, jpointer user_data,
     if (pool->pool.exclusive) {
         j_real_thread_pool_lock(pool);
         while (pool->num_threads < pool->max_threads) {
-            JError *local_error = NULL;
-            if (!j_thread_pool_start_thread(pool, &local_error)) {
-                j_propagate_error(error, local_error);
+            if (!j_thread_pool_start_thread(pool)) {
                 break;
             }
         }
@@ -172,8 +168,7 @@ void j_thread_pool_free(JThreadPool * pool, jboolean immediate,
 /*
  * 将任务加入到线程池中
  */
-jboolean j_thread_pool_push(JThreadPool * pool, jpointer data,
-                            JError ** error)
+jboolean j_thread_pool_push(JThreadPool * pool, jpointer data)
 {
     JRealThreadPool *real = (JRealThreadPool *) pool;
 
@@ -184,9 +179,7 @@ jboolean j_thread_pool_push(JThreadPool * pool, jpointer data,
     j_real_thread_pool_lock(real);
     if (j_async_queue_length_unlocked(real->queue) >= 0) {
         /* 当前没有线程在等待，则“启动“一个新线程 */
-        JError *local_error = NULL;
-        if (!j_thread_pool_start_thread(real, &local_error)) {
-            j_propagate_error(error, local_error);
+        if (!j_thread_pool_start_thread(real)) {
             result = FALSE;
         }
     }
@@ -211,8 +204,7 @@ static void j_thread_pool_queue_push_unlocked(JRealThreadPool * pool,
 }
 
 
-static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
-                                           JError ** error)
+static jboolean j_thread_pool_start_thread(JRealThreadPool * pool)
 {
     jboolean success = FALSE;
 
@@ -232,8 +224,7 @@ static jboolean j_thread_pool_start_thread(JRealThreadPool * pool,
 
     if (!success) {
         JThread *thread =
-            j_thread_try_new("pool", j_thread_pool_thread_proxy, pool,
-                             error);
+            j_thread_try_new("pool", j_thread_pool_thread_proxy, pool);
         if (thread == NULL) {
             return FALSE;
         }
