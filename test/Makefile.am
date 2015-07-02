@@ -27,7 +27,8 @@ noinst_PROGRAMS= \
     test-queue \
     test-asyncqueue \
     test-threadpool \
-    test-socketaddress
+    test-socketaddress \
+    test-socket
 
 TESTS=\
     test-string \
@@ -40,7 +41,8 @@ TESTS=\
     test-queue \
     test-asyncqueue \
     test-threadpool \
-    test-socketaddress
+    test-socketaddress \
+    test-socket
 
 test_string_SOURCES = \
 	test-string.c
@@ -74,6 +76,9 @@ test_threadpool_SOURCES = \
 
 test_socketaddress_SOURCES = \
     test-socketaddress.c
+
+test_socket_SOURCES = \
+    test-socket.c
 
 clean-local:
 	indent -kr -ts4 -nut *.c

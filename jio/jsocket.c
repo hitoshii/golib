@@ -33,9 +33,8 @@ struct _JSocket {
 
     jint listen_backlog;
     juint timeout;
-    JSocketAddress *remote_address;
+    JSocketAddress remote_address;
 
-    juint inited:1;
     juint blocking:1;
     juint keepalive:1;
     juint closed:1;
@@ -45,7 +44,7 @@ struct _JSocket {
     juint connect_pending:1;
 
     struct {
-        JSocketAddress *addr;
+        JSocketAddress addr;
         struct sockaddr *native;
         jint native_len;
         juint64 last_used;
@@ -65,10 +64,16 @@ JSocket *j_socket_new(JSocketFamily family, JSocketType type,
     if (socket.fd < 0) {
         return NULL;
     }
-    socket.family = family;
-    socket.type = type;
-    socket.protocol = protocol;
-    return NULL;
+    if (!j_socket_detail_from_fd(&socket)) {
+        return NULL;
+    }
+    return (JSocket *) j_memdup(&socket, sizeof(socket));
+}
+
+void j_socket_close(JSocket * socket)
+{
+    close(socket->fd);
+    j_free(socket);
 }
 
 /* 系统调用socket(int,int,int)的包裹函数 */
@@ -172,6 +177,8 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket)
     } else {
         socket->keepalive = FALSE;
     }
+
+    return TRUE;
 }
 
 /*
@@ -199,6 +206,7 @@ jboolean j_socket_get_option(JSocket * socket, jint level, jint optname,
         *value = *value >> (8 * (sizeof(jint) - size));
     }
 #endif
+    return TRUE;
 }
 
 jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,

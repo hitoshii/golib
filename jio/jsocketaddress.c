@@ -208,8 +208,8 @@ jchar *j_inet_socket_address_to_string(JSocketAddress * addr)
         return NULL;
     } else {
         return j_inet_address_to_string_with_port(&addr->addr.inet.address,
-                                                  htons(addr->addr.
-                                                        inet.port));
+                                                  htons(addr->addr.inet.
+                                                        port));
     }
 }
 

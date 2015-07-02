@@ -25,6 +25,7 @@ typedef struct _JSocket JSocket;
 
 JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol);
+void j_socket_close(JSocket * socket);
 
 /*
  * 获取套接字的选项
