@@ -70,6 +70,19 @@ JSocket *j_socket_new(JSocketFamily family, JSocketType type,
     return (JSocket *) j_memdup(&socket, sizeof(socket));
 }
 
+JSocket *j_socket_new_from_fd(jint fd)
+{
+    if (fd < 0) {
+        return NULL;
+    }
+    JSocket socket;
+    socket.fd = fd;
+    if (!j_socket_detail_from_fd(&socket)) {
+        return NULL;
+    }
+    return (JSocket *) j_memdup(&socket, sizeof(socket));
+}
+
 void j_socket_close(JSocket * socket)
 {
     close(socket->fd);
@@ -178,7 +191,77 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket)
         socket->keepalive = FALSE;
     }
 
+    if (j_socket_get_option(socket, SOL_SOCKET, SO_ACCEPTCONN, &value)) {
+        socket->listening = ! !value;
+    } else {
+        socket->listening = FALSE;
+    }
+
+    socket->closed = FALSE;
+    socket->blocking = TRUE;
     return TRUE;
+}
+
+/* 绑定一个地址 */
+jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
+                       jboolean reuse)
+{
+    j_return_val_if_fail(socket->closed == FALSE, FALSE);
+
+    struct sockaddr_storage addr;
+    if (!j_socket_address_to_native(address, &addr, sizeof(addr))) {
+        return FALSE;
+    }
+    jboolean so_reuseaddr = ! !reuse;
+    j_socket_set_option(socket, SOL_SOCKET, SO_REUSEPORT, so_reuseaddr);
+#ifdef SO_REUSEPORT
+    jboolean so_reuseport = reuse
+        && socket->type == J_SOCKET_TYPE_DATAGRAM;
+    j_socket_set_option(socket, SOL_SOCKET, SO_REUSEPORT, so_reuseport);
+#endif
+
+    if (bind
+        (socket->fd, (struct sockaddr *) &addr,
+         j_socket_address_get_native_size(address)) < 0) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/* 讲套接字设置为被动监听状态 */
+jboolean j_socket_listen(JSocket * socket, jint listen_backlog)
+{
+    j_return_val_if_fail(socket->closed == FALSE, FALSE);
+
+    if (listen(socket->fd, listen_backlog) < 0) {
+        return FALSE;
+    }
+    socket->listen_backlog = listen_backlog;
+    socket->listening = TRUE;
+    return TRUE;
+}
+
+jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking)
+{
+    socket->blocking = ! !blocking;
+}
+
+jboolean j_socket_get_blocking(JSocket * socket)
+{
+    return socket->blocking;
+}
+
+jboolean j_socket_set_keepalive(JSocket * socket, jboolean keepalive)
+{
+    if (!j_socket_set_option(socket, SOL_SOCKET, SO_KEEPALIVE, keepalive)) {
+        return FALSE;
+    }
+    socket->keepalive = keepalive;
+}
+
+jboolean j_socket_get_keepalive(JSocket * socket)
+{
+    return socket->keepalive;
 }
 
 /*

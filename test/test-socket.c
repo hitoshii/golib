@@ -8,6 +8,16 @@ int main(int argc, char const *argv[])
     if (socket == NULL) {
         return 1;
     }
+    JSocketAddress addr;
+    if (!j_inet_socket_address_init_from_string(&addr, "127.0.0.1", 23412)) {
+        return 2;
+    }
+    if (!j_socket_bind(socket, &addr, TRUE)) {
+        return 3;
+    }
+    if (!j_socket_listen(socket, 1024)) {
+        return 4;
+    }
     j_socket_close(socket);
     return 0;
 }

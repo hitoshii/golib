@@ -25,8 +25,20 @@ typedef struct _JSocket JSocket;
 
 JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol);
+JSocket *j_socket_new_from_fd(jint fd);
 void j_socket_close(JSocket * socket);
 
+/* 绑定一个地址 */
+jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
+                       jboolean reuse);
+/* 讲套接字设置为被动监听状态，需要线绑定一个地址 */
+jboolean j_socket_listen(JSocket * socket, jint listen_backlog);
+
+
+jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking);
+jboolean j_socket_get_blocking(JSocket * socket);
+jboolean j_socket_set_keepalive(JSocket * socket, jboolean keepalive);
+jboolean j_socket_get_keepalive(JSocket * socket);
 /*
  * 获取套接字的选项
  * @level API level，如SOL_SOCKET

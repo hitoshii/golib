@@ -26,9 +26,13 @@
 juint j_socket_address_get_native_size(JSocketAddress * addr)
 {
     if (j_socket_address_is_unix(addr)) {
-        return 0;
+        return sizeof(struct sockaddr_un);
+    } else if (j_socket_address_is_inet(addr)) {
+        return sizeof(struct sockaddr_in);
+    } else if (j_socket_address_is_inet6(addr)) {
+        return sizeof(struct sockaddr_in6);
     }
-    return j_inet_address_get_native_size(&addr->addr.inet.address);
+    return 0;
 }
 
 jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
@@ -208,8 +212,8 @@ jchar *j_inet_socket_address_to_string(JSocketAddress * addr)
         return NULL;
     } else {
         return j_inet_address_to_string_with_port(&addr->addr.inet.address,
-                                                  htons(addr->addr.inet.
-                                                        port));
+                                                  htons(addr->addr.
+                                                        inet.port));
     }
 }
 
