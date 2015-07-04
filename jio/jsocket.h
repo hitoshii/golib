@@ -33,6 +33,8 @@ jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
                        jboolean reuse);
 /* 讲套接字设置为被动监听状态，需要线绑定一个地址 */
 jboolean j_socket_listen(JSocket * socket, jint listen_backlog);
+/* 连接目标地址，对于面向连接的套接字，这会执行连接。对于无连接的套接字，设置默认的目标地址 */
+jboolean j_socket_connect(JSocket * socket, JSocketAddress * address);
 
 
 jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking);

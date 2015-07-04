@@ -75,12 +75,14 @@ juint j_socket_address_get_native_size(JSocketAddress * addr);
 jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
                                     juint len);
 /*
- * 从一个sockaddr结构创建
+ * 从一个struct sockaddr结构创建
  */
 JSocketAddress *j_socket_address_new_from_native(jpointer native,
                                                  juint size);
 jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
                                            jpointer native, juint size);
+void j_socket_address_init_copy(JSocketAddress * saddr,
+                                JSocketAddress * addr);
 /* 创建一个网络地址  */
 JSocketAddress *j_inet_socket_address_new(JInetAddress * addr,
                                           juint16 port);

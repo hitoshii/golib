@@ -241,6 +241,39 @@ jboolean j_socket_listen(JSocket * socket, jint listen_backlog)
     return TRUE;
 }
 
+/* 连接目标地址，对于面向连接的套接字，这会执行连接。对于无连接的套接字，设置默认的目标地址 */
+jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
+{
+    j_return_val_if_fail(socket->closed == FALSE, FALSE);
+
+    struct sockaddr_storage addr;
+    if (!j_socket_address_to_native(address, &addr, sizeof(addr))) {
+        return FALSE;
+    }
+
+    j_socket_address_init_copy(&socket->remote_address, address);
+
+    while (TRUE) {
+        if (connect
+            (socket->fd, (struct sockaddr *) &addr,
+             j_socket_address_get_native_size(address)) < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else if (errno == EINPROGRESS) {
+                if (socket->blocking) {
+                    /* TODO */
+                } else {
+                    socket->connect_pending = TRUE;
+                }
+            }
+            return FALSE;
+        }
+    }
+
+    socket->connected = TRUE;
+    return TRUE;
+}
+
 jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking)
 {
     socket->blocking = ! !blocking;

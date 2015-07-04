@@ -127,6 +127,12 @@ jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
     return TRUE;
 }
 
+void j_socket_address_init_copy(JSocketAddress * saddr,
+                                JSocketAddress * addr)
+{
+    memcpy(saddr, addr, sizeof(JSocketAddress));
+}
+
 JSocketAddress *j_socket_address_new_from_native(jpointer native,
                                                  juint size)
 {
@@ -212,8 +218,8 @@ jchar *j_inet_socket_address_to_string(JSocketAddress * addr)
         return NULL;
     } else {
         return j_inet_address_to_string_with_port(&addr->addr.inet.address,
-                                                  htons(addr->addr.
-                                                        inet.port));
+                                                  htons(addr->addr.inet.
+                                                        port));
     }
 }
 
