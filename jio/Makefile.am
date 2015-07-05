@@ -14,7 +14,8 @@ lib_LTLIBRARIES = libjio.la
 
 libjio_la_SOURCES = \
     jsocket.c \
-    jsocketaddress.c
+    jsocketaddress.c \
+    jcancellable.c
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -29,7 +30,8 @@ jiosubinclude_HEADERS= \
     jio.h \
     jsocket.h \
     jioenum.h \
-    jsocketaddress.h
+    jsocketaddress.h \
+    jcancellable.h
 
 
 pkgconfigdir = $(libdir)/pkgconfig

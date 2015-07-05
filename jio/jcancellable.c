@@ -15,13 +15,14 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_H__
-#define __JIO_H__
-
-#include "jioenum.h"
-#include "jsocketaddress.h"
 #include "jcancellable.h"
-#include "jsocket.h"
+#include <jlib/jwakeup.h>
 
+struct _JCancellable {
+    juint cancelled:1;
+    juint cancelled_running:1;
+    juint cancelled_running_waiting:1;
 
-#endif
+    juint ref;
+    JWakeup *wakeup;
+};
