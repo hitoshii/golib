@@ -275,6 +275,7 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
             }
             return FALSE;
         }
+        break;
     }
 
     socket->connected = TRUE;
@@ -345,7 +346,19 @@ jboolean j_socket_check_connect_result(JSocket * socket, jint * err)
 
 jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking)
 {
+    jint flags = fcntl(socket->fd, F_GETFL, 0);
+    if (flags < 0) {
+        return FALSE;
+    }
+
     socket->blocking = ! !blocking;
+    jint ret;
+    if (socket->blocking) {
+        flags &= O_NONBLOCK;
+    } else {
+        flags &= ~O_NONBLOCK;
+    }
+    return fcntl(socket->fd, F_SETFL, flags) == 0;
 }
 
 jboolean j_socket_get_blocking(JSocket * socket)
