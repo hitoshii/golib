@@ -20,4 +20,9 @@
 
 typedef struct _JCancellable JCancellable;
 
+JCancellable *j_cancellable_new(void);
+void j_cancellable_cancel(JCancellable * cancellable);
+
+void j_cancellable_unref(JCancellable * cancellable);
+
 #endif

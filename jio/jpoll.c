@@ -15,13 +15,23 @@
  * License along with main.c; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_H__
-#define __JIO_H__
-
-#include "jioenum.h"
-#include "jsocketaddress.h"
 #include "jpoll.h"
-#include "jsocket.h"
 
+jint j_poll(struct pollfd *fds, juint nfds, jint timeout)
+{
+    return poll(fds, nfds, timeout);
+}
 
-#endif
+/* poll单个文件描述符 */
+jint j_poll_simple(jint fd, jshort conditions, jint timeout,
+                   jshort * revents)
+{
+    struct pollfd fds;
+    fds.fd = fd;
+    fds.events = conditions;
+    jint ret = j_poll(&fds, 1, timeout);
+    if (ret >= 0) {
+        *revents = fds.revents;
+    }
+    return ret;
+}

@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <poll.h>
 
 /* UNIX套接字的地址类型 */
 typedef enum {
@@ -58,5 +59,15 @@ typedef enum {
      */
     J_SOCKET_TYPE_SEQPACKET = J_SOCKET_TYPE_INVALID,
 } JSocketType;
+
+
+typedef enum {
+    J_POLL_IN = POLLIN,
+    J_POLL_PRI = POLLPRI,
+    J_POLL_OUT = POLLOUT,
+    J_POLL_ERR = POLLERR,
+    J_POLL_HUP = POLLHUP,
+    J_POLL_NVAL = POLLNVAL
+} JPollCondition;
 
 #endif

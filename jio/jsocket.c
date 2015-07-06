@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jsocket.h"
+#include "jpoll.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -261,7 +262,13 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
                 continue;
             } else if (errno == EINPROGRESS) {
                 if (socket->blocking) {
-                    /* TODO */
+                    if (j_socket_condition_wait(socket, J_POLL_OUT)) {
+                        jint err;
+                        if (j_socket_check_connect_result(socket, &err)
+                            && !err) {
+                            break;
+                        }
+                    }
                 } else {
                     socket->connect_pending = TRUE;
                 }
@@ -270,6 +277,68 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
         }
     }
 
+    socket->connected = TRUE;
+    return TRUE;
+}
+
+/* 等待条件condition满足返回TRUE */
+jboolean j_socket_condition_wait(JSocket * socket,
+                                 JEPollCondition condition)
+{
+    return j_socket_condition_timed_wait(socket, condition, -1);
+}
+
+/* 超时单位，微秒 */
+jboolean j_socket_condition_timed_wait(JSocket * socket,
+                                       JPollCondition condition,
+                                       jint64 timeout)
+{
+    j_return_val_if_fail(socket->closed == FALSE, FALSE);
+
+    if (socket->timeout
+        && (timeout < 0 || socket->timeout < timeout / 1000000)) {
+        timeout = socket->timeout * 1000;
+    } else if (timeout != -1) {
+        timeout /= 1000;
+    }
+
+    jint start_time = j_get_monotonic_time();
+
+    jint result;
+    while (TRUE) {
+        jshort revents;
+        result = j_poll_simple(socket->fd, condition, timeout, &revents);
+        if (result != -1 || errno != EINTR) {
+            break;
+        }
+        if (timeout != -1) {
+            timeout -= (j_get_monotonic_time() - start_time) / 1000;
+            if (timeout < 0) {
+                timeout = 0;
+            }
+        }
+    }
+    return result > 0;
+}
+
+jboolean j_socket_check_connect_result(JSocket * socket, jint * err)
+{
+    j_return_val_if_fail(socket->closed == FALSE, FALSE);
+
+    if (socket->timed_out) {
+        socket->timed_out = FALSE;
+        return FALSE;
+    }
+
+    jint value;
+    if (!j_socket_get_option(socket, SOL_SOCKET, SO_ERROR, &value)) {
+        *err = 1;
+        return FALSE;
+    }
+    *err = 0;
+    if (value != 0) {
+        return FALSE;
+    }
     socket->connected = TRUE;
     return TRUE;
 }
