@@ -20,6 +20,7 @@
 #include "jtypes.h"
 #include "jepoll.h"
 #include "jthread.h"
+#include "jslist.h"
 
 /*
  * Queries the system monotonic time.
@@ -55,6 +56,37 @@ typedef enum {
 #define J_PRIORITY_HIGH_IDLE 100
 #define J_PRIORITY_DEFAULT_IDLE 200
 #define J_PRIORITY_LOW 300
+
+/*
+ * JSource的事件函数
+ */
+struct _JSourceFuncs {
+    jboolean(*prepare) (JSource * source, jint * timeout);
+    jboolean(*check) (JSource * source);
+    jboolean(*dispatch) (JSource * source, JSourceFunc callback,
+                         jpointer user_data);
+    void (*finalize) (JSource * source);
+};
+
+struct _JSource {
+    JSourceCallbackFuncs *callback_funcs;
+    jpointer callback_data;
+
+    /* 在不同阶段调用的JSource函数 */
+    const JSourceFuncs *funcs;
+    juint ref;
+
+    JMainContext *context;
+    juint flags;
+    juint id;                   /* source id */
+    JSList *poll_fds;           /* JEPollRecord* */
+    jchar *name;
+
+    JSList *children;
+    JSource *parent;
+
+    jint64 ready_time;
+};
 
 
 const jchar *j_source_get_name(JSource * src);
@@ -114,7 +146,7 @@ juint j_source_attach(JSource * src, JMainContext * ctx);
 JMainContext *j_main_context_new(void);
 
 /*
- * Returns the global default main context. 
+ * Returns the global default main context.
  */
 JMainContext *j_main_context_default(void);
 
@@ -130,7 +162,7 @@ void j_main_context_unref(JMainContext * ctx);
 
 /*
  * Tries to become the owner of the specified context.
- * If some other thread is the owner of the context, returns FALSE immediately. 
+ * If some other thread is the owner of the context, returns FALSE immediately.
  * Ownership is properly recursive: the owner can require ownership again and will release ownership when g_main_context_release() is called as many times as g_main_context_acquire().
  */
 jboolean j_main_context_acquire(JMainContext * ctx);
@@ -193,6 +225,9 @@ void j_main_loop_run(JMainLoop * loop);
  * Stops loop from running
  */
 void j_main_loop_quit(JMainLoop * loop);
+
+void j_main(void);
+void j_quit(void);
 
 
 /*

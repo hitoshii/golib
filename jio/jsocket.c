@@ -50,6 +50,8 @@ struct _JSocket {
         jint native_len;
         juint64 last_used;
     } recv_addr_cache[RECV_ADDR_CACHE_SIZE];
+
+    jint ref;                   /* 引用计数 */
 };
 
 #define j_socket_check_timeout(socket, val) if(socket->timed_out){socket->timed_out=FALSE;return val;}
@@ -205,7 +207,22 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket)
     if (flags >= 0 && flags & O_NONBLOCK) {
         socket->blocking = TRUE;
     }
+
+    socket->ref = 1;
     return TRUE;
+}
+
+
+void j_socket_ref(JSocket * socket)
+{
+    j_atomic_int_inc(&socket->ref);
+}
+
+void j_socket_unref(JSocket * socket)
+{
+    if (j_atomic_int_dec_and_test(&socket->ref)) {
+        j_socket_close(socket);
+    }
 }
 
 /* 绑定一个地址 */
@@ -287,6 +304,44 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
     return TRUE;
 }
 
+/* 接收连接，成功返回新创建得套接字对象，否则返回NULL */
+JSocket *j_socket_accept(JSocket * socket)
+{
+    j_return_val_if_fail(socket->closed == FALSE, NULL);
+    j_socket_check_timeout(socket, NULL);
+
+    jint fd;
+    while (TRUE) {
+        if ((fd = accept(socket->fd, NULL, 0)) < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (socket->blocking) {
+                    if (!j_socket_condition_wait(socket, J_POLL_IN)) {
+                        return NULL;
+                    }
+                    continue;
+                }
+            }
+            return NULL;
+        }
+        break;
+    }
+
+    jint flags = fcntl(fd, F_GETFD, 0);
+    if (flags >= 0 && (flags & FD_CLOEXEC) == 0) {
+        fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+    }
+
+    JSocket *new = j_socket_new_from_fd(fd);
+    if (new == NULL) {
+        close(fd);
+    } else {
+        new->protocol = socket->protocol;
+    }
+    return new;
+}
+
 #ifdef MSG_NOSIGNAL             /* 不会产生SIGPIPE信号，该信号会终止程序 */
 #define J_SOCKET_DEFAULT_SEND_FLAGS MSG_NOSIGNAL
 #else
@@ -366,7 +421,7 @@ jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
 
 /* 等待条件condition满足返回TRUE */
 jboolean j_socket_condition_wait(JSocket * socket,
-                                 JEPollCondition condition)
+                                 JPollCondition condition)
 {
     return j_socket_condition_timed_wait(socket, condition, -1);
 }
@@ -450,6 +505,7 @@ jboolean j_socket_set_keepalive(JSocket * socket, jboolean keepalive)
         return FALSE;
     }
     socket->keepalive = keepalive;
+    return TRUE;
 }
 
 jboolean j_socket_get_keepalive(JSocket * socket)
@@ -490,4 +546,88 @@ jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
 {
     return setsockopt(socket->fd, level, optname, &value,
                       sizeof(jint)) == 0;
+}
+
+/* 异步操作 */
+typedef struct {
+    JSource source;
+    JSocket *socket;
+    jshort event;
+    jchar *buffer;
+    juint size;
+    juint total;
+} JSocketSource;
+
+static jboolean j_socket_source_dispatch(JSource * source,
+                                         JSourceFunc callback,
+                                         jpointer user_data)
+{
+    JSocketSource *src = (JSocketSource *) source;
+    if (src->event & J_EPOLL_OUT) {
+        jint ret = j_socket_send_with_blocking(src->socket, src->buffer,
+                                               src->size, FALSE);
+        ((JSocketSendCallback) callback) (src->socket, ret, user_data);
+    } else if (src->event & J_EPOLL_IN) {
+        jint ret = j_socket_receive_with_blocking(src->socket, src->buffer,
+                                                  src->total, FALSE);
+        return ((JSocketRecvCallback) callback) (src->socket, src->buffer,
+                                                 ret, user_data);
+    }
+    return FALSE;
+}
+
+static void j_socket_source_finalize(JSource * source)
+{
+    JSocketSource *src = (JSocketSource *) source;
+    j_socket_unref(src->socket);
+    j_free(src->buffer);
+}
+
+JSourceFuncs j_socket_source_funcs = {
+    NULL,
+    NULL,
+    j_socket_source_dispatch,
+    j_socket_source_finalize
+};
+
+static JSocketSource *j_socket_source_new(JSocket * socket, jshort event)
+{
+    JSocketSource *src =
+        (JSocketSource *) j_source_new(&j_socket_source_funcs,
+                                       sizeof(JSocketSource));
+    j_socket_ref(socket);
+    src->socket = socket;
+    src->event = event;
+    j_source_add_poll_fd((JSource *) src, socket->fd, event);
+    return src;
+}
+
+void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
+                         JSocketSendCallback callback, jpointer user_data)
+{
+    j_return_if_fail(socket->closed == FALSE);
+    if (size < 0) {
+        size = j_strlen(buffer);
+    }
+    JSocketSource *src = j_socket_source_new(socket, J_EPOLL_OUT);
+    src->buffer = j_memdup(buffer, size);
+    src->size = size;
+    j_source_set_callback((JSource *) src, (JSourceFunc) callback,
+                          user_data, NULL);
+    j_source_attach((JSource *) src, NULL);
+    j_source_unref((JSource *) src);
+}
+
+void j_socket_recv_async(JSocket * socket, JSocketRecvCallback callback,
+                         jpointer user_data)
+{
+    j_return_if_fail(socket->closed == FALSE);
+    JSocketSource *src =
+        (JSocketSource *) j_socket_source_new(socket, J_EPOLL_IN);
+    src->total = 4096;
+    src->buffer = j_malloc(sizeof(jchar) * src->total);
+    j_source_set_callback((JSource *) src, (JSourceFunc) callback,
+                          user_data, NULL);
+    j_source_attach((JSource *) src, NULL);
+    j_source_unref((JSource *) src);
 }

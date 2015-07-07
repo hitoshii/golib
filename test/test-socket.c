@@ -1,5 +1,39 @@
 #include <jio/jio.h>
 
+static jboolean async_result = FALSE;
+
+static jboolean recv_callback(JSocket * socket, const jchar * buffer,
+                              jint size, jpointer user_daata)
+{
+    if (size == 0) {
+        async_result = TRUE;
+        j_quit();
+    } else if (size < 0) {
+        j_quit();
+    } else {
+        j_printf("%.*s", size, buffer);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static void send_callback(JSocket * socket, jint ret, jpointer user_data)
+{
+    if (ret <= 0) {
+        j_quit();
+        return;
+    }
+    j_socket_recv_async(socket, recv_callback, NULL);
+    jchar buf[1024];
+    jint n;
+    while ((n = j_socket_receive(socket, buf, sizeof(buf) - 1)) > 0) {
+        buf[n - 1] = '\0';
+        printf("%s", buf);
+    }
+    async_result = TRUE;
+    j_quit();
+}
+
 int main(int argc, char const *argv[])
 {
     JSocket *socket =
@@ -51,12 +85,33 @@ int main(int argc, char const *argv[])
     jint n;
     while ((n = j_socket_receive(socket, buf, sizeof(buf) - 1)) > 0) {
         buf[n - 1] = '\0';
-        printf("%s", buf);
     }
     if (n != 0) {
         return 9;
     }
 
     j_socket_close(socket);
+
+    /* 测试异步读写数据 */
+    socket =
+        j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,
+                     J_SOCKET_PROTOCOL_TCP);
+    if (socket == NULL
+        || !j_inet_socket_address_init_from_string(&addr, "192.30.252.128",
+                                                   80)) {
+        return 10;
+    };
+    if (!j_socket_connect(socket, &addr)) {
+        return 11;
+    }
+    j_socket_send_async(socket,
+                        "GET / HTTP/1.1\r\nHost: github.com\r\nConnection: Close\r\n\r\n",
+                        -1, send_callback, NULL);
+
+    j_socket_unref(socket);
+    j_main();
+    if (!async_result) {
+        return 12;
+    }
     return 0;
 }

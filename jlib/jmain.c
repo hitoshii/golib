@@ -17,7 +17,6 @@
  */
 #include "jmain.h"
 #include "jenviron.h"
-#include "jslist.h"
 #include "jlist.h"
 #include "jhashtable.h"
 #include "jarray.h"
@@ -34,18 +33,6 @@ typedef struct {
 } JEPollRecord;
 
 
-/*
- * JSource的事件函数
- */
-struct _JSourceFuncs {
-    jboolean(*prepare) (JSource * source, jint * timeout);
-    jboolean(*check) (JSource * source);
-    jboolean(*dispatch) (JSource * source, JSourceFunc callback,
-                         jpointer user_data);
-    void (*finalize) (JSource * source);
-};
-
-
 struct _JSourceCallbackFuncs {
     void (*ref) (jpointer cb_data);
     void (*unref) (jpointer cb_data);
@@ -53,29 +40,7 @@ struct _JSourceCallbackFuncs {
                  JSourceFunc * func, jpointer * data);
 };
 
-struct _JSource {
-    JSourceCallbackFuncs *callback_funcs;
-    jpointer callback_data;
 
-    /* 在不同阶段调用的JSource函数 */
-    const JSourceFuncs *funcs;
-    juint ref;
-
-    JMainContext *context;
-
-    juint flags;
-
-    juint id;                   /* source id */
-
-    JSList *poll_fds;           /* JEPollRecord* */
-
-    jchar *name;
-
-    JSList *children;
-    JSource *parent;
-
-    jint64 ready_time;
-};
 #define J_SOURCE_IS_DESTROYED(src)  (((src)->flags & J_SOURCE_FLAG_ACTIVE) == 0)
 #define J_SOURCE_IS_BLOCKED(src)    (((src)->flags & J_SOURCE_FLAG_BLOCKED))
 
@@ -1163,7 +1128,7 @@ static inline void j_source_unblock(JSource * src)
  *
  * Dispatches all pending sources
  *
- * You must have successfully acquired the context with 
+ * You must have successfully acquired the context with
  * j_main_context_acquire() before you may call this function
  */
 void j_main_context_dispatch(JMainContext * ctx)
@@ -1456,6 +1421,30 @@ void j_main_loop_quit(JMainLoop * loop)
     j_wakeup_signal(loop->context->wakeup);
     j_cond_broadcast(&loop->context->cond);
     J_MAIN_CONTEXT_UNLOCK(loop->context);
+}
+
+static JMainLoop *default_main_loop = NULL;
+J_MUTEX_DEFINE_STATIC(default_main_loop_mutex);
+
+void j_main(void)
+{
+    j_mutex_lock(&default_main_loop_mutex);
+    if (default_main_loop == NULL) {
+        default_main_loop = j_main_loop_new(NULL, FALSE);
+    }
+    j_mutex_unlock(&default_main_loop_mutex);
+    j_main_loop_run(default_main_loop);
+}
+
+void j_quit(void)
+{
+    j_mutex_lock(&default_main_loop_mutex);
+    if (default_main_loop) {
+        j_main_loop_quit(default_main_loop);
+        j_main_loop_unref(default_main_loop);
+        default_main_loop = NULL;
+    }
+    j_mutex_unlock(&default_main_loop_mutex);
 }
 
 
