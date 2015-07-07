@@ -36,6 +36,16 @@ jboolean j_socket_listen(JSocket * socket, jint listen_backlog);
 /* 连接目标地址，对于面向连接的套接字，这会执行连接。对于无连接的套接字，设置默认的目标地址 */
 jboolean j_socket_connect(JSocket * socket, JSocketAddress * address);
 
+/* 发送数据 */
+jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
+                                 jint size, jboolean blocking);
+jint j_socket_send(JSocket * socket, const jchar * buffer, jint size);
+
+/* 读取数据 */
+jint j_socket_receive(JSocket * socket, jchar * buffer, juint size);
+jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
+                                    juint size, jboolean blocking);
+
 /* 等待条件condition满足返回TRUE */
 jboolean j_socket_condition_wait(JSocket * socket,
                                  JEPollCondition condition);

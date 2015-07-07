@@ -41,6 +41,22 @@ int main(int argc, char const *argv[])
         return 7;
     }
 
+    if (j_socket_send
+        (socket,
+         "GET / HTTP/1.1\r\nHost: test.scopehigh.top\r\nConnection: Close\r\n\r\n",
+         -1) <= 0) {
+        return 8;
+    }
+    jchar buf[1024];
+    jint n;
+    while ((n = j_socket_receive(socket, buf, sizeof(buf) - 1)) > 0) {
+        buf[n - 1] = '\0';
+        printf("%s", buf);
+    }
+    if (n != 0) {
+        return 9;
+    }
+
     j_socket_close(socket);
     return 0;
 }

@@ -52,6 +52,8 @@ struct _JSocket {
     } recv_addr_cache[RECV_ADDR_CACHE_SIZE];
 };
 
+#define j_socket_check_timeout(socket, val) if(socket->timed_out){socket->timed_out=FALSE;return val;}
+
 /* 系统调用socket(int,int,int)的包裹函数 */
 static inline jint j_socket(jint family, jint type, jint protocol);
 /* 根据文件描述符设置套接字信息 */
@@ -61,6 +63,7 @@ JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol)
 {
     JSocket socket;
+    bzero(&socket, sizeof(socket));
     socket.fd = j_socket(family, type, protocol);
     if (socket.fd < 0) {
         return NULL;
@@ -198,8 +201,10 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket)
         socket->listening = FALSE;
     }
 
-    socket->closed = FALSE;
-    socket->blocking = TRUE;
+    jint flags = fcntl(socket->fd, F_GETFL, 0);
+    if (flags >= 0 && flags & O_NONBLOCK) {
+        socket->blocking = TRUE;
+    }
     return TRUE;
 }
 
@@ -282,6 +287,83 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
     return TRUE;
 }
 
+#ifdef MSG_NOSIGNAL             /* 不会产生SIGPIPE信号，该信号会终止程序 */
+#define J_SOCKET_DEFAULT_SEND_FLAGS MSG_NOSIGNAL
+#else
+#define J_SOCKET_DEFAULT_SEND_FLAGS 0
+#endif
+
+/* 发送数据 */
+jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
+                                 jint size, jboolean blocking)
+{
+    j_return_val_if_fail(socket->closed == FALSE, -1);
+    j_socket_check_timeout(socket, -1);
+
+    if (size < 0) {
+        size = j_strlen(buffer);
+    }
+    jint ret;
+    while (TRUE) {
+        if ((ret =
+             send(socket->fd, buffer, size,
+                  J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (blocking) {
+                    if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
+                        return -1;
+                    }
+                    continue;
+                }
+            }
+            return -1;
+        }
+        break;
+    }
+    return ret;
+}
+
+jint j_socket_send(JSocket * socket, const jchar * buffer, jint size)
+{
+    return j_socket_send_with_blocking(socket, buffer, size,
+                                       socket->blocking);
+}
+
+/* 读取数据 */
+jint j_socket_receive(JSocket * socket, jchar * buffer, juint size)
+{
+    return j_socket_receive_with_blocking(socket, buffer, size,
+                                          socket->blocking);
+}
+
+jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
+                                    juint size, jboolean blocking)
+{
+    j_return_val_if_fail(socket->closed == FALSE, -1);
+    j_socket_check_timeout(socket, -1);
+
+    jint ret;
+    while (TRUE) {
+        if ((ret = recv(socket->fd, buffer, size, 0)) < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (blocking) {
+                    if (!j_socket_condition_wait(socket, J_POLL_IN)) {
+                        return -1;
+                    }
+                    continue;
+                }
+            }
+            return -1;
+        }
+        break;
+    }
+    return ret;
+}
+
 /* 等待条件condition满足返回TRUE */
 jboolean j_socket_condition_wait(JSocket * socket,
                                  JEPollCondition condition)
@@ -325,11 +407,7 @@ jboolean j_socket_condition_timed_wait(JSocket * socket,
 jboolean j_socket_check_connect_result(JSocket * socket, jint * err)
 {
     j_return_val_if_fail(socket->closed == FALSE, FALSE);
-
-    if (socket->timed_out) {
-        socket->timed_out = FALSE;
-        return FALSE;
-    }
+    j_socket_check_timeout(socket, FALSE);
 
     jint value;
     if (!j_socket_get_option(socket, SOL_SOCKET, SO_ERROR, &value)) {
