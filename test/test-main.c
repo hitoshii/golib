@@ -6,9 +6,6 @@ static jboolean idle(jpointer data)
 {
     static jint i = 0;
     j_printf("idle - %d\n", i++);
-    if (i > 100) {
-        return FALSE;
-    }
     return TRUE;
 }
 

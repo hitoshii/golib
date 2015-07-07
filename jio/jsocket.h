@@ -43,6 +43,11 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address);
 
 /* 接收连接，成功返回新创建得套接字对象，否则返回NULL */
 JSocket *j_socket_accept(JSocket * socket);
+typedef jboolean(*JSocketAcceptCallback) (JSocket * socket, JSocket * conn,
+                                          jpointer user_data);
+void j_socket_accept_async(JSocket * socket,
+                           JSocketAcceptCallback callback,
+                           jpointer user_data);
 
 /* 发送数据 */
 jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
@@ -61,8 +66,12 @@ jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
 typedef jboolean(*JSocketRecvCallback) (JSocket * socket,
                                         const jchar * buffer, jint size,
                                         jpointer user_data);
-void j_socket_recv_async(JSocket * socket, JSocketRecvCallback callback,
-                         jpointer user_data);
+void j_socket_receive_async(JSocket * socket, JSocketRecvCallback callback,
+                            jpointer user_data);
+/* 尽可能读取长度为length的数据 */
+void j_socket_receive_with_length_async(JSocket * socket, juint length,
+                                        JSocketRecvCallback callback,
+                                        jpointer user_data);
 
 /* 等待条件condition满足返回TRUE */
 jboolean j_socket_condition_wait(JSocket * socket,
@@ -89,5 +98,9 @@ jboolean j_socket_get_option(JSocket * socket, jint level, jint optname,
                              jint * value);
 jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
                              jint value);
+
+
+jboolean j_socket_is_closed(JSocket * socket);
+jboolean j_socket_is_connected(JSocket * socket);
 
 #endif

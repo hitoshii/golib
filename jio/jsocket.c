@@ -548,14 +548,24 @@ jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
                       sizeof(jint)) == 0;
 }
 
-/* 异步操作 */
+jboolean j_socket_is_closed(JSocket * socket)
+{
+    return socket->closed;
+}
+
+jboolean j_socket_is_connected(JSocket * socket)
+{
+    return socket->connected;
+}
+
+/****************************** 异步操作 ******************************/
 typedef struct {
     JSource source;
     JSocket *socket;
+    jboolean listening;
     jshort event;
     jchar *buffer;
     juint size;
-    juint total;
 } JSocketSource;
 
 static jboolean j_socket_source_dispatch(JSource * source,
@@ -568,10 +578,18 @@ static jboolean j_socket_source_dispatch(JSource * source,
                                                src->size, FALSE);
         ((JSocketSendCallback) callback) (src->socket, ret, user_data);
     } else if (src->event & J_EPOLL_IN) {
-        jint ret = j_socket_receive_with_blocking(src->socket, src->buffer,
-                                                  src->total, FALSE);
-        return ((JSocketRecvCallback) callback) (src->socket, src->buffer,
-                                                 ret, user_data);
+        if (!src->listening) {
+            jint ret =
+                j_socket_receive_with_blocking(src->socket, src->buffer,
+                                               src->size, FALSE);
+            return ((JSocketRecvCallback) callback) (src->socket,
+                                                     src->buffer, ret,
+                                                     user_data);
+        } else {
+            JSocket *new = j_socket_accept(src->socket);
+            return ((JSocketAcceptCallback) callback) (src->socket, new,
+                                                       user_data);
+        }
     }
     return FALSE;
 }
@@ -618,14 +636,36 @@ void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
     j_source_unref((JSource *) src);
 }
 
-void j_socket_recv_async(JSocket * socket, JSocketRecvCallback callback,
-                         jpointer user_data)
+void j_socket_receive_async(JSocket * socket, JSocketRecvCallback callback,
+                            jpointer user_data)
+{
+    j_socket_receive_with_length_async(socket, 4096, callback, user_data);
+}
+
+/* 尽可能读取长度为length的数据 */
+void j_socket_receive_with_length_async(JSocket * socket, juint length,
+                                        JSocketRecvCallback callback,
+                                        jpointer user_data)
 {
     j_return_if_fail(socket->closed == FALSE);
     JSocketSource *src =
         (JSocketSource *) j_socket_source_new(socket, J_EPOLL_IN);
-    src->total = 4096;
-    src->buffer = j_malloc(sizeof(jchar) * src->total);
+    src->size = length;
+    src->buffer = j_malloc(sizeof(jchar) * src->size);
+    j_source_set_callback((JSource *) src, (JSourceFunc) callback,
+                          user_data, NULL);
+    j_source_attach((JSource *) src, NULL);
+    j_source_unref((JSource *) src);
+}
+
+void j_socket_accept_async(JSocket * socket,
+                           JSocketAcceptCallback callback,
+                           jpointer user_data)
+{
+    j_return_if_fail(socket->closed == FALSE);
+    JSocketSource *src =
+        (JSocketSource *) j_socket_source_new(socket, J_EPOLL_IN);
+    src->listening = TRUE;
     j_source_set_callback((JSource *) src, (JSourceFunc) callback,
                           user_data, NULL);
     j_source_attach((JSource *) src, NULL);

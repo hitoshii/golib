@@ -23,7 +23,7 @@ static void send_callback(JSocket * socket, jint ret, jpointer user_data)
         j_quit();
         return;
     }
-    j_socket_recv_async(socket, recv_callback, NULL);
+    j_socket_receive_async(socket, recv_callback, NULL);
     jchar buf[1024];
     jint n;
     while ((n = j_socket_receive(socket, buf, sizeof(buf) - 1)) > 0) {
@@ -52,7 +52,7 @@ int main(int argc, char const *argv[])
     if (!j_socket_listen(socket, 1024)) {
         return 4;
     }
-    j_socket_close(socket);
+    j_socket_unref(socket);
 
     socket =
         j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,

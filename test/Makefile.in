@@ -92,12 +92,14 @@ noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
 	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
-	test-socketaddress$(EXEEXT) test-socket$(EXEEXT)
+	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
+	test-listen$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
 	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
-	test-socketaddress$(EXEEXT) test-socket$(EXEEXT)
+	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
+	test-listen$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -121,6 +123,9 @@ test_asyncqueue_LDADD = $(LDADD)
 am_test_hashtable_OBJECTS = test-hashtable.$(OBJEXT)
 test_hashtable_OBJECTS = $(am_test_hashtable_OBJECTS)
 test_hashtable_LDADD = $(LDADD)
+am_test_listen_OBJECTS = test-listen.$(OBJEXT)
+test_listen_OBJECTS = $(am_test_listen_OBJECTS)
+test_listen_LDADD = $(LDADD)
 am_test_main_OBJECTS = test-main.$(OBJEXT)
 test_main_OBJECTS = $(am_test_main_OBJECTS)
 test_main_LDADD = $(LDADD)
@@ -183,17 +188,19 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
-	$(test_hashtable_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_quark_SOURCES) \
-	$(test_queue_SOURCES) $(test_socket_SOURCES) \
-	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
+	$(test_hashtable_SOURCES) $(test_listen_SOURCES) \
+	$(test_main_SOURCES) $(test_message_SOURCES) \
+	$(test_quark_SOURCES) $(test_queue_SOURCES) \
+	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES) \
+	$(test_threadpool_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
-	$(test_hashtable_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_quark_SOURCES) \
-	$(test_queue_SOURCES) $(test_socket_SOURCES) \
-	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
+	$(test_hashtable_SOURCES) $(test_listen_SOURCES) \
+	$(test_main_SOURCES) $(test_message_SOURCES) \
+	$(test_quark_SOURCES) $(test_queue_SOURCES) \
+	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES) \
+	$(test_threadpool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -595,6 +602,9 @@ test_socketaddress_SOURCES = \
 test_socket_SOURCES = \
     test-socket.c
 
+test_listen_SOURCES = \
+    test-listen.c
+
 all: all-am
 
 .SUFFIXES:
@@ -650,6 +660,10 @@ test-hashtable$(EXEEXT): $(test_hashtable_OBJECTS) $(test_hashtable_DEPENDENCIES
 	@rm -f test-hashtable$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_hashtable_OBJECTS) $(test_hashtable_LDADD) $(LIBS)
 
+test-listen$(EXEEXT): $(test_listen_OBJECTS) $(test_listen_DEPENDENCIES) $(EXTRA_test_listen_DEPENDENCIES) 
+	@rm -f test-listen$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_listen_OBJECTS) $(test_listen_LDADD) $(LIBS)
+
 test-main$(EXEEXT): $(test_main_OBJECTS) $(test_main_DEPENDENCIES) $(EXTRA_test_main_DEPENDENCIES) 
 	@rm -f test-main$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_main_OBJECTS) $(test_main_LDADD) $(LIBS)
@@ -695,6 +709,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-array.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-asyncqueue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-listen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-quark.Po@am__quote@
@@ -1005,6 +1020,13 @@ test-socketaddress.log: test-socketaddress$(EXEEXT)
 test-socket.log: test-socket$(EXEEXT)
 	@p='test-socket$(EXEEXT)'; \
 	b='test-socket'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-listen.log: test-listen$(EXEEXT)
+	@p='test-listen$(EXEEXT)'; \
+	b='test-listen'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
