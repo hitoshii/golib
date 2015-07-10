@@ -27,7 +27,7 @@ JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol);
 JSocket *j_socket_new_from_fd(jint fd);
 
-/* XXX 该函数会直接关闭套接字，并释放所有资源，不管引用计数 */
+/* XXX 该函数会直接关闭套接字，并释放所有资源，不管引用计数，尽量用j_socket_unref */
 void j_socket_close(JSocket * socket);
 
 void j_socket_ref(JSocket * socket);
