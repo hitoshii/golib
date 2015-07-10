@@ -51,12 +51,6 @@ typedef enum {
     J_SOURCE_FLAG_MASK = 0xFF,
 } JSourceFlag;
 
-#define J_PRIORITY_HIGH -100
-#define J_PRIORITY_DEFAULT 0
-#define J_PRIORITY_HIGH_IDLE 100
-#define J_PRIORITY_DEFAULT_IDLE 200
-#define J_PRIORITY_LOW 300
-
 /*
  * JSource的事件函数
  */
@@ -81,9 +75,6 @@ struct _JSource {
     juint id;                   /* source id */
     JSList *poll_fds;           /* JEPollRecord* */
     jchar *name;
-
-    JSList *children;
-    JSource *parent;
 
     jint64 ready_time;
 };

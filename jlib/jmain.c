@@ -396,18 +396,6 @@ static inline void j_source_destroy_internal(JSource * src,
             }
         }
 
-        tmp_list = src->children;
-        while (tmp_list) {
-            JSource *child = (JSource *) j_slist_data(tmp_list);
-            j_source_destroy_internal(child, ctx, TRUE);
-            j_source_unref_internal(child, ctx, TRUE);
-            tmp_list = j_slist_next(tmp_list);
-        }
-        if (src->parent) {
-            src->parent->children =
-                j_slist_remove(src->parent->children, src);
-        }
-
         j_source_unref_internal(src, ctx, TRUE);
     }
     if (!has_lock) {
@@ -476,14 +464,6 @@ static inline void j_source_unref_internal(JSource * src,
         src->name = NULL;
 
         j_slist_free_full(src->poll_fds, j_free);
-        JSList *tmp_list = src->children;
-        while (tmp_list) {
-            JSource *child = (JSource *) j_slist_data(tmp_list);
-            j_source_unref_internal(child, ctx, has_lock);
-            tmp_list = j_slist_next(tmp_list);
-        }
-        j_slist_free(src->children);
-        src->children = NULL;
 
         j_free(src);
     }
@@ -814,11 +794,6 @@ static inline juint j_source_attach_unlocked(JSource * src,
             tmp_list = j_slist_next(tmp_list);
         }
     }
-    tmp_list = src->children;
-    while (tmp_list) {
-        j_source_attach_unlocked(j_slist_data(tmp_list), ctx, FALSE);
-        tmp_list = j_slist_next(tmp_list);
-    }
 
     /* If another thread has acquired the context, wake it up since
      * it might be in epoll_wait() right now
@@ -913,12 +888,8 @@ jboolean j_main_context_prepare(JMainContext * ctx)
                     }
                 }
             }
-            if (result) {       /* 如果已经ready，那么将其父Source也设置为ready */
-                JSource *ready_source = src;
-                while (ready_source) {
-                    ready_source->flags |= J_SOURCE_FLAG_READY;
-                    ready_source = ready_source->parent;
-                }
+            if (result) {
+                src->flags |= J_SOURCE_FLAG_READY;
             }
         }
         if (src->flags & J_SOURCE_FLAG_READY) {
@@ -1055,11 +1026,7 @@ jboolean j_main_context_check(JMainContext * ctx,
                 }
             }
             if (result) {
-                JSource *ready_source = src;
-                while (ready_source) {
-                    ready_source->flags |= J_SOURCE_FLAG_READY;
-                    ready_source = ready_source->parent;
-                }
+                src->flags |= J_SOURCE_FLAG_READY;
             }
         }
         if (src->flags & J_SOURCE_FLAG_READY) {
@@ -1095,11 +1062,6 @@ static inline void j_source_block(JSource * src)
             tmp_list = j_slist_next(tmp_list);
         }
     }
-    tmp_list = src->children;
-    while (tmp_list) {
-        j_source_block(j_slist_data(tmp_list));
-        tmp_list = j_slist_next(tmp_list);
-    }
 }
 
 static inline void j_source_unblock(JSource * src)
@@ -1113,11 +1075,6 @@ static inline void j_source_unblock(JSource * src)
     while (tmp_list) {
         JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
         j_main_context_add_poll_unlocked(src->context, &(rec->event));
-        tmp_list = j_slist_next(tmp_list);
-    }
-    tmp_list = src->children;
-    while (tmp_list) {
-        j_source_unblock(j_slist_data(tmp_list));
         tmp_list = j_slist_next(tmp_list);
     }
 }
