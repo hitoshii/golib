@@ -69,7 +69,8 @@ jlibsubinclude_HEADERS= \
     jerror.h \
     jqueue.h \
     jasyncqueue.h \
-    jtimer.h
+    jtimer.h \
+    ji18n.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
