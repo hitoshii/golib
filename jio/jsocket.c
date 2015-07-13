@@ -57,6 +57,10 @@ struct _JSocket {
 
 /* 系统调用的包裹函数 */
 static inline jint j_socket(jint family, jint type, jint protocol);
+static inline jint j_accept(jint sockfd, struct sockaddr *addr,
+                            socklen_t * addrlen);
+static inline jint j_connect(jint sockfd, const struct sockaddr *addr,
+                             socklen_t addrlen);
 static inline jint j_send(jint sockfd, const void *buf, size_t len,
                           int flags);
 static inline jint j_sendto(jint sockfd, const void *buf, size_t len,
@@ -90,6 +94,7 @@ JSocket *j_socket_new_from_fd(jint fd)
         return NULL;
     }
     JSocket socket;
+    memset(&socket, 0, sizeof(socket));
     socket.fd = fd;
     if (!j_socket_detail_from_fd(&socket)) {
         return NULL;
@@ -125,6 +130,32 @@ static inline jint j_socket(jint family, jint type, jint protocol)
         fcntl(fd, F_SETFD, flags);
     }
     return fd;
+}
+
+static inline jint j_accept(jint sockfd, struct sockaddr *addr,
+                            socklen_t * addrlen)
+{
+    jint ret;
+    while ((ret = accept(sockfd, addr, addrlen)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        break;
+    }
+    return ret;
+}
+
+static inline jint j_connect(jint sockfd, const struct sockaddr *addr,
+                             socklen_t addrlen)
+{
+    jint ret;
+    while ((ret = connect(sockfd, addr, addrlen)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        break;
+    }
+    return ret;
 }
 
 static inline jint j_send(jint sockfd, const void *buf, size_t len,
@@ -302,7 +333,7 @@ jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
         return FALSE;
     }
     jboolean so_reuseaddr = ! !reuse;
-    j_socket_set_option(socket, SOL_SOCKET, SO_REUSEPORT, so_reuseaddr);
+    j_socket_set_option(socket, SOL_SOCKET, SO_REUSEADDR, so_reuseaddr);
 #ifdef SO_REUSEPORT
     jboolean so_reuseport = reuse
         && socket->type == J_SOCKET_TYPE_DATAGRAM;
@@ -340,28 +371,23 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
         return FALSE;
     }
 
-    while (TRUE) {
-        if (connect
-            (socket->fd, (struct sockaddr *) &addr,
-             j_socket_address_get_native_size(address)) < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else if (errno == EINPROGRESS) {
-                if (socket->blocking) {
-                    if (j_socket_condition_wait(socket, J_POLL_OUT)) {
-                        jint err;
-                        if (j_socket_check_connect_result(socket, &err)
-                            && !err) {
-                            break;
-                        }
+    while (j_connect
+           (socket->fd, (struct sockaddr *) &addr,
+            j_socket_address_get_native_size(address)) < 0) {
+        if (errno == EINPROGRESS) {
+            if (socket->blocking) {
+                if (j_socket_condition_wait(socket, J_POLL_OUT)) {
+                    jint err;
+                    if (j_socket_check_connect_result(socket, &err)
+                        && !err) {
+                        break;
                     }
-                } else {
-                    socket->connect_pending = TRUE;
                 }
+            } else {
+                socket->connect_pending = TRUE;
             }
-            return FALSE;
         }
-        break;
+        return FALSE;
     }
 
     socket->connected = TRUE;
@@ -375,21 +401,16 @@ JSocket *j_socket_accept(JSocket * socket)
     j_socket_check_timeout(socket, NULL);
 
     jint fd;
-    while (TRUE) {
-        if ((fd = accept(socket->fd, NULL, 0)) < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                if (socket->blocking) {
-                    if (!j_socket_condition_wait(socket, J_POLL_IN)) {
-                        return NULL;
-                    }
-                    continue;
+    while ((fd = j_accept(socket->fd, NULL, 0)) < 0) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (socket->blocking) {
+                if (!j_socket_condition_wait(socket, J_POLL_IN)) {
+                    return NULL;
                 }
+                continue;
             }
-            return NULL;
         }
-        break;
+        return NULL;
     }
 
     jint flags = fcntl(fd, F_GETFD, 0);
@@ -423,21 +444,18 @@ jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
         size = j_strlen(buffer);
     }
     jint ret;
-    while (TRUE) {
-        if ((ret =
-             j_send(socket->fd, buffer, size,
-                    J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                if (blocking) {
-                    if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
-                        return -1;
-                    }
-                    continue;
+    while ((ret =
+            j_send(socket->fd, buffer, size,
+                   J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (blocking) {
+                if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
+                    return -1;
                 }
+                continue;
             }
-            return -1;
         }
-        break;
+        return -1;
     }
     return ret;
 }
@@ -465,22 +483,19 @@ jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
     socklen_t addrlen = j_socket_address_get_native_size(address);
     j_socket_address_to_native(address, &addr, sizeof(addr));
     jint ret;
-    while (TRUE) {
-        if ((ret =
-             j_sendto(socket->fd, buffer, size,
-                      J_SOCKET_DEFAULT_SEND_FLAGS,
-                      (struct sockaddr *) &addr, addrlen)) < 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                if (socket->blocking) {
-                    if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
-                        return -1;
-                    }
-                    continue;
+    while ((ret =
+            j_sendto(socket->fd, buffer, size,
+                     J_SOCKET_DEFAULT_SEND_FLAGS,
+                     (struct sockaddr *) &addr, addrlen)) < 0) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (socket->blocking) {
+                if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
+                    return -1;
                 }
+                continue;
             }
-            return -1;
         }
-        break;
+        return -1;
     }
     return ret;
 }
@@ -499,19 +514,16 @@ jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
     j_socket_check_timeout(socket, -1);
 
     jint ret;
-    while (TRUE) {
-        if ((ret = j_recv(socket->fd, buffer, size, 0)) < 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) {
-                if (blocking) {
-                    if (!j_socket_condition_wait(socket, J_POLL_IN)) {
-                        return -1;
-                    }
-                    continue;
+    while ((ret = j_recv(socket->fd, buffer, size, 0)) < 0) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            if (blocking) {
+                if (!j_socket_condition_wait(socket, J_POLL_IN)) {
+                    return -1;
                 }
+                continue;
             }
-            return -1;
         }
-        break;
+        return -1;
     }
     return ret;
 }
