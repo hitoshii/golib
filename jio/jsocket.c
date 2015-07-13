@@ -56,8 +56,17 @@ struct _JSocket {
 
 #define j_socket_check_timeout(socket, val) if(socket->timed_out){socket->timed_out=FALSE;return val;}
 
-/* 系统调用socket(int,int,int)的包裹函数 */
+/* 系统调用的包裹函数 */
 static inline jint j_socket(jint family, jint type, jint protocol);
+static inline jint j_send(jint sockfd, const void *buf, size_t len,
+                          int flags);
+static inline jint j_sendto(jint sockfd, const void *buf, size_t len,
+                            int flags, const struct sockaddr *dest_addr,
+                            socklen_t addrlen);
+static inline jint j_recv(int sockfd, void *buf, size_t len, int flags);
+static inline jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
+                              struct sockaddr *src_addr,
+                              socklen_t * addrlen);
 /* 根据文件描述符设置套接字信息 */
 static inline jboolean j_socket_detail_from_fd(JSocket * socket);
 
@@ -117,6 +126,64 @@ static inline jint j_socket(jint family, jint type, jint protocol)
         fcntl(fd, F_SETFD, flags);
     }
     return fd;
+}
+
+static inline jint j_send(jint sockfd, const void *buf, size_t len,
+                          int flags)
+{
+    jint ret;
+    while ((ret = send(sockfd, buf, len, flags)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
+static inline jint j_sendto(jint sockfd, const void *buf, size_t len,
+                            int flags, const struct sockaddr *dest_addr,
+                            socklen_t addrlen)
+{
+    jint ret;
+    while ((ret = sendto(sockfd, buf, len, flags, dest_addr, addrlen)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
+static inline jint j_recv(int sockfd, void *buf, size_t len, int flags)
+{
+    jint ret;
+    while ((ret = recv(sockfd, buf, len, flags)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
+static inline jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
+                              struct sockaddr *src_addr,
+                              socklen_t * addrlen)
+{
+    jint ret;
+    while ((ret =
+            recvfrom(sockfd, buf, len, flags, src_addr, addrlen)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        } else {
+            break;
+        }
+    }
+    return ret;
 }
 
 /* 根据文件描述符设置套接字信息 */
@@ -361,11 +428,9 @@ jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
     jint ret;
     while (TRUE) {
         if ((ret =
-             send(socket->fd, buffer, size,
-                  J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+             j_send(socket->fd, buffer, size,
+                    J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
                 if (blocking) {
                     if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
                         return -1;
@@ -386,6 +451,43 @@ jint j_socket_send(JSocket * socket, const jchar * buffer, jint size)
                                        socket->blocking);
 }
 
+jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
+                      const jchar * buffer, jint size)
+{
+    if (address == NULL) {
+        return j_socket_send(socket, buffer, size);
+    }
+
+    j_return_val_if_fail(socket->closed == FALSE, -1);
+    j_socket_check_timeout(socket, -1);
+
+    if (size < 0) {
+        size = j_strlen(buffer);
+    }
+    struct sockaddr_storage addr;
+    socklen_t addrlen = j_socket_address_get_native_size(address);
+    j_socket_address_to_native(address, &addr, sizeof(addr));
+    jint ret;
+    while (TRUE) {
+        if ((ret =
+             j_sendto(socket->fd, buffer, size,
+                      J_SOCKET_DEFAULT_SEND_FLAGS,
+                      (struct sockaddr *) &addr, addrlen)) < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (socket->blocking) {
+                    if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
+                        return -1;
+                    }
+                    continue;
+                }
+            }
+            return -1;
+        }
+        break;
+    }
+    return ret;
+}
+
 /* 读取数据 */
 jint j_socket_receive(JSocket * socket, jchar * buffer, juint size)
 {
@@ -401,10 +503,8 @@ jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
 
     jint ret;
     while (TRUE) {
-        if ((ret = recv(socket->fd, buffer, size, 0)) < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        if ((ret = j_recv(socket->fd, buffer, size, 0)) < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
                 if (blocking) {
                     if (!j_socket_condition_wait(socket, J_POLL_IN)) {
                         return -1;
@@ -416,6 +516,39 @@ jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
         }
         break;
     }
+    return ret;
+}
+
+jint j_socket_receive_from(JSocket * socket, JSocketAddress * address,
+                           jchar * buffer, juint size)
+{
+    if (address == NULL) {
+        return j_socket_receive(socket, buffer, size);
+    }
+    j_return_val_if_fail(socket->closed == FALSE, -1);
+    j_socket_check_timeout(socket, -1);
+
+    struct sockaddr_storage addr;
+    socklen_t addrlen;
+
+    jint ret;
+    while (TRUE) {
+        if ((ret =
+             j_recvfrom(socket->fd, buffer, size, 0,
+                        (struct sockaddr *) &addr, &addrlen)) < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                if (socket->blocking) {
+                    if (!j_socket_condition_wait(socket, J_POLL_IN)) {
+                        return -1;
+                    }
+                    continue;
+                }
+            }
+            return -1;
+        }
+        break;
+    }
+    j_socket_address_init_from_native(address, &addr, addrlen);
     return ret;
 }
 

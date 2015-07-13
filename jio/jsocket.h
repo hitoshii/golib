@@ -53,6 +53,9 @@ void j_socket_accept_async(JSocket * socket,
 jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
                                  jint size, jboolean blocking);
 jint j_socket_send(JSocket * socket, const jchar * buffer, jint size);
+/* 如果address为NULL，则等同于 j_socket_send() */
+jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
+                      const jchar * buffer, jint size);
 
 typedef void (*JSocketSendCallback) (JSocket * socket, jint ret,
                                      jpointer user_data);
@@ -63,6 +66,9 @@ void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
 jint j_socket_receive(JSocket * socket, jchar * buffer, juint size);
 jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
                                     juint size, jboolean blocking);
+/* 如果address为NULL，则等同于j_socket_receive() */
+jint j_socket_receive_from(JSocket * socket, JSocketAddress * address,
+                           jchar * buffer, juint size);
 typedef jboolean(*JSocketRecvCallback) (JSocket * socket,
                                         const jchar * buffer, jint size,
                                         jpointer user_data);
