@@ -34,7 +34,6 @@ struct _JSocket {
 
     jint listen_backlog;
     juint timeout;
-    JSocketAddress remote_address;
 
     juint blocking:1;
     juint keepalive:1;
@@ -340,8 +339,6 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address)
     if (!j_socket_address_to_native(address, &addr, sizeof(addr))) {
         return FALSE;
     }
-
-    j_socket_address_init_copy(&socket->remote_address, address);
 
     while (TRUE) {
         if (connect
@@ -689,6 +686,38 @@ jboolean j_socket_is_closed(JSocket * socket)
 jboolean j_socket_is_connected(JSocket * socket)
 {
     return socket->connected;
+}
+
+/* 获取套接字的本地地址，明确绑定的或者连接完成自动生成的 */
+jboolean j_socket_get_local_address(JSocket * socket,
+                                    JSocketAddress * address)
+{
+    struct sockaddr_storage addr;
+    socklen_t addrlen = sizeof(addr);
+    if (getsockname(socket->fd, (struct sockaddr *) &addr, &addrlen) < 0) {
+        return FALSE;
+    }
+    return j_socket_address_init_from_native(address, &addr, addrlen);
+}
+
+/* 获取套接字的远程地址，只对已经连接的套接字有效 */
+jboolean j_socket_get_remote_address(JSocket * socket,
+                                     JSocketAddress * address)
+{
+    if (socket->connect_pending) {
+        jint err;
+        if (!j_socket_check_connect_result(socket, &err)) {
+            return FALSE;
+        }
+        socket->connect_pending = FALSE;
+    }
+    struct sockaddr_storage addr;
+    socklen_t addrlen = sizeof(addr);
+
+    if (getpeername(socket->fd, (struct sockaddr *) &addr, &addrlen) < 0) {
+        return FALSE;
+    }
+    return j_socket_address_init_from_native(address, &addr, addrlen);
 }
 
 /****************************** 异步操作 ******************************/

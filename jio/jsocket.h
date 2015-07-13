@@ -109,4 +109,11 @@ jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
 jboolean j_socket_is_closed(JSocket * socket);
 jboolean j_socket_is_connected(JSocket * socket);
 
+/* 获取套接字的本地地址，明确绑定的或者连接完成自动生成的 */
+jboolean j_socket_get_local_address(JSocket * socket,
+                                    JSocketAddress * address);
+/* 获取套接字的远程地址，只对已经连接的套接字有效 */
+jboolean j_socket_get_remote_address(JSocket * socket,
+                                     JSocketAddress * address);
+
 #endif
