@@ -12,7 +12,7 @@ static jboolean accept_callback(JSocket * socket, JSocket * conn,
         async_result = TRUE;
     }
     j_socket_unref(socket);
-    j_quit();
+    j_main_quit();
     return FALSE;
 }
 

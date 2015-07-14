@@ -218,7 +218,7 @@ void j_main_loop_run(JMainLoop * loop);
 void j_main_loop_quit(JMainLoop * loop);
 
 void j_main(void);
-void j_quit(void);
+void j_main_quit(void);
 
 
 /*

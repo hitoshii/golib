@@ -7,9 +7,9 @@ static jboolean recv_callback(JSocket * socket, const jchar * buffer,
 {
     if (size == 0) {
         async_result = TRUE;
-        j_quit();
+        j_main_quit();
     } else if (size < 0) {
-        j_quit();
+        j_main_quit();
     } else {
         j_printf("%.*s", size, buffer);
         return TRUE;
@@ -20,7 +20,7 @@ static jboolean recv_callback(JSocket * socket, const jchar * buffer,
 static void send_callback(JSocket * socket, jint ret, jpointer user_data)
 {
     if (ret <= 0) {
-        j_quit();
+        j_main_quit();
         return;
     }
     j_socket_receive_async(socket, recv_callback, NULL);
@@ -31,7 +31,7 @@ static void send_callback(JSocket * socket, jint ret, jpointer user_data)
         printf("%s", buf);
     }
     async_result = TRUE;
-    j_quit();
+    j_main_quit();
 }
 
 int main(int argc, char const *argv[])
