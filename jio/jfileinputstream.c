@@ -19,13 +19,10 @@
 #include <jlib/jlib.h>
 #include <fcntl.h>
 
-typedef struct {
-    jint fd;
-} JFileInputStreamPriv;
 
-static jint j_file_input_stream_read(JFileInputStreamPriv * priv,
+static jint j_file_input_stream_read(JFileInputStream * stream,
                                      void *buffer, juint size);
-static void j_file_input_stream_close(JFileInputStreamPriv * priv);
+static void j_file_input_stream_close(JFileInputStream * stream);
 
 static JInputStreamInterface j_file_input_stream_interface = {
     (JInputStreamRead) j_file_input_stream_read,
@@ -39,21 +36,20 @@ JFileInputStream *j_file_read(JFile * f)
     if (fd < 0) {
         return NULL;
     }
-    JFileInputStreamPriv *priv = j_malloc(sizeof(JFileInputStreamPriv));
-    priv->fd = fd;
-    JFileInputStream *stream =
-        j_input_stream_new_proxy(priv, &j_file_input_stream_interface);
+    JFileInputStream *stream = j_malloc(sizeof(JFileInputStream));
+    stream->fd = fd;
+    j_input_stream_init((JInputStream *) stream,
+                        &j_file_input_stream_interface, NULL);
     return stream;
 }
 
-static void j_file_input_stream_close(JFileInputStreamPriv * priv)
+static void j_file_input_stream_close(JFileInputStream * stream)
 {
-    close(priv->fd);
-    j_free(priv);
+    close(stream->fd);
 }
 
-static jint j_file_input_stream_read(JFileInputStreamPriv * priv,
+static jint j_file_input_stream_read(JFileInputStream * stream,
                                      void *buffer, juint size)
 {
-    return j_read(priv->fd, buffer, size);
+    return j_read(stream->fd, buffer, size);
 }

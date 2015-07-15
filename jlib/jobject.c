@@ -21,13 +21,10 @@
 #include "jmem.h"
 
 
-JObject *j_object_new_proxy(jpointer priv, JObjectDestroy _free)
+void j_object_init(JObject * obj, JObjectDestroy _free)
 {
-    JObject *obj = j_malloc(sizeof(JObject));
     obj->ref = 1;
-    obj->priv = priv;
     obj->free = _free;
-    return obj;
 }
 
 void j_object_ref(JObject * obj)
@@ -39,8 +36,9 @@ void j_object_unref(JObject * obj)
 {
     if (j_atomic_int_dec_and_test(&obj->ref)) {
         if (obj->free) {
-            obj->free(obj->priv);
+            obj->free(obj);
+        } else {
+            j_free(obj);
         }
-        j_free(obj);
     }
 }

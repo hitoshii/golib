@@ -18,49 +18,37 @@
 #include "jinputstream.h"
 #include <jlib/jlib.h>
 
-typedef struct {
-    JInputStreamInterface *interface;
-    jpointer priv;
-    jboolean closed;
-} JInputStreamPriv;
-
-static void j_input_stream_free(JInputStreamPriv * priv)
+static void j_input_stream_free(JInputStream * stream)
 {
-    if (priv->closed == FALSE && priv->interface->close) {
-        priv->interface->close(priv->priv);
-        priv->closed = TRUE;
-    }
-    j_free(priv);
+    j_input_stream_close(stream);
+    j_free(stream);
 }
 
-JInputStream *j_input_stream_new_proxy(jpointer priv,
-                                       JInputStreamInterface * interface)
+void j_input_stream_init(JInputStream * stream,
+                         JInputStreamInterface * interface,
+                         JObjectDestroy _free)
 {
-    JInputStreamPriv *p = j_malloc(sizeof(JInputStreamPriv));
-    p->priv = priv;
-    p->interface = interface;
-    p->closed = FALSE;
-    JInputStream *stream = (JInputStream *) j_object_new_proxy(p,
-                                                               (JObjectDestroy)
-                                                               j_input_stream_free);
-    return stream;
+    if (_free == NULL) {
+        _free = (JObjectDestroy) j_input_stream_free;
+    }
+    j_object_init((JObject *) stream, (JObjectDestroy) _free);
+    stream->interface = interface;
+    stream->closed = FALSE;
 }
 
 
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size)
 {
-    JInputStreamPriv *priv = j_object_get_priv(stream);
-    if (priv->interface->read) {
-        return priv->interface->read(priv->priv, buffer, size);
+    if (stream->interface->read) {
+        return stream->interface->read(stream, buffer, size);
     }
     return -1;
 }
 
 void j_input_stream_close(JInputStream * stream)
 {
-    JInputStreamPriv *priv = j_object_get_priv(stream);
-    if (priv->closed == FALSE && priv->interface->close) {
-        priv->interface->close(priv->priv);
-        priv->closed = TRUE;
+    if (stream->closed == FALSE && stream->interface->close) {
+        stream->interface->close(stream);
+        stream->closed = TRUE;
     }
 }

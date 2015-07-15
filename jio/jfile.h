@@ -22,7 +22,10 @@
 #include <jlib/jtypes.h>
 #include <jlib/jobject.h>
 
-typedef JObject JFile;
+typedef struct {
+    JObject parent;
+    jchar *path;
+} JFile;
 
 /* 该函数不会失败，除非内存分配出错 */
 JFile *j_file_new(const jchar * path);

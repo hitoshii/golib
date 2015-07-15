@@ -23,21 +23,27 @@
 
 // typedef struct _JInputStream JInputStream;
 
-typedef jint(*JInputStreamRead) (jpointer priv, void *buffer, juint size);
-typedef void (*JInputStreamClose) (jpointer priv);
+typedef struct _JInputStreamInterface JInputStreamInterface;
 
 typedef struct {
+    JObject parent;
+    JInputStreamInterface *interface;
+    jboolean closed;
+    JObjectDestroy free;
+} JInputStream;
+
+typedef jint(*JInputStreamRead) (JInputStream * stream, void *buffer,
+                                 juint size);
+typedef void (*JInputStreamClose) (JInputStream * stream);
+
+struct _JInputStreamInterface {
     JInputStreamRead read;
     JInputStreamClose close;
-} JInputStreamInterface;
+};
 
-typedef JObject JInputStream;
-
-JInputStream *j_input_stream_new_proxy(jpointer priv,
-                                       JInputStreamInterface * interface);
-
-// void j_input_stream_ref(JInputStream * stream);
-// void j_input_stream_unref(JInputStream * stream);
+void j_input_stream_init(JInputStream * stream,
+                         JInputStreamInterface * interface,
+                         JObjectDestroy _free);
 
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size);
 void j_input_stream_close(JInputStream * stream);

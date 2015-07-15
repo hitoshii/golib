@@ -21,8 +21,10 @@
 #include "jinputstream.h"
 #include "jfile.h"
 
-
-typedef JInputStream JFileInputStream;
+typedef struct {
+    JInputStream parent;
+    jint fd;
+} JFileInputStream;
 
 /* 打开文件读，失败返回NULL */
 JFileInputStream *j_file_read(JFile * f);

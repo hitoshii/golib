@@ -22,17 +22,14 @@
 
 typedef struct _JObject JObject;
 
-typedef void (*JObjectDestroy) (jpointer * obj);
+typedef void (*JObjectDestroy) (jpointer obj);
 
 struct _JObject {
     jint ref;
-    jpointer priv;
     JObjectDestroy free;
 };
 
-#define j_object_get_priv(obj)  (obj)->priv
-
-JObject *j_object_new_proxy(jpointer priv, JObjectDestroy _free);
+void j_object_init(JObject * obj, JObjectDestroy _free);
 void j_object_ref(JObject * obj);
 void j_object_unref(JObject * obj);
 

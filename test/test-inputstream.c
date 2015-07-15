@@ -12,13 +12,15 @@ int main(int argc, char const *argv[])
     }
     char buf[1024];
     jint n;
-    while ((n = j_input_stream_read(input, buf, sizeof(buf))) > 0) {
+    while ((n =
+            j_input_stream_read((JInputStream *) input, buf,
+                                sizeof(buf))) > 0) {
         j_printf("%.*s", n, buf);
     }
     if (n != 0) {
         return 3;
     }
-    j_object_unref(input);
-    j_object_unref(f);
+    j_object_unref((JObject *) input);
+    j_object_unref((JObject *) f);
     return 0;
 }
