@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with main.c; if not, write to the Free Software
+ * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jutils.h"
@@ -73,4 +73,31 @@ jboolean j_daemonize(void)
         return FALSE;
     }
     return TRUE;
+}
+
+static inline jboolean lockfile(jint fd)
+{
+    struct flock fl;
+    fl.l_type = F_WRLCK;
+    fl.l_start = 0;
+    fl.l_whence = SEEK_SET;
+    fl.l_len = 0;
+    return fcntl(fd, F_SETLK, &fl) == 0;
+}
+
+/*
+ * 锁定某个文件，如果成功返回文件描述符号，否则返回-1
+ */
+jint j_lockfile(const jchar * path)
+{
+    jint fd = open(path, O_RDWR | O_CREAT,
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd < 0) {
+        return -1;
+    }
+    if (!lockfile(fd)) {
+        close(fd);
+        return -1;
+    }
+    return fd;
 }

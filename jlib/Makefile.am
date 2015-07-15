@@ -37,7 +37,8 @@ libjlib_la_SOURCES = \
     jqueue.c \
     jasyncqueue.c \
     jtimer.c \
-    jutils.c
+    jutils.c \
+    junix.c
 
 libjlib_la_LDFLAGS = -pthread
 
@@ -73,7 +74,8 @@ jlibsubinclude_HEADERS= \
     jasyncqueue.h \
     jtimer.h \
     ji18n.h \
-    jutils.h
+    jutils.h \
+    junix.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

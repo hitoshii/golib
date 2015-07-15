@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with main.c; if not, write to the Free Software
+ * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #include "jsocket.h"
@@ -55,21 +55,6 @@ struct _JSocket {
 
 #define j_socket_check_timeout(socket, val) if(socket->timed_out){socket->timed_out=FALSE;return val;}
 
-/* 系统调用的包裹函数 */
-static inline jint j_socket(jint family, jint type, jint protocol);
-static inline jint j_accept(jint sockfd, struct sockaddr *addr,
-                            socklen_t * addrlen);
-static inline jint j_connect(jint sockfd, const struct sockaddr *addr,
-                             socklen_t addrlen);
-static inline jint j_send(jint sockfd, const void *buf, size_t len,
-                          int flags);
-static inline jint j_sendto(jint sockfd, const void *buf, size_t len,
-                            int flags, const struct sockaddr *dest_addr,
-                            socklen_t addrlen);
-static inline jint j_recv(int sockfd, void *buf, size_t len, int flags);
-static inline jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
-                              struct sockaddr *src_addr,
-                              socklen_t * addrlen);
 /* 根据文件描述符设置套接字信息 */
 static inline jboolean j_socket_detail_from_fd(JSocket * socket);
 
@@ -106,114 +91,6 @@ void j_socket_close(JSocket * socket)
 {
     close(socket->fd);
     j_free(socket);
-}
-
-/* 系统调用socket(int,int,int)的包裹函数 */
-static inline jint j_socket(jint family, jint type, jint protocol)
-{
-    /* 设置*_CLOEXEC标志后，通过exec*函数执行的程序中不能使用该套接字 */
-    jint fd;
-#ifdef SOCK_CLOEXEC
-    fd = socket(family, type | SOCK_CLOEXEC, protocol);
-    if (fd >= 0) {              /* 成功 */
-        return fd;
-    }
-    if (errno == EINVAL || errno == EPROTOTYPE)
-#endif
-        fd = socket(family, type, protocol);
-    if (fd < 0) {
-        return -1;
-    }
-    jint flags = fcntl(fd, F_GETFD, 0);
-    if (flags != -1 && (flags & FD_CLOEXEC) == 0) {
-        flags |= FD_CLOEXEC;
-        fcntl(fd, F_SETFD, flags);
-    }
-    return fd;
-}
-
-static inline jint j_accept(jint sockfd, struct sockaddr *addr,
-                            socklen_t * addrlen)
-{
-    jint ret;
-    while ((ret = accept(sockfd, addr, addrlen)) < 0) {
-        if (errno == EINTR) {
-            continue;
-        }
-        break;
-    }
-    return ret;
-}
-
-static inline jint j_connect(jint sockfd, const struct sockaddr *addr,
-                             socklen_t addrlen)
-{
-    jint ret;
-    while ((ret = connect(sockfd, addr, addrlen)) < 0) {
-        if (errno == EINTR) {
-            continue;
-        }
-        break;
-    }
-    return ret;
-}
-
-static inline jint j_send(jint sockfd, const void *buf, size_t len,
-                          int flags)
-{
-    jint ret;
-    while ((ret = send(sockfd, buf, len, flags)) < 0) {
-        if (errno == EINTR) {
-            continue;
-        } else {
-            break;
-        }
-    }
-    return ret;
-}
-
-static inline jint j_sendto(jint sockfd, const void *buf, size_t len,
-                            int flags, const struct sockaddr *dest_addr,
-                            socklen_t addrlen)
-{
-    jint ret;
-    while ((ret = sendto(sockfd, buf, len, flags, dest_addr, addrlen)) < 0) {
-        if (errno == EINTR) {
-            continue;
-        } else {
-            break;
-        }
-    }
-    return ret;
-}
-
-static inline jint j_recv(int sockfd, void *buf, size_t len, int flags)
-{
-    jint ret;
-    while ((ret = recv(sockfd, buf, len, flags)) < 0) {
-        if (errno == EINTR) {
-            continue;
-        } else {
-            break;
-        }
-    }
-    return ret;
-}
-
-static inline jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
-                              struct sockaddr *src_addr,
-                              socklen_t * addrlen)
-{
-    jint ret;
-    while ((ret =
-            recvfrom(sockfd, buf, len, flags, src_addr, addrlen)) < 0) {
-        if (errno == EINTR) {
-            continue;
-        } else {
-            break;
-        }
-    }
-    return ret;
 }
 
 /* 根据文件描述符设置套接字信息 */

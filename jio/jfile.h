@@ -5,41 +5,35 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JLIB_WAKEUP_H__
-#define __JLIB_WAKEUP_H__
 
-#include "jtypes.h"
-#include "jepoll.h"
+#ifndef __JIO_FILE_H__
+#define __JIO_FILE_H__
 
-typedef struct _JWakeup JWakeup;
+#include <jlib/jtypes.h>
 
+typedef struct _JFile JFile;
 
-JWakeup *j_wakeup_new(void);
+/* 该函数不会失败，除非内存分配出错 */
+JFile *j_file_new(const jchar * path);
 
-jint j_wakeup_get_pollfd(JWakeup * wakeup, JEPollEvent * e);
+void j_file_ref(JFile * f);
+void j_file_unref(JFile * f);
 
-/*
- * Acknowledges receipt of a wakeup signal on @wakeup.
- * 收到信号后要读取数据
- */
-void j_wakeup_acknowledge(JWakeup * wakeup);
+/* 打开文件描述符号 */
+jint j_file_open_fd(JFile * f, jint mode);
 
-/*
- * Safe to call from a UNIX signal handler
- * As j_wakeup_signal() do not send a true signal
- */
-void j_wakeup_signal(JWakeup * wakeup);
+/* 获取目录，new的时候指定的目录 */
+const jchar *j_file_get_path(JFile * f);
 
-void j_wakeup_free(JWakeup * wakeup);
 
 #endif

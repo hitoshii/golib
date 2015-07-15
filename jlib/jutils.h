@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with main.c; if not, write to the Free Software
+ * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 #ifndef __JLIB_UTILS_H__
@@ -23,6 +23,11 @@
 /* 使当前进程成为守护进程
  */
 jboolean j_daemonize(void);
+
+/*
+ * 锁定某个文件，如果成功返回文件描述符号，否则返回-1
+ */
+jint j_lockfile(const jchar * path);
 
 
 #endif

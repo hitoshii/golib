@@ -29,7 +29,8 @@ noinst_PROGRAMS= \
     test-threadpool \
     test-socketaddress \
     test-socket \
-    test-listen
+    test-listen \
+    test-inputstream
 
 TESTS=\
     test-string \
@@ -44,7 +45,8 @@ TESTS=\
     test-threadpool \
     test-socketaddress \
     test-socket \
-    test-listen
+    test-listen \
+    test-inputstream
 
 test_string_SOURCES = \
 	test-string.c
@@ -84,6 +86,9 @@ test_socket_SOURCES = \
 
 test_listen_SOURCES = \
     test-listen.c
+
+test_inputstream_SOURCES = \
+    test-inputstream.c
 
 clean-local:
 	indent -kr -ts4 -nut *.c

@@ -12,7 +12,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with main.c; if not, write to the Free Software
+ * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
@@ -45,6 +45,7 @@
 #include "jarray.h"
 #include "jepoll.h"
 #include "jmain.h"
+#include "junix.h"
 #include "jutils.h"
 
 #undef __JLIB_MAIN_INCLUDE__

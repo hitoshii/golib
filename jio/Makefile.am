@@ -16,7 +16,10 @@ lib_LTLIBRARIES = libjio.la
 libjio_la_SOURCES = \
     jsocket.c \
     jsocketaddress.c \
-    jpoll.c
+    jpoll.c \
+    jfile.c \
+    jinputstream.c \
+    jfileinputstream.c
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -32,7 +35,10 @@ jiosubinclude_HEADERS= \
     jsocket.h \
     jioenum.h \
     jsocketaddress.h \
-    jpoll.h
+    jpoll.h \
+    jfile.h \
+    jinputstream.h \
+    jfileinputstream.h
 
 
 pkgconfigdir = $(libdir)/pkgconfig
