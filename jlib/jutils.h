@@ -21,9 +21,8 @@
 #include "jtypes.h"
 
 /* 使当前进程成为守护进程
- * _close 是否关闭所有文件描述符号
  */
-void j_daemonize(jboolean _close);
+jboolean j_daemonize(void);
 
 
 #endif

@@ -126,7 +126,7 @@ am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
 	jstack.lo jfileutils.lo jhashtable.lo jarray.lo jatomic.lo \
 	jthread.lo jepoll.lo jslist.lo jwakeup.lo jmain.lo jmessage.lo \
 	jprintf.lo jenviron.lo jthreadpool.lo jquark.lo jerror.lo \
-	jqueue.lo jasyncqueue.lo jtimer.lo
+	jqueue.lo jasyncqueue.lo jtimer.lo jutils.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -350,7 +350,8 @@ libjlib_la_SOURCES = \
     jerror.c \
     jqueue.c \
     jasyncqueue.c \
-    jtimer.c
+    jtimer.c \
+    jutils.c
 
 libjlib_la_LDFLAGS = -pthread
 libjlib_la_LIBADD = 
@@ -381,7 +382,8 @@ jlibsubinclude_HEADERS = \
     jqueue.h \
     jasyncqueue.h \
     jtimer.h \
-    ji18n.h
+    ji18n.h \
+    jutils.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc
@@ -491,6 +493,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jthread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jthreadpool.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jtimer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jutils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jwakeup.Plo@am__quote@
 
 .c.o:

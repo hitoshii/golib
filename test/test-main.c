@@ -17,6 +17,9 @@ static jboolean timeout(jpointer data)
 
 int main(int argc, char *argv[])
 {
+    if (!j_daemonize()) {
+        return 1;
+    }
     JMainLoop *loop = j_main_loop_new(NULL, FALSE);
     j_timeout_add(1000, timeout, loop);
     j_idle_add(idle, NULL);

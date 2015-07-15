@@ -19,6 +19,8 @@
 #ifndef __JLIB_H__
 #define __JLIB_H__
 
+#define __JLIB_MAIN_INCLUDE__
+
 #include "jmacros.h"
 #include "jtypes.h"
 #include "jmem.h"
@@ -43,6 +45,8 @@
 #include "jarray.h"
 #include "jepoll.h"
 #include "jmain.h"
+#include "jutils.h"
 
+#undef __JLIB_MAIN_INCLUDE__
 
 #endif
