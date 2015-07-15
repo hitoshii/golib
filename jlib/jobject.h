@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,40 +15,26 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
+#ifndef __JLIB_OBJECT_H__
+#define __JLIB_OBJECT_H__
 
-#ifndef __JLIB_H__
-#define __JLIB_H__
-
-#define __JLIB_MAIN_INCLUDE__
-
-#include "jmacros.h"
 #include "jtypes.h"
-#include "jmem.h"
-#include "jquark.h"
-#include "jerror.h"
-#include "jenviron.h"
-#include "jtimer.h"
-#include "jmessage.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jqueue.h"
-#include "jasyncqueue.h"
-#include "jprintf.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jthreadpool.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jarray.h"
-#include "jepoll.h"
-#include "jmain.h"
-#include "junix.h"
-#include "jutils.h"
-#include "jobject.h"
 
-#undef __JLIB_MAIN_INCLUDE__
+typedef struct _JObject JObject;
+
+typedef void (*JObjectDestroy) (jpointer * obj);
+
+struct _JObject {
+    jint ref;
+    jpointer priv;
+    JObjectDestroy free;
+};
+
+#define j_object_get_priv(obj)  (obj)->priv
+
+JObject *j_object_new_proxy(jpointer priv, JObjectDestroy _free);
+void j_object_ref(JObject * obj);
+void j_object_unref(JObject * obj);
+
 
 #endif

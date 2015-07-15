@@ -18,39 +18,49 @@
 #include "jinputstream.h"
 #include <jlib/jlib.h>
 
+typedef struct {
+    JInputStreamInterface *interface;
+    jpointer priv;
+    jboolean closed;
+} JInputStreamPriv;
+
+static void j_input_stream_free(JInputStreamPriv * priv)
+{
+    if (priv->closed == FALSE && priv->interface->close) {
+        priv->interface->close(priv->priv);
+        priv->closed = TRUE;
+    }
+    j_free(priv);
+}
+
 JInputStream *j_input_stream_new_proxy(jpointer priv,
                                        JInputStreamInterface * interface)
 {
-    JInputStream *stream = j_malloc(sizeof(JInputStream));
-    stream->ref = 1;
-    stream->priv = priv;
-    stream->interface = interface;
+    JInputStreamPriv *p = j_malloc(sizeof(JInputStreamPriv));
+    p->priv = priv;
+    p->interface = interface;
+    p->closed = FALSE;
+    JInputStream *stream = (JInputStream *) j_object_new_proxy(p,
+                                                               (JObjectDestroy)
+                                                               j_input_stream_free);
     return stream;
 }
 
-void j_input_stream_ref(JInputStream * stream)
-{
-    j_atomic_int_inc(&stream->ref);
-}
-
-void j_input_stream_unref(JInputStream * stream)
-{
-    if (j_atomic_int_dec_and_test(&stream->ref)) {
-        j_input_stream_close(stream);
-    }
-}
 
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size)
 {
-    if (stream->interface->read) {
-        return stream->interface->read(stream, buffer, size);
+    JInputStreamPriv *priv = j_object_get_priv(stream);
+    if (priv->interface->read) {
+        return priv->interface->read(priv->priv, buffer, size);
     }
     return -1;
 }
 
 void j_input_stream_close(JInputStream * stream)
 {
-    if (stream->interface->close) {
-        stream->interface->close(stream);
+    JInputStreamPriv *priv = j_object_get_priv(stream);
+    if (priv->closed == FALSE && priv->interface->close) {
+        priv->interface->close(priv->priv);
+        priv->closed = TRUE;
     }
 }

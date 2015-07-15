@@ -20,14 +20,12 @@
 #define __JIO_FILE_H__
 
 #include <jlib/jtypes.h>
+#include <jlib/jobject.h>
 
-typedef struct _JFile JFile;
+typedef JObject JFile;
 
 /* 该函数不会失败，除非内存分配出错 */
 JFile *j_file_new(const jchar * path);
-
-void j_file_ref(JFile * f);
-void j_file_unref(JFile * f);
 
 /* 打开文件描述符号 */
 jint j_file_open_fd(JFile * f, jint mode);

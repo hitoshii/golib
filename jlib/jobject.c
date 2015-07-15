@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015  Wiky L <wiiiky@outlook.com>
+ * Copyright (C) 2015  Wiky L
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,39 +16,31 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-#ifndef __JLIB_H__
-#define __JLIB_H__
-
-#define __JLIB_MAIN_INCLUDE__
-
-#include "jmacros.h"
-#include "jtypes.h"
-#include "jmem.h"
-#include "jquark.h"
-#include "jerror.h"
-#include "jenviron.h"
-#include "jtimer.h"
-#include "jmessage.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jqueue.h"
-#include "jasyncqueue.h"
-#include "jprintf.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jthreadpool.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jarray.h"
-#include "jepoll.h"
-#include "jmain.h"
-#include "junix.h"
-#include "jutils.h"
 #include "jobject.h"
+#include "jatomic.h"
+#include "jmem.h"
 
-#undef __JLIB_MAIN_INCLUDE__
 
-#endif
+JObject *j_object_new_proxy(jpointer priv, JObjectDestroy _free)
+{
+    JObject *obj = j_malloc(sizeof(JObject));
+    obj->ref = 1;
+    obj->priv = priv;
+    obj->free = _free;
+    return obj;
+}
+
+void j_object_ref(JObject * obj)
+{
+    j_atomic_int_inc(&obj->ref);
+}
+
+void j_object_unref(JObject * obj)
+{
+    if (j_atomic_int_dec_and_test(&obj->ref)) {
+        if (obj->free) {
+            obj->free(obj->priv);
+        }
+        j_free(obj);
+    }
+}

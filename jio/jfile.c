@@ -18,46 +18,34 @@
 #include "jfile.h"
 #include <jlib/jlib.h>
 
-struct _JFile {
+typedef struct {
     jchar *path;
-    jint ref;
-};
+} JFilePriv;
+
+static void j_file_priv_free(JFilePriv * priv)
+{
+    j_free(priv->path);
+    j_free(priv);
+}
 
 /* 该函数不会失败，除非内存分配出错 */
 JFile *j_file_new(const jchar * path)
 {
-    JFile *f = j_malloc(sizeof(JFile));
-    f->path = j_strdup(path);
-    f->ref = 1;
+    JFilePriv *priv = j_malloc(sizeof(JFilePriv));
+    priv->path = j_strdup(path);
 
-    return f;
-}
-
-static inline void j_file_free(JFile * f)
-{
-    j_free(f->path);
-    j_free(f);
-}
-
-void j_file_ref(JFile * f)
-{
-    j_atomic_int_inc(&f->ref);
-}
-
-void j_file_unref(JFile * f)
-{
-    if (j_atomic_int_dec_and_test(&f->ref)) {
-        j_file_free(f);
-    }
+    return j_object_new_proxy(priv, (JObjectDestroy) j_file_priv_free);
 }
 
 jint j_file_open_fd(JFile * f, jint mode)
 {
-    return open(f->path, mode);
+    JFilePriv *priv = j_object_get_priv(f);
+    return open(priv->path, mode);
 }
 
 /* 获取目录，new的时候指定的目录 */
 const jchar *j_file_get_path(JFile * f)
 {
-    return f->path;
+    JFilePriv *priv = j_object_get_priv(f);
+    return priv->path;
 }

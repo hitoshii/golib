@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
     if (n != 0) {
         return 3;
     }
-    j_input_stream_unref(input);
-    j_file_unref(f);
+    j_object_unref(input);
+    j_object_unref(f);
     return 0;
 }

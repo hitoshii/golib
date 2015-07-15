@@ -23,13 +23,13 @@ typedef struct {
     jint fd;
 } JFileInputStreamPriv;
 
-static jint j_file_input_stream_read(JFileInputStream * stream,
+static jint j_file_input_stream_read(JFileInputStreamPriv * priv,
                                      void *buffer, juint size);
-static void j_file_input_stream_close(JFileInputStream * stream);
+static void j_file_input_stream_close(JFileInputStreamPriv * priv);
 
 static JInputStreamInterface j_file_input_stream_interface = {
-    j_file_input_stream_read,
-    j_file_input_stream_close
+    (JInputStreamRead) j_file_input_stream_read,
+    (JInputStreamClose) j_file_input_stream_close
 };
 
 /* 打开文件读，失败返回NULL */
@@ -46,17 +46,14 @@ JFileInputStream *j_file_read(JFile * f)
     return stream;
 }
 
-static void j_file_input_stream_close(JFileInputStream * stream)
+static void j_file_input_stream_close(JFileInputStreamPriv * priv)
 {
-    JFileInputStreamPriv *priv = (JFileInputStreamPriv *) stream->priv;
     close(priv->fd);
     j_free(priv);
-    j_free(stream);
 }
 
-static jint j_file_input_stream_read(JFileInputStream * stream,
+static jint j_file_input_stream_read(JFileInputStreamPriv * priv,
                                      void *buffer, juint size)
 {
-    JFileInputStreamPriv *priv = (JFileInputStreamPriv *) stream->priv;
     return j_read(priv->fd, buffer, size);
 }

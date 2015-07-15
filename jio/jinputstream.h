@@ -19,25 +19,25 @@
 #define __JIO_INPUT_STREAM_H__
 
 #include <jlib/jtypes.h>
+#include <jlib/jobject.h>
 
-typedef struct _JInputStream JInputStream;
+// typedef struct _JInputStream JInputStream;
+
+typedef jint(*JInputStreamRead) (jpointer priv, void *buffer, juint size);
+typedef void (*JInputStreamClose) (jpointer priv);
 
 typedef struct {
-    jint(*read) (JInputStream * stream, void *buffer, juint size);
-    void (*close) (JInputStream * stream);
+    JInputStreamRead read;
+    JInputStreamClose close;
 } JInputStreamInterface;
 
-struct _JInputStream {
-    jpointer priv;
-    jint ref;
-    JInputStreamInterface *interface;
-};
+typedef JObject JInputStream;
 
 JInputStream *j_input_stream_new_proxy(jpointer priv,
                                        JInputStreamInterface * interface);
 
-void j_input_stream_ref(JInputStream * stream);
-void j_input_stream_unref(JInputStream * stream);
+// void j_input_stream_ref(JInputStream * stream);
+// void j_input_stream_unref(JInputStream * stream);
 
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size);
 void j_input_stream_close(JInputStream * stream);
