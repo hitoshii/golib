@@ -34,6 +34,10 @@ struct _JObject {
     JObjectDestroy free;
 };
 
+#define J_OBJECT_INIT(obj, _free) j_object_init((JObject*)obj, (JObjectDestroy)_free)
+#define J_OBJECT_REF(obj) j_object_ref((JObject*)obj)
+#define J_OBJECT_UNREF(obj) j_object_unref((JObject*)obj)
+
 void j_object_init(JObject * obj, JObjectDestroy _free);
 void j_object_ref(JObject * obj);
 void j_object_unref(JObject * obj);

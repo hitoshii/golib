@@ -24,16 +24,18 @@
 
 
 struct _JAsyncQueue {
+    JObject parent;
     JMutex mutex;
     JCond cond;
     JQueue queue;
     JDestroyNotify free_func;
     juint waiting_threads;
-    jint ref;
 };
 
 #define ASYNC_QUEUE_LOCK(q) j_mutex_lock(&(q)->mutex)
 #define ASYNC_QUEUE_UNLOCK(q) j_mutex_unlock(&(q)->mutex)
+
+static void j_async_queue_free(JAsyncQueue * queue);
 
 JAsyncQueue *j_async_queue_new(void)
 {
@@ -43,33 +45,26 @@ JAsyncQueue *j_async_queue_new(void)
 JAsyncQueue *j_async_queue_new_full(JDestroyNotify free_func)
 {
     JAsyncQueue *queue = j_malloc(sizeof(JAsyncQueue));
+    J_OBJECT_INIT(queue, j_async_queue_free);
     j_mutex_init(&queue->mutex);
     j_cond_init(&queue->cond);
     j_queue_init(&queue->queue);
     queue->waiting_threads = 0;
-    queue->ref = 1;
     queue->free_func = free_func;
 
     return queue;
 }
 
-void j_async_queue_ref(JAsyncQueue * queue)
+static void j_async_queue_free(JAsyncQueue * queue)
 {
-    j_atomic_int_inc(&queue->ref);
-}
-
-void j_async_queue_unref(JAsyncQueue * queue)
-{
-    if (j_atomic_int_dec_and_test(&queue->ref)) {
-        j_return_if_fail(queue->waiting_threads == 0);
-        j_mutex_clear(&queue->mutex);
-        j_cond_clear(&queue->cond);
-        if (queue->free_func) {
-            j_queue_foreach(&queue->queue, (JFunc) queue->free_func, NULL);
-        }
-        j_queue_clear(&queue->queue);
-        j_free(queue);
+    j_return_if_fail(queue->waiting_threads == 0);
+    j_mutex_clear(&queue->mutex);
+    j_cond_clear(&queue->cond);
+    if (queue->free_func) {
+        j_queue_foreach(&queue->queue, (JFunc) queue->free_func, NULL);
     }
+    j_queue_clear(&queue->queue);
+    j_free(queue);
 }
 
 void j_async_queue_lock(JAsyncQueue * queue)

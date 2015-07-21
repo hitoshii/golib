@@ -18,6 +18,7 @@
 #ifndef __JLIB_ASYNC_QUEUE_H__
 #define __JLIB_ASYNC_QUEUE_H__
 
+#include "jobject.h"
 #include "jthread.h"
 
 typedef struct _JAsyncQueue JAsyncQueue;
@@ -26,8 +27,8 @@ typedef struct _JAsyncQueue JAsyncQueue;
 JAsyncQueue *j_async_queue_new(void);
 JAsyncQueue *j_async_queue_new_full(JDestroyNotify free_func);
 
-void j_async_queue_ref(JAsyncQueue * queue);
-void j_async_queue_unref(JAsyncQueue * queue);
+#define j_async_queue_ref(queue) J_OBJECT_REF(queue)
+#define j_async_queue_unref(queue) J_OBJECT_UNREF(queue)
 
 void j_async_queue_lock(JAsyncQueue * queue);
 void j_async_queue_unlock(JAsyncQueue * queue);
