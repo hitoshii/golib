@@ -20,6 +20,11 @@
 
 #include "jtypes.h"
 
+
+/*
+ * JObject主要就是引用计数，以及“析构”函数
+ */
+
 typedef struct _JObject JObject;
 
 typedef void (*JObjectDestroy) (jpointer obj);
