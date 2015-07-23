@@ -30,8 +30,10 @@ JSocket *j_socket_new_from_fd(jint fd);
 /* XXX 该函数会直接关闭套接字，并释放所有资源，不管引用计数，尽量用j_socket_unref */
 void j_socket_close(JSocket * socket);
 
-void j_socket_ref(JSocket * socket);
-void j_socket_unref(JSocket * socket);
+#define j_socket_ref(s) J_OBJECT_REF(s)
+#define j_socket_unref(s) J_OBJECT_UNREF(s)
+// void j_socket_ref(JSocket * socket);
+// void j_socket_unref(JSocket * socket);
 
 /* 绑定一个地址 */
 jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,

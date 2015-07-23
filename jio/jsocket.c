@@ -27,6 +27,7 @@
 #define RECV_ADDR_CACHE_SIZE 8
 
 struct _JSocket {
+    JObject parent;
     JSocketFamily family;
     JSocketType type;
     JSocketProtocol protocol;
@@ -49,8 +50,6 @@ struct _JSocket {
         jint native_len;
         juint64 last_used;
     } recv_addr_cache[RECV_ADDR_CACHE_SIZE];
-
-    jint ref;                   /* 引用计数 */
 };
 
 #define j_socket_check_timeout(socket, val) if(socket->timed_out){socket->timed_out=FALSE;return val;}
@@ -96,6 +95,7 @@ void j_socket_close(JSocket * socket)
 /* 根据文件描述符设置套接字信息 */
 static inline jboolean j_socket_detail_from_fd(JSocket * socket)
 {
+    J_OBJECT_INIT(socket, j_socket_close);
     jint value;
     if (!j_socket_get_option(socket, SOL_SOCKET, SO_TYPE, &value)) {
         return FALSE;
@@ -182,21 +182,7 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket)
         socket->blocking = TRUE;
     }
 
-    socket->ref = 1;
     return TRUE;
-}
-
-
-void j_socket_ref(JSocket * socket)
-{
-    j_atomic_int_inc(&socket->ref);
-}
-
-void j_socket_unref(JSocket * socket)
-{
-    if (j_atomic_int_dec_and_test(&socket->ref)) {
-        j_socket_close(socket);
-    }
 }
 
 /* 绑定一个地址 */
