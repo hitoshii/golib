@@ -31,7 +31,7 @@ void j_input_stream_init(JInputStream * stream,
     if (_free == NULL) {
         _free = (JObjectDestroy) j_input_stream_free;
     }
-    j_object_init((JObject *) stream, (JObjectDestroy) _free);
+    J_OBJECT_INIT(stream, _free);
     stream->interface = interface;
     stream->closed = FALSE;
 }

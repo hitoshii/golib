@@ -29,7 +29,6 @@ typedef struct {
     JObject parent;
     JInputStreamInterface *interface;
     jboolean closed;
-    JObjectDestroy free;
 } JInputStream;
 
 typedef jint(*JInputStreamRead) (JInputStream * stream, void *buffer,
