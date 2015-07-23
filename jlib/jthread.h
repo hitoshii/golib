@@ -19,7 +19,7 @@
 #ifndef __JLIB_THREAD_H__
 #define __JLIB_THREAD_H__
 
-#include "jtypes.h"
+#include "jobject.h"
 #include <pthread.h>
 
 typedef struct _JMutext JMutex;
@@ -92,9 +92,12 @@ JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data);
 JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
                           jpointer data);
 
-void j_thread_unref(JThread * thread);
-void j_thread_ref(JThread * thread);
+#define j_thread_ref(t) J_OBJECT_REF(t)
+#define j_thread_unref(t) J_OBJECT_UNREF(t)
 
+/*
+ * join 线程，等待其结束
+ */
 jpointer j_thread_join(JThread * thread);
 
 /*

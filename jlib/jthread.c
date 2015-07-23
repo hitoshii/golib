@@ -24,6 +24,7 @@
 #include <string.h>
 
 struct _JThread {
+    JObject parent;
     pthread_t impl;
     JMutex lock;
     jboolean joined;
@@ -35,7 +36,6 @@ struct _JThread {
     jboolean joinable;
 
     jchar *name;
-    jint ref;
     jpointer retval;
 };
 
@@ -155,12 +155,32 @@ static jpointer thread_func_proxy(jpointer data)
     return NULL;
 }
 
+static inline void j_thread_free(JThread * thread)
+{
+    if (!thread->joined) {
+        pthread_detach(thread->impl);
+    }
+    j_free(thread->name);
+    j_mutex_clear(&thread->lock);
+    j_free(thread);
+}
+
+static void j_thread_destroy(JThread * thread)
+{
+    if (thread->jlibs) {
+        j_thread_free(thread);
+    } else {
+        j_free(thread);
+    }
+}
+
 static inline JThread *j_thread_new_internal(const jchar * name,
                                              JThreadFunc func,
                                              jpointer data)
 {
     J_LOCK(j_thread_new);
     JThread *thread = (JThread *) j_malloc(sizeof(JThread));
+    J_OBJECT_INIT(thread, j_thread_destroy);
     jint ret =
         pthread_create(&thread->impl, NULL, thread_func_proxy, thread);
     if (J_UNLIKELY(ret != 0)) {
@@ -174,7 +194,8 @@ static inline JThread *j_thread_new_internal(const jchar * name,
     thread->func = func;
     thread->data = data;
     thread->jlibs = TRUE;
-    thread->ref = 2;
+
+    j_thread_ref(thread);
     J_UNLOCK(j_thread_new);
     return thread;
 }
@@ -221,38 +242,13 @@ static void j_thread_cleanup(jpointer data)
     j_thread_unref(data);
 }
 
-static inline void j_thread_free(JThread * thread)
-{
-    if (!thread->joined) {
-        pthread_detach(thread->impl);
-    }
-    j_free(thread->name);
-    j_mutex_clear(&thread->lock);
-    j_free(thread);
-}
-
-void j_thread_unref(JThread * thread)
-{
-    if (j_atomic_int_dec_and_test(&thread->ref)) {
-        if (thread->jlibs) {
-            j_thread_free(thread);
-        } else {
-            j_free(thread);
-        }
-    }
-}
-
-void j_thread_ref(JThread * thread)
-{
-    j_atomic_int_inc(&thread->ref);
-}
 
 JThread *j_thread_self(void)
 {
     JThread *thread = j_private_get(&j_thread_specific_private);
     if (thread == NULL) {
         thread = j_malloc(sizeof(JThread));
-        thread->ref = 1;
+        J_OBJECT_INIT(thread, NULL);
         thread->jlibs = FALSE;
         j_private_set(&j_thread_specific_private, thread);
     }
