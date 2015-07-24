@@ -45,6 +45,14 @@ jint j_input_stream_read(JInputStream * stream, void *buffer, juint size)
     return -1;
 }
 
+jchar *j_input_stream_readline(JInputStream * stream)
+{
+    if (stream->interface->readline) {
+        return stream->interface->readline(stream);
+    }
+    return NULL;
+}
+
 void j_input_stream_close(JInputStream * stream)
 {
     if (stream->closed == FALSE && stream->interface->close) {

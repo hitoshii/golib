@@ -94,6 +94,18 @@ int main(int argc, char *argv[])
     if (j_strcmp0(string->data, "helloworld")) {
         return 1;
     }
+    j_string_erase(string, 5, -1);
+    if (j_strcmp0(string->data, "hello")) {
+        return 2;
+    }
+    j_string_erase(string, 4, 6);
+    if (j_strcmp0(string->data, "hell")) {
+        return 2;
+    }
+    j_string_erase(string, 0, 2);
+    if (j_strcmp0(string->data, "ll")) {
+        return 2;
+    }
     j_string_free(string, 1);
     return 0;
 }

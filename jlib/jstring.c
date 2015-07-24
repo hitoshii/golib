@@ -87,3 +87,24 @@ jchar *j_string_free(JString * string, jboolean free_segment)
     }
     return data;
 }
+
+/*
+ * 从位置pos开始删除len个字节
+ * pos表示要移除的起始位置，len为移除的长度，-1表示移除后面所有
+ */
+void j_string_erase(JString * string, juint pos, jint len)
+{
+    if (pos >= string->len || len == 0) {
+        return;
+    }
+    if (len < 0) {
+        string->len = pos;
+    } else {
+        int i;
+        for (i = pos; i < string->len && i + len < string->len; i++) {
+            string->data[i] = string->data[i + len];
+        }
+        string->len = i;
+    }
+    string->data[string->len] = '\0';
+}
