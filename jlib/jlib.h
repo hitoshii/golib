@@ -24,7 +24,6 @@
 #include "jmacros.h"
 #include "jtypes.h"
 #include "jmem.h"
-#include "jquark.h"
 #include "jerror.h"
 #include "jenviron.h"
 #include "jtimer.h"

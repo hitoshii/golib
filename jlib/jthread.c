@@ -19,7 +19,6 @@
 #include "jmem.h"
 #include "jstrfuncs.h"
 #include "jatomic.h"
-#include "jquark.h"
 #include <stdlib.h>
 #include <string.h>
 

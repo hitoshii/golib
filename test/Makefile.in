@@ -80,13 +80,13 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT) \
+	test-message$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
 	test-listen$(EXEEXT) test-inputstream$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
-	test-message$(EXEEXT) test-quark$(EXEEXT) test-queue$(EXEEXT) \
+	test-message$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
 	test-listen$(EXEEXT) test-inputstream$(EXEEXT)
@@ -126,9 +126,6 @@ test_main_LDADD = $(LDADD)
 am_test_message_OBJECTS = test-message.$(OBJEXT)
 test_message_OBJECTS = $(am_test_message_OBJECTS)
 test_message_LDADD = $(LDADD)
-am_test_quark_OBJECTS = test-quark.$(OBJEXT)
-test_quark_OBJECTS = $(am_test_quark_OBJECTS)
-test_quark_LDADD = $(LDADD)
 am_test_queue_OBJECTS = test-queue.$(OBJEXT)
 test_queue_OBJECTS = $(am_test_queue_OBJECTS)
 test_queue_LDADD = $(LDADD)
@@ -184,17 +181,17 @@ am__v_CCLD_1 =
 SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_inputstream_SOURCES) \
 	$(test_listen_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_quark_SOURCES) \
-	$(test_queue_SOURCES) $(test_socket_SOURCES) \
-	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
+	$(test_message_SOURCES) $(test_queue_SOURCES) \
+	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES) \
+	$(test_threadpool_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_inputstream_SOURCES) \
 	$(test_listen_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_quark_SOURCES) \
-	$(test_queue_SOURCES) $(test_socket_SOURCES) \
-	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
+	$(test_message_SOURCES) $(test_queue_SOURCES) \
+	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES) \
+	$(test_threadpool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -576,9 +573,6 @@ test_main_SOURCES = \
 test_message_SOURCES = \
     test-message.c
 
-test_quark_SOURCES = \
-    test-quark.c
-
 test_queue_SOURCES = \
     test-queue.c
 
@@ -672,10 +666,6 @@ test-message$(EXEEXT): $(test_message_OBJECTS) $(test_message_DEPENDENCIES) $(EX
 	@rm -f test-message$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_message_OBJECTS) $(test_message_LDADD) $(LIBS)
 
-test-quark$(EXEEXT): $(test_quark_OBJECTS) $(test_quark_DEPENDENCIES) $(EXTRA_test_quark_DEPENDENCIES) 
-	@rm -f test-quark$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(test_quark_OBJECTS) $(test_quark_LDADD) $(LIBS)
-
 test-queue$(EXEEXT): $(test_queue_OBJECTS) $(test_queue_DEPENDENCIES) $(EXTRA_test_queue_DEPENDENCIES) 
 	@rm -f test-queue$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_queue_OBJECTS) $(test_queue_LDADD) $(LIBS)
@@ -713,7 +703,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-listen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-quark.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-queue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socketaddress.Po@am__quote@
@@ -979,13 +968,6 @@ test-main.log: test-main$(EXEEXT)
 test-message.log: test-message$(EXEEXT)
 	@p='test-message$(EXEEXT)'; \
 	b='test-message'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test-quark.log: test-quark$(EXEEXT)
-	@p='test-quark$(EXEEXT)'; \
-	b='test-quark'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

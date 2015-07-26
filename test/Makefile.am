@@ -23,7 +23,6 @@ noinst_PROGRAMS= \
     test-thread \
     test-main \
     test-message \
-    test-quark \
     test-queue \
     test-asyncqueue \
     test-threadpool \
@@ -39,7 +38,6 @@ TESTS=\
     test-thread \
     test-main \
     test-message \
-    test-quark \
     test-queue \
     test-asyncqueue \
     test-threadpool \
@@ -65,9 +63,6 @@ test_main_SOURCES = \
 
 test_message_SOURCES = \
     test-message.c
-
-test_quark_SOURCES = \
-    test-quark.c
 
 test_queue_SOURCES = \
     test-queue.c

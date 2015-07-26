@@ -32,7 +32,6 @@ libjlib_la_SOURCES = \
     jprintf.c \
     jenviron.c \
     jthreadpool.c \
-    jquark.c \
     jerror.c \
     jqueue.c \
     jasyncqueue.c \
@@ -69,7 +68,6 @@ jlibsubinclude_HEADERS= \
     jprintf.h \
     jenviron.h \
     jthreadpool.h \
-    jquark.h \
     jerror.h \
     jqueue.h \
     jasyncqueue.h \
