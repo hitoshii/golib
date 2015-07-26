@@ -162,15 +162,12 @@ static inline void j_thread_free(JThread * thread)
     }
     j_free(thread->name);
     j_mutex_clear(&thread->lock);
-    j_free(thread);
 }
 
 static void j_thread_destroy(JThread * thread)
 {
     if (thread->jlibs) {
         j_thread_free(thread);
-    } else {
-        j_free(thread);
     }
 }
 

@@ -21,17 +21,12 @@
 static void j_input_stream_free(JInputStream * stream)
 {
     j_input_stream_close(stream);
-    j_free(stream);
 }
 
 void j_input_stream_init(JInputStream * stream,
-                         JInputStreamInterface * interface,
-                         JObjectDestroy _free)
+                         JInputStreamInterface * interface)
 {
-    if (_free == NULL) {
-        _free = (JObjectDestroy) j_input_stream_free;
-    }
-    J_OBJECT_INIT(stream, _free);
+    J_OBJECT_INIT(stream, j_input_stream_free);
     stream->interface = interface;
     stream->closed = FALSE;
 }

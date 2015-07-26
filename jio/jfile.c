@@ -22,7 +22,6 @@
 static void j_file_free(JFile * file)
 {
     j_free(file->path);
-    j_free(file);
 }
 
 /* 该函数不会失败，除非内存分配出错 */
@@ -30,7 +29,7 @@ JFile *j_file_new(const jchar * path)
 {
     JFile *file = j_malloc(sizeof(JFile));
     file->path = j_strdup(path);
-    j_object_init((JObject *) file, (JObjectDestroy) j_file_free);
+    J_OBJECT_INIT(file, j_file_free);
 
     return file;
 }

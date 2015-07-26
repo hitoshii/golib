@@ -64,7 +64,6 @@ static void j_async_queue_free(JAsyncQueue * queue)
         j_queue_foreach(&queue->queue, (JFunc) queue->free_func, NULL);
     }
     j_queue_clear(&queue->queue);
-    j_free(queue);
 }
 
 void j_async_queue_lock(JAsyncQueue * queue)

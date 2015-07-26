@@ -88,8 +88,10 @@ JSocket *j_socket_new_from_fd(jint fd)
 
 void j_socket_close(JSocket * socket)
 {
-    close(socket->fd);
-    j_free(socket);
+    if (!socket->closed) {
+        close(socket->fd);
+        socket->closed = TRUE;
+    }
 }
 
 /* 根据文件描述符设置套接字信息 */

@@ -50,8 +50,7 @@ struct _JInputStreamInterface {
 };
 
 void j_input_stream_init(JInputStream * stream,
-                         JInputStreamInterface * interface,
-                         JObjectDestroy _free);
+                         JInputStreamInterface * interface);
 
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size);
 jchar *j_input_stream_readline(JInputStream * stream);

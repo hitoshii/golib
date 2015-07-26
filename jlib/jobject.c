@@ -37,8 +37,7 @@ void j_object_unref(JObject * obj)
     if (j_atomic_int_dec_and_test(&obj->ref)) {
         if (obj->free) {
             obj->free(obj);
-        } else {
-            j_free(obj);
         }
+        j_free(obj);
     }
 }

@@ -90,7 +90,7 @@ int main(int argc, char const *argv[])
         return 9;
     }
 
-    j_socket_close(socket);
+    j_socket_unref(socket);
 
     /* 测试异步读写数据 */
     socket =

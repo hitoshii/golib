@@ -49,7 +49,7 @@ JFileInputStream *j_file_read(JFile * f)
     stream->fd = fd;
     stream->buffer = j_string_new();
     j_input_stream_init((JInputStream *) stream,
-                        &j_file_input_stream_interface, NULL);
+                        &j_file_input_stream_interface);
     return stream;
 }
 
