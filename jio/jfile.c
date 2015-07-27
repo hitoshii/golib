@@ -17,6 +17,7 @@
  */
 #include "jfile.h"
 #include <jlib/jlib.h>
+#include <fcntl.h>
 
 
 static void j_file_free(JFile * file)

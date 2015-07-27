@@ -42,8 +42,8 @@ JFileOutputStream *j_file_write(JFile * f)
         return NULL;
     }
     JFileOutputStream *stream = j_malloc(sizeof(JFileOutputStream));
-    j_input_stream_init((JOutputStream *) stream,
-                        &j_file_output_stream_interface);
+    j_output_stream_init((JOutputStream *) stream,
+                         &j_file_output_stream_interface);
     stream->fd = fd;
     return stream;
 }

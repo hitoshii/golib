@@ -25,9 +25,9 @@ libjio_la_SOURCES = \
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 
-libjlib_la_LDFLAGS =
+libjio_la_LDFLAGS =
 
-libjlib_la_LIBADD =
+libjio_la_LIBADD =
 
 
 

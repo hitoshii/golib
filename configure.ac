@@ -30,6 +30,9 @@ AC_SUBST(jlib_ADD)
 jio_ADD='-L$(top_builddir)/jio -ljio'
 AC_SUBST(jio_ADD)
 
+jconf_ADD='-L$(top_builddir)/jconf -ljconf'
+AC_SUBST(jconf_ADD)
+
 
 #This line defines where Makefiles are stored for projects and sources
 AC_OUTPUT([
@@ -38,5 +41,7 @@ AC_OUTPUT([
            jlib/Makefile
            jio/jio-0.1.pc
            jio/Makefile
+           jconf/Makefile
+           jconf/jconf-0.1.pc
            test/Makefile
            ])
