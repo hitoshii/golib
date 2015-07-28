@@ -331,7 +331,7 @@ jboolean j_ptr_array_contains(JPtrArray * array, jpointer data)
 }
 
 /* 插入指针，保证不重复 */
-void j_ptr_array_append_unique_ptr(JPtrArray * array, jpointer data)
+void j_ptr_array_append_ptr_unique(JPtrArray * array, jpointer data)
 {
     if (j_ptr_array_contains(array, data)) {
         return;

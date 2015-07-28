@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     i = 15;
     while (i--) {
         jpointer ptr = j_async_queue_pop(queue);
-        j_ptr_array_append_unique_ptr(ptrs, ptr);
+        j_ptr_array_append_ptr_unique(ptrs, ptr);
     }
     if (j_ptr_array_get_len(ptrs) != 6) {
         return -3;

@@ -13,7 +13,8 @@ AM_CFLAGS =\
 lib_LTLIBRARIES = libjconf.la
 
 
-libjconf_la_SOURCES =
+libjconf_la_SOURCES = \
+    jconfnode.c
 
 libjconf_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -24,7 +25,9 @@ libjconf_la_LIBADD =
 
 
 jconfsubincludedir=$(jlib_includedir)/jconf
-jconfsubinclude_HEADERS=
+jconfsubinclude_HEADERS= \
+    jconf.h \
+    jconfnode.h
 
 
 pkgconfigdir = $(libdir)/pkgconfig
