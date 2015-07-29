@@ -37,13 +37,22 @@ int main(int argc, char const *argv[])
         j_free(line);
     }
 
-    j_object_unref((JObject *) input);
-    j_object_unref((JObject *) f);
-
     if (j_strcmp0(s1->data, s2->data)) {
         return 5;
     }
 
+    juint len = 0;
+    jchar *map = j_file_map(f, PROT_READ, MAP_PRIVATE, &len);
+    if (map == NULL) {
+        return 6;
+    }
+    if (j_strncmp0(s1->data, map, len)) {
+        return 7;
+    }
+    j_file_unmap(map, len);
+
+    j_object_unref((JObject *) input);
+    j_object_unref((JObject *) f);
     j_string_free(s1, TRUE);
     j_string_free(s2, TRUE);
     return 0;

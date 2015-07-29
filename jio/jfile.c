@@ -17,6 +17,9 @@
  */
 #include "jfile.h"
 #include <jlib/jlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 
@@ -44,4 +47,28 @@ jint j_file_open_fd(JFile * f, jint mode)
 const jchar *j_file_get_path(JFile * f)
 {
     return f->path;
+}
+
+jchar *j_file_map(JFile * f, jint prot, jint flags, juint * len)
+{
+    int fd = j_file_open_fd(f, O_RDWR);
+    if (fd < 0) {
+        return NULL;
+    }
+    if (*len == 0) {
+        struct stat buf;
+        if (fstat(fd, &buf)) {
+            close(fd);
+            return NULL;
+        }
+        *len = buf.st_size;
+    }
+    void *addr = mmap(NULL, *len, prot, flags, fd, 0);
+    close(fd);
+    return (jchar *) addr;
+}
+
+void j_file_unmap(jchar * addr, juint len)
+{
+    munmap(addr, len);
 }

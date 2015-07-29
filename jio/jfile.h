@@ -21,6 +21,7 @@
 
 #include <jlib/jtypes.h>
 #include <jlib/jobject.h>
+#include <sys/mman.h>
 
 typedef struct {
     JObject parent;
@@ -36,5 +37,14 @@ jint j_file_open_fd(JFile * f, jint mode);
 /* 获取目录，new的时候指定的目录 */
 const jchar *j_file_get_path(JFile * f);
 
+
+/* 
+ * 内存映射，成功返回映射地址，失败返回NULL，如果成功，必须调用j_file_unmap()取消映射 
+ * @param prot PROT_EXEC PROT_READ PROT_WRITE PROT_NONE
+ * @param flags MAP_SHARED MAP_PRIVATE
+ * @param len len不能为NULL，如果*len为0，则映射整个文件，并返回文件长度，否则映射指定长度
+ */
+jchar *j_file_map(JFile * f, jint prot, jint flags, juint * len);
+void j_file_unmap(jchar * addr, juint len);
 
 #endif
