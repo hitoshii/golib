@@ -16,6 +16,14 @@ AC_PREFIX_DEFAULT(/usr)
 AC_CHECK_LIB([pthread],[pthread_create], ,[AC_MSG_ERROR(You need to have pthread)])
 
 
+m4_ifdef([GTK_DOC_CHECK],[
+GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+],[
+AM_CONDITIONAL([ENABLE_GTK_DOC], false)
+])
+
+AC_CONFIG_MACRO_DIR(m4)
+
 AC_PROG_CC
 
 jlib_includedir='$(includedir)/jlib-0.1'
@@ -36,12 +44,15 @@ AC_SUBST(jconf_ADD)
 
 #This line defines where Makefiles are stored for projects and sources
 AC_OUTPUT([
-           Makefile
-           jlib/jlib-0.1.pc
-           jlib/Makefile
-           jio/jio-0.1.pc
-           jio/Makefile
-           jconf/Makefile
-           jconf/jconf-0.1.pc
-           test/Makefile
-           ])
+Makefile
+jlib/jlib-0.1.pc
+jlib/Makefile
+jio/jio-0.1.pc
+jio/Makefile
+jconf/Makefile
+jconf/jconf-0.1.pc
+test/Makefile
+docs/Makefile
+docs/reference/Makefile
+docs/reference/jconf/Makefile
+])

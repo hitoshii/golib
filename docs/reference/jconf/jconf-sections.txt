@@ -1,0 +1,11 @@
+<SECTION>
+<FILE>jconfnode</FILE>
+JConfNodeType
+j_conf_node_ref
+j_conf_node_unref
+j_conf_node_get_name
+<SUBSECTION Standard>
+JConfNode
+j_conf_node_get_type
+</SECTION>
+

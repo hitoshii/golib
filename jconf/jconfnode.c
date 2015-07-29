@@ -37,6 +37,12 @@ struct _JConfNode {
 #define d_object data.data_object
 #define d_array data.data_array
 
+/* 获取结点类型 */
+JConfNodeType j_conf_node_get_type(JConfNode * node)
+{
+    return node->type;
+}
+
 static inline JConfNode *j_conf_node_alloc(const jchar * name,
                                            JConfNodeType type, ...);
 static inline JPtrArray *j_conf_node_ptr_array_new();
