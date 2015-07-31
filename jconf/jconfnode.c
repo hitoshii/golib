@@ -18,6 +18,14 @@
 #include "jconfnode.h"
 #include <stdarg.h>
 
+/**
+ * SECTION: JConfNode
+ * @title: Node of JConf
+ * @short_description: a node presents one type of data
+ * @include: jconfnode.h
+ *
+ *
+ */
 
 struct _JConfNode {
     JObject parent;
@@ -37,10 +45,28 @@ struct _JConfNode {
 #define d_object data.data_object
 #define d_array data.data_array
 
-/* 获取结点类型 */
+/**
+ * j_conf_node_get_type:
+ * @node:
+ *
+ * Returns: the type of JConfNode
+ */
 JConfNodeType j_conf_node_get_type(JConfNode * node)
 {
     return node->type;
+}
+
+/**
+ * j_conf_node_get_name:
+ * @node:
+ *
+ * name of a JConfNode, also known as key
+ *
+ * Returns: the name of JConfNode
+ */
+const jchar *j_conf_node_get_name(JConfNode * node)
+{
+    return node->name;
 }
 
 static inline JConfNode *j_conf_node_alloc(const jchar * name,

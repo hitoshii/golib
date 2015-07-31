@@ -18,7 +18,7 @@
 #ifndef __JCONF_CONF_H__
 #define __JCONF_CONF_H__
 
-/*
+/**
  * JConf是类似JSON的数据格式，用于配置文件。它与JSON的主要不同有如下几点
  * 1. JConf不需要一个根对象
  * 2. JConf的键值不需要用双引号，同时键值的命名有一定规范，
@@ -37,7 +37,7 @@
  * age: 13
  * email: ["john@gmail.com"; "john@outlook.com"]
  * extra: {city: "Tokyo"; twitter: "johnn"}
- * 
+ *
  * 当然，你可以把多行合并和拆分
  * name: "john";age: 13; email["john@gmail.com"; "john@outlook.com"]
  * extra: {

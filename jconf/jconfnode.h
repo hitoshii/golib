@@ -36,8 +36,6 @@ typedef enum {
 #define j_conf_node_ref(n)  J_OBJECT_REF(n)
 #define j_conf_node_unref(n) J_OBJECT_UNREF(n)
 
-
-/* 获取结点类型 */
 JConfNodeType j_conf_node_get_type(JConfNode * node);
 const jchar *j_conf_node_get_name(JConfNode * node);
 
