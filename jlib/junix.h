@@ -38,5 +38,6 @@ jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
                 struct sockaddr *src_addr, socklen_t * addrlen);
 
 jint j_read(jint fd, void *buf, juint size);
+jint j_write(jint fd, const void *buf, juint count);
 
 #endif

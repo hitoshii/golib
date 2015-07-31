@@ -15,18 +15,14 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_H__
-#define __JIO_H__
+#ifndef __JIO_FILE_OUTPUT_STREAM_H__
+#define __JIO_FILE_OUTPUT_STREAM_H__
 
-#include "jioenum.h"
-#include "jsocketaddress.h"
-#include "jpoll.h"
-#include "jfile.h"
-#include "jinputstream.h"
 #include "joutputstream.h"
-#include "jfileinputstream.h"
-#include "jfileoutputstream.h"
-#include "jsocket.h"
+#include "jfile.h"
 
+typedef struct _JFileOutputStream JFileOutputStream;
+
+JFileOutputStream *j_file_write(JFile * file);
 
 #endif

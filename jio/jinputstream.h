@@ -21,13 +21,11 @@
 #include <jlib/jtypes.h>
 #include <jlib/jobject.h>
 
-// typedef struct _JInputStream JInputStream;
-
 typedef struct _JInputStreamInterface JInputStreamInterface;
 
 typedef struct {
     JObject parent;
-    JInputStreamInterface *interface;
+    JInputStreamInterface *iface;
     jboolean closed;
 } JInputStream;
 

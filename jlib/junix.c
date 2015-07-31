@@ -135,3 +135,15 @@ jint j_read(jint fd, void *buf, juint size)
     }
     return ret;
 }
+
+jint j_write(jint fd, const void *buf, juint count)
+{
+    jint ret;
+    while ((ret = write(fd, buf, count)) < 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        break;
+    }
+    return ret;
+}

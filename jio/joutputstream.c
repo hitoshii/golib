@@ -15,35 +15,26 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#include "jinputstream.h"
-#include <jlib/jlib.h>
+#include "joutputstream.h"
 
-void j_input_stream_init(JInputStream * stream,
-                         JInputStreamInterface * interface)
+void j_output_stream_init(JOutputStream * stream,
+                          JOutputStreamInterface * interface)
 {
-    J_OBJECT_INIT(stream, j_input_stream_close);
+    J_OBJECT_INIT(stream, j_output_stream_close);
     stream->iface = interface;
     stream->closed = FALSE;
 }
 
-
-jint j_input_stream_read(JInputStream * stream, void *buffer, juint size)
+jint j_output_stream_write(JOutputStream * stream, const jchar * buf,
+                           jint len)
 {
-    if (stream->iface->read) {
-        return stream->iface->read(stream, buffer, size);
+    if (stream->iface->write) {
+        return stream->iface->write(stream, buf, len);
     }
-    return -1;
+    return 0;
 }
 
-jchar *j_input_stream_readline(JInputStream * stream)
-{
-    if (stream->iface->readline) {
-        return stream->iface->readline(stream);
-    }
-    return NULL;
-}
-
-void j_input_stream_close(JInputStream * stream)
+void j_output_stream_close(JOutputStream * stream)
 {
     if (stream->closed == FALSE && stream->iface->close) {
         stream->iface->close(stream);

@@ -19,7 +19,9 @@ libjio_la_SOURCES = \
     jpoll.c \
     jfile.c \
     jinputstream.c \
-    jfileinputstream.c
+    joutputstream.c \
+    jfileinputstream.c \
+    jfileoutputstream.c
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -38,7 +40,9 @@ jiosubinclude_HEADERS= \
     jpoll.h \
     jfile.h \
     jinputstream.h \
-    jfileinputstream.h
+    joutputstream.h \
+    jfileinputstream.h \
+    jfileoutputstream.h
 
 
 pkgconfigdir = $(libdir)/pkgconfig

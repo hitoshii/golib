@@ -83,13 +83,15 @@ noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-message$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
-	test-listen$(EXEEXT) test-inputstream$(EXEEXT)
+	test-listen$(EXEEXT) test-inputstream$(EXEEXT) \
+	test-outputstream$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
 	test-message$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
-	test-listen$(EXEEXT) test-inputstream$(EXEEXT)
+	test-listen$(EXEEXT) test-inputstream$(EXEEXT) \
+	test-outputstream$(EXEEXT)
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp $(top_srcdir)/test-driver
@@ -126,6 +128,9 @@ test_main_LDADD = $(LDADD)
 am_test_message_OBJECTS = test-message.$(OBJEXT)
 test_message_OBJECTS = $(am_test_message_OBJECTS)
 test_message_LDADD = $(LDADD)
+am_test_outputstream_OBJECTS = test-outputstream.$(OBJEXT)
+test_outputstream_OBJECTS = $(am_test_outputstream_OBJECTS)
+test_outputstream_LDADD = $(LDADD)
 am_test_queue_OBJECTS = test-queue.$(OBJEXT)
 test_queue_OBJECTS = $(am_test_queue_OBJECTS)
 test_queue_LDADD = $(LDADD)
@@ -181,17 +186,17 @@ am__v_CCLD_1 =
 SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_inputstream_SOURCES) \
 	$(test_listen_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_queue_SOURCES) \
-	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES) \
-	$(test_threadpool_SOURCES)
+	$(test_message_SOURCES) $(test_outputstream_SOURCES) \
+	$(test_queue_SOURCES) $(test_socket_SOURCES) \
+	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
 	$(test_hashtable_SOURCES) $(test_inputstream_SOURCES) \
 	$(test_listen_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_queue_SOURCES) \
-	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES) \
-	$(test_threadpool_SOURCES)
+	$(test_message_SOURCES) $(test_outputstream_SOURCES) \
+	$(test_queue_SOURCES) $(test_socket_SOURCES) \
+	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -594,6 +599,9 @@ test_listen_SOURCES = \
 test_inputstream_SOURCES = \
     test-inputstream.c
 
+test_outputstream_SOURCES = \
+    test-outputstream.c
+
 all: all-am
 
 .SUFFIXES:
@@ -666,6 +674,10 @@ test-message$(EXEEXT): $(test_message_OBJECTS) $(test_message_DEPENDENCIES) $(EX
 	@rm -f test-message$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_message_OBJECTS) $(test_message_LDADD) $(LIBS)
 
+test-outputstream$(EXEEXT): $(test_outputstream_OBJECTS) $(test_outputstream_DEPENDENCIES) $(EXTRA_test_outputstream_DEPENDENCIES) 
+	@rm -f test-outputstream$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_outputstream_OBJECTS) $(test_outputstream_LDADD) $(LIBS)
+
 test-queue$(EXEEXT): $(test_queue_OBJECTS) $(test_queue_DEPENDENCIES) $(EXTRA_test_queue_DEPENDENCIES) 
 	@rm -f test-queue$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_queue_OBJECTS) $(test_queue_LDADD) $(LIBS)
@@ -703,6 +715,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-listen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-outputstream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-queue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socketaddress.Po@am__quote@
@@ -1017,6 +1030,13 @@ test-listen.log: test-listen$(EXEEXT)
 test-inputstream.log: test-inputstream$(EXEEXT)
 	@p='test-inputstream$(EXEEXT)'; \
 	b='test-inputstream'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-outputstream.log: test-outputstream$(EXEEXT)
+	@p='test-outputstream$(EXEEXT)'; \
+	b='test-outputstream'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
