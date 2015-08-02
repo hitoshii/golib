@@ -20,6 +20,12 @@
 
 #include <jlib/jlib.h>
 
+/**
+ * JConfNode:
+ * 
+ * The `JConfNode` struct is opaque data type
+ * presenting a kind of data
+ */
 typedef struct _JConfNode JConfNode;
 
 typedef enum {

@@ -24,7 +24,17 @@
  * @short_description: a node presents one type of data
  * @include: jconfnode.h
  *
- *
+ */
+
+/**
+ * JConfNodeType:
+ * @JCONF_NODE_TYPE_NULL: NULL
+ * @JCONF_NODE_TYPE_STRING: jchar*
+ * @JCONF_NODE_TYPE_INTEGER: jint64
+ * @JCONF_NODE_TYPE_FLOAT: jdouble
+ * @JCONF_NODE_TYPE_BOOL: jboolean
+ * @JCONF_NODE_TYPE_OBJECT: JConfNode*
+ * @JCONF_NODE_TYPE_ARRAY: JPtrArray<JConfNode*>
  */
 
 struct _JConfNode {
@@ -112,6 +122,9 @@ static inline JConfNode *j_conf_node_alloc(const jchar * name,
     return node;
 }
 
+/*
+ * 初始化结点数组
+ */
 static inline JPtrArray *j_conf_node_ptr_array_new()
 {
     JPtrArray *array =
