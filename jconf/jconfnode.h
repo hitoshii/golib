@@ -45,4 +45,13 @@ typedef enum {
 JConfNodeType j_conf_node_get_type(JConfNode * node);
 const jchar *j_conf_node_get_name(JConfNode * node);
 
+typedef JConfNode JConfIntegerNode;
+jboolean j_conf_node_is_integer(JConfNode * node);
+jint64 j_conf_integer_node_get(JConfIntegerNode * node);
+
+typedef JConfNode JConfArrayNode;
+jboolean j_conf_node_is_array(JConfNode * node);
+juint j_conf_array_node_get_length(JConfArrayNode * node);
+JConfNode *j_conf_array_node_get(JConfArrayNode * node, juint index);
+
 #endif
