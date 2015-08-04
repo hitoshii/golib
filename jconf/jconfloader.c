@@ -19,27 +19,76 @@
 
 struct _JConfLoader {
     JObject parent;
-    JFileInputStream *input_stream;
+    JHashTable *env;
     JConfRoot *root;
 };
 
 static void j_conf_loader_free(JConfLoader * loader);
 
-JConfLoader *j_conf_loader_new(JFile * f)
+JConfLoader *j_conf_loader_new(void)
 {
-    JFileInputStream *input_stream = j_file_read(f);
-    if (input_stream == NULL) {
-        return NULL;
-    }
     JConfLoader *loader = (JConfLoader *) j_malloc(sizeof(JConfLoader));
     J_OBJECT_INIT(loader, j_conf_loader_free);
-    loader->input_stream = input_stream;
     loader->root = j_conf_root_new();
+    loader->env = j_hash_table_new(5, j_str_hash, j_str_equal,
+                                   (JKeyDestroyFunc) j_free,
+                                   (JValueDestroyFunc) j_object_unref);
     return loader;
 }
 
 static void j_conf_loader_free(JConfLoader * loader)
 {
-    j_file_input_stream_unref(loader->input_stream);
+    j_hash_table_free_full(loader->env);
     j_conf_root_unref(loader->root);
+}
+
+JConfRoot *j_conf_loader_get_root(JConfLoader * loader)
+{
+    return loader->root;
+}
+
+static inline void j_conf_loader_put(JConfLoader * loader,
+                                     const jchar * name, JConfNode * node)
+{
+    j_hash_table_insert(loader->env, j_strdup(name), node);
+}
+
+void j_conf_loader_put_integer(JConfLoader * loader, const jchar * name,
+                               jint64 integer)
+{
+    j_conf_loader_put(loader, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_INTEGER, integer));
+}
+
+void j_conf_loader_put_string(JConfLoader * loader, const jchar * name,
+                              const jchar * string)
+{
+    j_conf_loader_put(loader, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_STRING, string));
+}
+
+void j_conf_loader_put_float(JConfLoader * loader, const jchar * name,
+                             jdouble floating)
+{
+    j_conf_loader_put(loader, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_FLOAT, floating));
+}
+
+void j_conf_loader_put_bool(JConfLoader * loader, const jchar * name,
+                            jboolean b)
+{
+    j_conf_loader_put(loader, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_BOOL, b));
+}
+
+void j_conf_loader_put_null(JConfLoader * loader, const jchar * name)
+{
+    j_conf_loader_put(loader, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_NULL));
+}
+
+jboolean j_conf_loader_loads(const jchar * path)
+{
+    /* TODO */
+    return FALSE;
 }

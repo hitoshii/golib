@@ -23,6 +23,20 @@
 
 typedef struct _JConfLoader JConfLoader;
 
-JConfLoader *j_conf_loader_new(JFile * f);
+JConfLoader *j_conf_loader_new(void);
+
+jboolean j_conf_loader_loads(const jchar * path);
+
+JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
+
+void j_conf_loader_put_integer(JConfLoader * loader, const jchar * name,
+                               jint64 integer);
+void j_conf_loader_put_string(JConfLoader * loader, const jchar * name,
+                              const jchar * string);
+void j_conf_loader_put_float(JConfLoader * loader, const jchar * name,
+                             jdouble floating);
+void j_conf_loader_put_bool(JConfLoader * loader, const jchar * name,
+                            jboolean b);
+void j_conf_loader_put_null(JConfLoader * loader, const jchar * name);
 
 #endif
