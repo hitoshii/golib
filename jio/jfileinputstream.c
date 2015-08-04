@@ -25,6 +25,7 @@ struct _JFileInputStream {
     jint fd;
 
     JString *buffer;
+    jboolean eof;
 };
 
 static jint j_file_input_stream_read(JFileInputStream * stream,
@@ -47,6 +48,7 @@ JFileInputStream *j_file_read(JFile * f)
     }
     JFileInputStream *stream = j_malloc(sizeof(JFileInputStream));
     stream->fd = fd;
+    stream->eof = FALSE;
     stream->buffer = j_string_new();
     j_input_stream_init((JInputStream *) stream,
                         &j_file_input_stream_interface);
@@ -59,29 +61,39 @@ static void j_file_input_stream_close(JFileInputStream * stream)
     close(stream->fd);
 }
 
-static jint j_file_input_stream_read(JFileInputStream * stream,
-                                     void *buffer, juint size)
-{
-    return j_read(stream->fd, buffer, size);
-}
-
 static jboolean j_file_input_stream_read_buffer(JFileInputStream * stream)
 {
     jchar buf[4096];
     jint n = j_read(stream->fd, buf, sizeof(buf));
     if (n <= 0) {
+        stream->eof = TRUE;
         return FALSE;
     }
     j_string_append_len(stream->buffer, buf, n);
     return TRUE;
 }
 
+static jint j_file_input_stream_read(JFileInputStream * stream,
+                                     void *buffer, juint size)
+{
+    if (j_string_len(stream->buffer) < size && stream->eof == FALSE) {
+        j_file_input_stream_read_buffer(stream);
+    }
+    size = MIN(j_string_len(stream->buffer), size);
+    if (size > 0) {
+        memcpy(buffer, j_string_data(stream->buffer), size);
+        j_string_erase(stream->buffer, 0, size);
+    }
+    return size;
+}
+
 static jchar *j_file_input_stream_readline(JFileInputStream * stream)
 {
     JString *buffer = stream->buffer;
     jchar *newline = strchr(buffer->data, '\n');
+    jchar *ret;
     if (newline != NULL) {
-        jchar *ret = j_strndup(buffer->data, newline - buffer->data);
+        ret = j_strndup(buffer->data, newline - buffer->data);
         j_string_erase(buffer, 0, newline - buffer->data + 1);
         return ret;
     }
@@ -90,5 +102,13 @@ static jchar *j_file_input_stream_readline(JFileInputStream * stream)
         return j_file_input_stream_readline(stream);
     }
 
-    return NULL;
+    if (j_string_len(stream->buffer) == 0) {
+        return NULL;
+    }
+
+    ret =
+        j_strndup(j_string_data(stream->buffer),
+                  j_string_len(stream->buffer));
+    j_string_erase(stream->buffer, 0, -1);
+    return ret;
 }

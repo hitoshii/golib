@@ -13,7 +13,7 @@ int main(int argc, char const *argv[])
     if (input == NULL) {
         return 2;
     }
-    char buf[1024];
+    char buf[2];
     jint n;
     while ((n =
             j_input_stream_read((JInputStream *) input, buf,
