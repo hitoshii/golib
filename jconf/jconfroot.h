@@ -15,19 +15,15 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_FILE_INPUT_STREAM_H__
-#define __JIO_FILE_INPUT_STREAM_H__
+#ifndef __J_CONF_ROOT_H__
+#define __J_CONF_ROOT_H__
 
-#include "jinputstream.h"
-#include "jfile.h"
 
-typedef struct _JFileInputStream JFileInputStream;
+typedef struct _JConfRoot JConfRoot;
 
-/* 打开文件读，失败返回NULL */
-JFileInputStream *j_file_read(JFile * f);
+JConfRoot *j_conf_root_new(void);
 
-#define j_file_input_stream_ref(s) J_OBJECT_REF(s)
-#define j_file_input_stream_unref(s) J_OBJECT_UNREF(s)
-
+#define j_conf_root_ref(r) J_OBJECT_REF(r)
+#define j_conf_root_unref(r) J_OBJECT_UNREF(r)
 
 #endif

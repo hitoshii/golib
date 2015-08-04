@@ -15,8 +15,8 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JCONF_CONF_H__
-#define __JCONF_CONF_H__
+#ifndef __J_CONF_CONF_H__
+#define __J_CONF_CONF_H__
 
 /**
  * JConf是类似JSON的数据格式，用于配置文件。它与JSON的主要不同有如下几点
@@ -47,5 +47,7 @@
  */
 
 #include "jconfnode.h"
+#include "jconfroot.h"
+#include "jconfloader.h"
 
 #endif

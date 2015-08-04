@@ -14,7 +14,9 @@ lib_LTLIBRARIES = libjconf.la
 
 
 libjconf_la_SOURCES = \
-    jconfnode.c
+    jconfnode.c \
+    jconfroot.c \
+    jconfloader.c
 
 libjconf_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -27,7 +29,9 @@ libjconf_la_LIBADD =
 jconfsubincludedir=$(jlib_includedir)/jconf
 jconfsubinclude_HEADERS= \
     jconf.h \
-    jconfnode.h
+    jconfnode.h \
+    jconfroot.h \
+    jconfloader.h
 
 
 pkgconfigdir = $(libdir)/pkgconfig

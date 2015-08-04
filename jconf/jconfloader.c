@@ -15,19 +15,31 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_FILE_INPUT_STREAM_H__
-#define __JIO_FILE_INPUT_STREAM_H__
+#include "jconfloader.h"
 
-#include "jinputstream.h"
-#include "jfile.h"
+struct _JConfLoader {
+    JObject parent;
+    JFileInputStream *input_stream;
+    JConfRoot *root;
+};
 
-typedef struct _JFileInputStream JFileInputStream;
+static void j_conf_loader_free(JConfLoader * loader);
 
-/* 打开文件读，失败返回NULL */
-JFileInputStream *j_file_read(JFile * f);
+JConfLoader *j_conf_loader_new(JFile * f)
+{
+    JFileInputStream *input_stream = j_file_read(f);
+    if (input_stream == NULL) {
+        return NULL;
+    }
+    JConfLoader *loader = (JConfLoader *) j_malloc(sizeof(JConfLoader));
+    J_OBJECT_INIT(loader, j_conf_loader_free);
+    loader->input_stream = input_stream;
+    loader->root = j_conf_root_new();
+    return loader;
+}
 
-#define j_file_input_stream_ref(s) J_OBJECT_REF(s)
-#define j_file_input_stream_unref(s) J_OBJECT_UNREF(s)
-
-
-#endif
+static void j_conf_loader_free(JConfLoader * loader)
+{
+    j_file_input_stream_unref(loader->input_stream);
+    j_conf_root_unref(loader->root);
+}

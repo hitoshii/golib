@@ -407,3 +407,57 @@ JConfNode *j_conf_object_get(JConfObject * node, const jchar * name)
     }
     return (JConfNode *) j_hash_table_find(node->d_object, name);
 }
+
+/**
+ * j_conf_object_set
+ * @node: JConfObject
+ * @name: the key name
+ * @child: new child node
+ */
+void j_conf_object_set(JConfObject * node, const jchar * name,
+                       JConfNode * child)
+{
+    if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
+        return;
+    }
+    j_hash_table_insert(node->d_object, j_strdup(name), child);
+}
+
+/**
+ * j_conf_object_set_integer
+ * @node: JConfObject
+ * @name: the key name
+ * @integer: integer value
+ */
+void j_conf_object_set_integer(JConfObject * node, const jchar * name,
+                               jint64 integer)
+{
+    j_conf_object_set(node, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_INTEGER, integer));
+}
+
+void j_conf_object_set_string(JConfObject * node, const jchar * name,
+                              const jchar * string)
+{
+    j_conf_object_set(node, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_STRING, string));
+}
+
+void j_conf_object_set_bool(JConfObject * node, const jchar * name,
+                            jboolean b)
+{
+    j_conf_object_set(node, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_BOOL, b));
+}
+
+void j_conf_object_set_float(JConfObject * node, const jchar * name,
+                             jdouble floating)
+{
+    j_conf_object_set(node, name,
+                      j_conf_node_new(J_CONF_NODE_TYPE_FLOAT, floating));
+}
+
+void j_conf_object_set_null(JConfObject * node, const jchar * name)
+{
+    j_conf_object_set(node, name, j_conf_node_new(J_CONF_NODE_TYPE_NULL));
+}

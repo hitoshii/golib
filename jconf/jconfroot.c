@@ -15,19 +15,29 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_FILE_INPUT_STREAM_H__
-#define __JIO_FILE_INPUT_STREAM_H__
+#include "jconfroot.h"
+#include <jlib/jlib.h>
 
-#include "jinputstream.h"
-#include "jfile.h"
+struct _JConfRoot {
+    JObject parent;
+    JHashTable *nodes;
+};
 
-typedef struct _JFileInputStream JFileInputStream;
+static void j_conf_root_free(JConfRoot * root);
 
-/* 打开文件读，失败返回NULL */
-JFileInputStream *j_file_read(JFile * f);
+JConfRoot *j_conf_root_new(void)
+{
+    JConfRoot *root = (JConfRoot *) j_malloc(sizeof(JConfRoot));
+    J_OBJECT_INIT(root, j_conf_root_free);
+    root->nodes =
+        j_hash_table_new(10, j_str_hash, j_str_equal,
+                         (JKeyDestroyFunc) j_free,
+                         (JValueDestroyFunc) j_object_unref);
+    return root;
+}
 
-#define j_file_input_stream_ref(s) J_OBJECT_REF(s)
-#define j_file_input_stream_unref(s) J_OBJECT_UNREF(s)
 
-
-#endif
+static void j_conf_root_free(JConfRoot * root)
+{
+    j_hash_table_free_full(root->nodes);
+}

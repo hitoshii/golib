@@ -15,8 +15,8 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JCONF_NODE_H__
-#define __JCONF_NODE_H__
+#ifndef __J_CONF_NODE_H__
+#define __J_CONF_NODE_H__
 
 #include <jlib/jlib.h>
 
@@ -75,5 +75,16 @@ void j_conf_array_append_bool(JConfArray * array, jboolean b);
 void j_conf_array_append_float(JConfArray * array, jdouble floating);
 
 JConfNode *j_conf_object_get(JConfObject * node, const jchar * name);
+void j_conf_object_set(JConfObject * node, const jchar * name,
+                       JConfNode * child);
+void j_conf_object_set_integer(JConfObject * node, const jchar * name,
+                               jint64 integer);
+void j_conf_object_set_string(JConfObject * node, const jchar * name,
+                              const jchar * string);
+void j_conf_object_set_bool(JConfObject * node, const jchar * name,
+                            jboolean b);
+void j_conf_object_set_float(JConfObject * node, const jchar * name,
+                             jdouble floating);
+void j_conf_object_set_null(JConfObject * node, const jchar * name);
 
 #endif

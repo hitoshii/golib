@@ -134,7 +134,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jconfsubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjconf_la_DEPENDENCIES =
-am_libjconf_la_OBJECTS = libjconf_la-jconfnode.lo
+am_libjconf_la_OBJECTS = libjconf_la-jconfnode.lo \
+	libjconf_la-jconfroot.lo libjconf_la-jconfloader.lo
 libjconf_la_OBJECTS = $(am_libjconf_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -349,7 +350,9 @@ AM_CFLAGS = \
 
 lib_LTLIBRARIES = libjconf.la
 libjconf_la_SOURCES = \
-    jconfnode.c
+    jconfnode.c \
+    jconfroot.c \
+    jconfloader.c
 
 libjconf_la_CFLAGS = $(jlib_INCLUDE)
 libjconf_la_LDFLAGS = 
@@ -357,7 +360,9 @@ libjconf_la_LIBADD =
 jconfsubincludedir = $(jlib_includedir)/jconf
 jconfsubinclude_HEADERS = \
     jconf.h \
-    jconfnode.h
+    jconfnode.h \
+    jconfroot.h \
+    jconfloader.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jconf-0.1.pc
@@ -444,7 +449,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjconf_la-jconfloader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjconf_la-jconfnode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjconf_la-jconfroot.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -473,6 +480,20 @@ libjconf_la-jconfnode.lo: jconfnode.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jconfnode.c' object='libjconf_la-jconfnode.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjconf_la_CFLAGS) $(CFLAGS) -c -o libjconf_la-jconfnode.lo `test -f 'jconfnode.c' || echo '$(srcdir)/'`jconfnode.c
+
+libjconf_la-jconfroot.lo: jconfroot.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjconf_la_CFLAGS) $(CFLAGS) -MT libjconf_la-jconfroot.lo -MD -MP -MF $(DEPDIR)/libjconf_la-jconfroot.Tpo -c -o libjconf_la-jconfroot.lo `test -f 'jconfroot.c' || echo '$(srcdir)/'`jconfroot.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjconf_la-jconfroot.Tpo $(DEPDIR)/libjconf_la-jconfroot.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jconfroot.c' object='libjconf_la-jconfroot.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjconf_la_CFLAGS) $(CFLAGS) -c -o libjconf_la-jconfroot.lo `test -f 'jconfroot.c' || echo '$(srcdir)/'`jconfroot.c
+
+libjconf_la-jconfloader.lo: jconfloader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjconf_la_CFLAGS) $(CFLAGS) -MT libjconf_la-jconfloader.lo -MD -MP -MF $(DEPDIR)/libjconf_la-jconfloader.Tpo -c -o libjconf_la-jconfloader.lo `test -f 'jconfloader.c' || echo '$(srcdir)/'`jconfloader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjconf_la-jconfloader.Tpo $(DEPDIR)/libjconf_la-jconfloader.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jconfloader.c' object='libjconf_la-jconfloader.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjconf_la_CFLAGS) $(CFLAGS) -c -o libjconf_la-jconfloader.lo `test -f 'jconfloader.c' || echo '$(srcdir)/'`jconfloader.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
