@@ -39,13 +39,8 @@ static JInputStreamInterface j_file_input_stream_interface = {
     (JInputStreamClose) j_file_input_stream_close
 };
 
-/* 打开文件读，失败返回NULL */
-JFileInputStream *j_file_read(JFile * f)
+static inline JFileInputStream *j_file_input_stream_new_from_fd(int fd)
 {
-    jint fd = j_file_open_fd(f, O_RDONLY);
-    if (fd < 0) {
-        return NULL;
-    }
     JFileInputStream *stream = j_malloc(sizeof(JFileInputStream));
     stream->fd = fd;
     stream->eof = FALSE;
@@ -53,6 +48,25 @@ JFileInputStream *j_file_read(JFile * f)
     j_input_stream_init((JInputStream *) stream,
                         &j_file_input_stream_interface);
     return stream;
+}
+
+/* 打开文件读，失败返回NULL */
+JFileInputStream *j_file_read(JFile * f)
+{
+    jint fd = j_file_open_fd(f, O_RDONLY);
+    if (fd < 0) {
+        return NULL;
+    }
+    return j_file_input_stream_new_from_fd(fd);
+}
+
+JFileInputStream *j_file_input_stream_open(const jchar * path)
+{
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) {
+        return NULL;
+    }
+    return j_file_input_stream_new_from_fd(fd);
 }
 
 static void j_file_input_stream_close(JFileInputStream * stream)

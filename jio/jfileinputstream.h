@@ -26,6 +26,8 @@ typedef struct _JFileInputStream JFileInputStream;
 /* 打开文件读，失败返回NULL */
 JFileInputStream *j_file_read(JFile * f);
 
+JFileInputStream *j_file_input_stream_open(const jchar * path);
+
 #define j_file_input_stream_ref(s) J_OBJECT_REF(s)
 #define j_file_input_stream_unref(s) J_OBJECT_UNREF(s)
 

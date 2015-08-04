@@ -87,8 +87,28 @@ void j_conf_loader_put_null(JConfLoader * loader, const jchar * name)
                       j_conf_node_new(J_CONF_NODE_TYPE_NULL));
 }
 
+typedef enum {
+    J_CONF_LOADER_START,
+} JConfLoaderState;
+
+#define j_conf_is_delimiter(c) ((c)<=32)
+
 jboolean j_conf_loader_loads(const jchar * path)
 {
-    /* TODO */
+    JFileInputStream *input_stream = j_file_input_stream_open(path);
+    if (input_stream == NULL) {
+        return FALSE;
+    }
+    JConfLoaderState state = J_CONF_LOADER_START;
+    jchar buf[1024];
+    jint i, n;
+    while ((n =
+            j_input_stream_read((JInputStream *) input_stream, buf,
+                                sizeof(buf))) > 0) {
+        for (i = 0; i < n; i++) {
+
+        }
+    }
+    j_file_input_stream_unref(input_stream);
     return FALSE;
 }
