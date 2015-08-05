@@ -25,7 +25,10 @@ typedef struct _JConfLoader JConfLoader;
 
 JConfLoader *j_conf_loader_new(void);
 
-jboolean j_conf_loader_loads(const jchar * path);
+#define j_conf_loader_ref(l) J_OBJECT_REF(l)
+#define j_conf_loader_unref(l)  J_OBJECT_UNREF(l)
+
+jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path);
 
 JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
 

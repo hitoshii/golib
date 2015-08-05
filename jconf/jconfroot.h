@@ -29,6 +29,8 @@ JConfRoot *j_conf_root_new(void);
 
 void j_conf_root_set(JConfRoot * root, const jchar * name,
                      JConfNode * node);
+void j_conf_root_set_take(JConfRoot * root, jchar * name,
+                          JConfNode * node);
 void j_conf_root_set_integer(JConfRoot * root, const jchar * name,
                              jint64 integer);
 void j_conf_root_set_string(JConfRoot * root, const jchar * name,

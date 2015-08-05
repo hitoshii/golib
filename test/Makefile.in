@@ -94,14 +94,14 @@ noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
 	test-listen$(EXEEXT) test-inputstream$(EXEEXT) \
-	test-outputstream$(EXEEXT)
+	test-outputstream$(EXEEXT) test-conf$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
 	test-message$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
 	test-listen$(EXEEXT) test-inputstream$(EXEEXT) \
-	test-outputstream$(EXEEXT)
+	test-outputstream$(EXEEXT) test-conf$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gtk-doc.m4 \
@@ -125,6 +125,9 @@ am__v_lt_1 =
 am_test_asyncqueue_OBJECTS = test-asyncqueue.$(OBJEXT)
 test_asyncqueue_OBJECTS = $(am_test_asyncqueue_OBJECTS)
 test_asyncqueue_LDADD = $(LDADD)
+am_test_conf_OBJECTS = test-conf.$(OBJEXT)
+test_conf_OBJECTS = $(am_test_conf_OBJECTS)
+test_conf_LDADD = $(LDADD)
 am_test_hashtable_OBJECTS = test-hashtable.$(OBJEXT)
 test_hashtable_OBJECTS = $(am_test_hashtable_OBJECTS)
 test_hashtable_LDADD = $(LDADD)
@@ -196,19 +199,21 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
-	$(test_hashtable_SOURCES) $(test_inputstream_SOURCES) \
-	$(test_listen_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_outputstream_SOURCES) \
-	$(test_queue_SOURCES) $(test_socket_SOURCES) \
-	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
+	$(test_conf_SOURCES) $(test_hashtable_SOURCES) \
+	$(test_inputstream_SOURCES) $(test_listen_SOURCES) \
+	$(test_main_SOURCES) $(test_message_SOURCES) \
+	$(test_outputstream_SOURCES) $(test_queue_SOURCES) \
+	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES) \
+	$(test_threadpool_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
-	$(test_hashtable_SOURCES) $(test_inputstream_SOURCES) \
-	$(test_listen_SOURCES) $(test_main_SOURCES) \
-	$(test_message_SOURCES) $(test_outputstream_SOURCES) \
-	$(test_queue_SOURCES) $(test_socket_SOURCES) \
-	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
-	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
+	$(test_conf_SOURCES) $(test_hashtable_SOURCES) \
+	$(test_inputstream_SOURCES) $(test_listen_SOURCES) \
+	$(test_main_SOURCES) $(test_message_SOURCES) \
+	$(test_outputstream_SOURCES) $(test_queue_SOURCES) \
+	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
+	$(test_string_SOURCES) $(test_thread_SOURCES) \
+	$(test_threadpool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -583,7 +588,8 @@ AM_CFLAGS = \
 
 AM_LDFLAGS = \
     $(jlib_ADD) \
-    $(jio_ADD)
+    $(jio_ADD) \
+    $(jconf_ADD)
 
 test_string_SOURCES = \
 	test-string.c
@@ -626,6 +632,9 @@ test_inputstream_SOURCES = \
 
 test_outputstream_SOURCES = \
     test-outputstream.c
+
+test_conf_SOURCES = \
+    test-conf.c
 
 all: all-am
 
@@ -677,6 +686,10 @@ test-array$(EXEEXT): $(test_array_OBJECTS) $(test_array_DEPENDENCIES) $(EXTRA_te
 test-asyncqueue$(EXEEXT): $(test_asyncqueue_OBJECTS) $(test_asyncqueue_DEPENDENCIES) $(EXTRA_test_asyncqueue_DEPENDENCIES) 
 	@rm -f test-asyncqueue$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_asyncqueue_OBJECTS) $(test_asyncqueue_LDADD) $(LIBS)
+
+test-conf$(EXEEXT): $(test_conf_OBJECTS) $(test_conf_DEPENDENCIES) $(EXTRA_test_conf_DEPENDENCIES) 
+	@rm -f test-conf$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_conf_OBJECTS) $(test_conf_LDADD) $(LIBS)
 
 test-hashtable$(EXEEXT): $(test_hashtable_OBJECTS) $(test_hashtable_DEPENDENCIES) $(EXTRA_test_hashtable_DEPENDENCIES) 
 	@rm -f test-hashtable$(EXEEXT)
@@ -734,6 +747,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-array.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-asyncqueue.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-hashtable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-inputstream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-listen.Po@am__quote@
@@ -1061,6 +1075,13 @@ test-inputstream.log: test-inputstream$(EXEEXT)
 test-outputstream.log: test-outputstream$(EXEEXT)
 	@p='test-outputstream$(EXEEXT)'; \
 	b='test-outputstream'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-conf.log: test-conf$(EXEEXT)
+	@p='test-conf$(EXEEXT)'; \
+	b='test-conf'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

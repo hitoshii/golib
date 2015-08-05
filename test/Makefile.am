@@ -14,7 +14,8 @@ AM_CFLAGS =\
 
 AM_LDFLAGS =\
     $(jlib_ADD) \
-    $(jio_ADD)
+    $(jio_ADD) \
+    $(jconf_ADD)
 
 noinst_PROGRAMS= \
     test-string \
@@ -30,7 +31,8 @@ noinst_PROGRAMS= \
     test-socket \
     test-listen \
     test-inputstream \
-    test-outputstream
+    test-outputstream \
+    test-conf
 
 TESTS=\
     test-string \
@@ -46,7 +48,8 @@ TESTS=\
     test-socket \
     test-listen \
     test-inputstream \
-    test-outputstream
+    test-outputstream \
+    test-conf
 
 test_string_SOURCES = \
 	test-string.c
@@ -89,6 +92,9 @@ test_inputstream_SOURCES = \
 
 test_outputstream_SOURCES = \
     test-outputstream.c
+
+test_conf_SOURCES = \
+    test-conf.c
 
 clean-local:
 	indent -kr -ts4 -nut *.c

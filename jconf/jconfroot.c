@@ -45,7 +45,12 @@ static void j_conf_root_free(JConfRoot * root)
 void j_conf_root_set(JConfRoot * root, const jchar * name,
                      JConfNode * node)
 {
-    j_hash_table_insert(root->nodes, j_strdup(name), node);
+    j_conf_root_set_take(root, j_strdup(name), node);
+}
+
+void j_conf_root_set_take(JConfRoot * root, jchar * name, JConfNode * node)
+{
+    j_hash_table_insert(root->nodes, name, node);
 }
 
 JConfNode *j_conf_root_get(JConfRoot * root, const jchar * name)
