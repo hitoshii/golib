@@ -417,10 +417,16 @@ JConfNode *j_conf_object_get(JConfObject * node, const jchar * name)
 void j_conf_object_set(JConfObject * node, const jchar * name,
                        JConfNode * child)
 {
+    j_conf_object_set_take(node, j_strdup(name), child);
+}
+
+void j_conf_object_set_take(JConfObject * node, jchar * name,
+                            JConfNode * child)
+{
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
         return;
     }
-    j_hash_table_insert(node->d_object, j_strdup(name), child);
+    j_hash_table_insert(node->d_object, name, child);
 }
 
 /**
@@ -460,4 +466,12 @@ void j_conf_object_set_float(JConfObject * node, const jchar * name,
 void j_conf_object_set_null(JConfObject * node, const jchar * name)
 {
     j_conf_object_set(node, name, j_conf_node_new(J_CONF_NODE_TYPE_NULL));
+}
+
+JPtrArray *j_conf_object_get_keys(JConfObject * node)
+{
+    if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
+        return NULL;
+    }
+    return j_hash_table_get_keys(node->d_object);
 }

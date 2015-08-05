@@ -18,66 +18,9 @@
 #include "jconfroot.h"
 #include <jlib/jlib.h>
 
-struct _JConfRoot {
-    JObject parent;
-    JHashTable *nodes;
-};
-
-static void j_conf_root_free(JConfRoot * root);
-
 JConfRoot *j_conf_root_new(void)
 {
-    JConfRoot *root = (JConfRoot *) j_malloc(sizeof(JConfRoot));
-    J_OBJECT_INIT(root, j_conf_root_free);
-    root->nodes =
-        j_hash_table_new(10, j_str_hash, j_str_equal,
-                         (JKeyDestroyFunc) j_free,
-                         (JValueDestroyFunc) j_object_unref);
+    JConfRoot *root =
+        (JConfRoot *) j_conf_node_new(J_CONF_NODE_TYPE_OBJECT);
     return root;
-}
-
-
-static void j_conf_root_free(JConfRoot * root)
-{
-    j_hash_table_free_full(root->nodes);
-}
-
-void j_conf_root_set(JConfRoot * root, const jchar * name,
-                     JConfNode * node)
-{
-    j_conf_root_set_take(root, j_strdup(name), node);
-}
-
-void j_conf_root_set_take(JConfRoot * root, jchar * name, JConfNode * node)
-{
-    j_hash_table_insert(root->nodes, name, node);
-}
-
-JConfNode *j_conf_root_get(JConfRoot * root, const jchar * name)
-{
-    return (JConfNode *) j_hash_table_find(root->nodes, name);
-}
-
-void j_conf_root_set_string(JConfRoot * root, const jchar * name,
-                            const jchar * string)
-{
-    j_conf_root_set(root, name,
-                    j_conf_node_new(J_CONF_NODE_TYPE_STRING, string));
-}
-
-void j_conf_root_set_float(JConfRoot * root, const jchar * name,
-                           jdouble floating)
-{
-    j_conf_root_set(root, name,
-                    j_conf_node_new(J_CONF_NODE_TYPE_FLOAT, floating));
-}
-
-void j_conf_root_set_bool(JConfRoot * root, const jchar * name, jboolean b)
-{
-    j_conf_root_set(root, name, j_conf_node_new(J_CONF_NODE_TYPE_BOOL, b));
-}
-
-void j_conf_root_set_null(JConfRoot * root, const jchar * name)
-{
-    j_conf_root_set(root, name, j_conf_node_new(J_CONF_NODE_TYPE_NULL));
 }

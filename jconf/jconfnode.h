@@ -77,6 +77,8 @@ void j_conf_array_append_float(JConfArray * array, jdouble floating);
 JConfNode *j_conf_object_get(JConfObject * node, const jchar * name);
 void j_conf_object_set(JConfObject * node, const jchar * name,
                        JConfNode * child);
+void j_conf_object_set_take(JConfObject * node, jchar * name,
+                            JConfNode * child);
 void j_conf_object_set_integer(JConfObject * node, const jchar * name,
                                jint64 integer);
 void j_conf_object_set_string(JConfObject * node, const jchar * name,
@@ -86,5 +88,6 @@ void j_conf_object_set_bool(JConfObject * node, const jchar * name,
 void j_conf_object_set_float(JConfObject * node, const jchar * name,
                              jdouble floating);
 void j_conf_object_set_null(JConfObject * node, const jchar * name);
+JPtrArray *j_conf_object_get_keys(JConfObject * node);
 
 #endif

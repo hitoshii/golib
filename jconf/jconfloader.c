@@ -128,15 +128,28 @@ static jchar *j_conf_errors[] = {
  */
 static inline jint j_conf_fetch_key(const jchar * buf, jchar ** key)
 {
-    if (!(j_ascii_isalpha(buf[0]) || buf[0] == '_')) {
+    jboolean quote = FALSE;
+    jint i = 0;
+    if (buf[0] == '\"') {
+        quote = TRUE;
+        i++;
+    }
+    if (!(j_ascii_isalpha(buf[i]) || buf[i] == '_')) {
         return -1;
     }
-    jint i = 1;
+    i++;
     while (buf[i] != '\0') {
         if (!(buf[i] == '_' || j_ascii_isalnum(buf[i]))) {
             break;
         }
         i++;
+    }
+    if (quote) {
+        if (buf[i] != '\"') {
+            return -1;
+        }
+        *key = j_strndup(buf + 1, i - 1);
+        return i + 1;
     }
     *key = j_strndup(buf, i);
     return i;

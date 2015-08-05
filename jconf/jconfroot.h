@@ -20,26 +20,21 @@
 
 #include "jconfnode.h"
 
-typedef struct _JConfRoot JConfRoot;
+typedef struct JConfObject JConfRoot;
 
 JConfRoot *j_conf_root_new(void);
 
 #define j_conf_root_ref(r) J_OBJECT_REF(r)
 #define j_conf_root_unref(r) J_OBJECT_UNREF(r)
 
-void j_conf_root_set(JConfRoot * root, const jchar * name,
-                     JConfNode * node);
-void j_conf_root_set_take(JConfRoot * root, jchar * name,
-                          JConfNode * node);
-void j_conf_root_set_integer(JConfRoot * root, const jchar * name,
-                             jint64 integer);
-void j_conf_root_set_string(JConfRoot * root, const jchar * name,
-                            const jchar * string);
-void j_conf_root_set_float(JConfRoot * root, const jchar * name,
-                           jdouble floating);
-void j_conf_root_set_bool(JConfRoot * root, const jchar * name,
-                          jboolean b);
-void j_conf_root_set_null(JConfRoot * root, const jchar * name);
-JConfNode *j_conf_root_get(JConfRoot * root, const jchar * name);
+#define j_conf_root_set(root, name, node) j_conf_object_set((JConfObject*)root, name, node)
+#define j_conf_root_set_take(root, name, node) j_conf_object_set_take((JConfObject*)root, name, node)
+#define j_conf_root_set_integer(root, name, integer) j_conf_object_set_integer((JConfObject*)root, name, integer)
+#define j_conf_root_set_string(root, name, string) j_conf_object_set_string((JConfObject*)root, name, string)
+#define j_conf_root_set_float(root, name, floating) j_conf_object_set_float((JConfObject*)root, name, floating)
+#define j_conf_root_set_bool(root, name, b) j_conf_object_set_bool((JConfObject*)root, name, b)
+#define j_conf_root_set_null(root, name) j_conf_object_set_null((JConfObject*)root, name)
+#define j_conf_root_get(root, name) j_conf_object_get((JConfObject*)root, name)
+#define j_conf_root_get_keys(root) j_conf_object_get_keys((JConfObject*)root)
 
 #endif

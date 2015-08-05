@@ -62,7 +62,6 @@ struct _JHashTable {
     JKeyDestroyFunc key_func;
     JValueDestroyFunc value_func;
 
-    // JList *keys;
     JPtrArray *keys;
 
     JList **buckets;            /* buckets */
