@@ -22,6 +22,10 @@ struct _JConfLoader {
     JObject parent;
     JHashTable *env;
     JConfRoot *root;
+
+    /* 错误信息 */
+    jint errcode;
+    juint line;
 };
 
 static void j_conf_loader_free(JConfLoader * loader);
@@ -103,9 +107,17 @@ static jchar *j_conf_errors[] = {
     "unknown error",
     "invalid key",
     "invalid value",
+    "invalid string",
     ": required",
     "; required"
 };
+
+#define ERROR_UNKNOWN 0
+#define ERROR_INVALID_KEY -1
+#define ERROR_INVALID_VALUE -2
+#define ERROR_INVALID_STRING -3
+#define ERROR_COLON_MISSING -4
+#define ERROR_PUNC_MISSING -5
 
 /*
  * 提取出键值
@@ -135,7 +147,7 @@ static inline jint j_conf_fetch_key(const jchar * buf, jchar ** key)
         i++;
     }
     if (!(j_ascii_isalpha(buf[i]) || buf[i] == '_')) {
-        return -1;
+        return ERROR_INVALID_KEY;
     }
     i++;
     while (buf[i] != '\0') {
@@ -146,7 +158,7 @@ static inline jint j_conf_fetch_key(const jchar * buf, jchar ** key)
     }
     if (quote) {
         if (buf[i] != '\"') {
-            return -1;
+            return ERROR_INVALID_KEY;
         }
         *key = j_strndup(buf + 1, i - 1);
         return i + 1;
@@ -169,6 +181,153 @@ static inline jint j_conf_fetch_digit(const jchar * buf,
     return endptr1 - buf;
 }
 
+/*
+ * 解析四个字节表示的16进制数
+ */
+static inline juint32 parse_hex4(const jchar * str)
+{
+    juint h = 0;
+    if (*str >= '0' && *str <= '9')
+        h += (*str) - '0';
+    else if (*str >= 'A' && *str <= 'F')
+        h += 10 + (*str) - 'A';
+    else if (*str >= 'a' && *str <= 'f')
+        h += 10 + (*str) - 'a';
+    else
+        return 0;
+    h = h << 4;
+    str++;
+    if (*str >= '0' && *str <= '9')
+        h += (*str) - '0';
+    else if (*str >= 'A' && *str <= 'F')
+        h += 10 + (*str) - 'A';
+    else if (*str >= 'a' && *str <= 'f')
+        h += 10 + (*str) - 'a';
+    else
+        return 0;
+    h = h << 4;
+    str++;
+    if (*str >= '0' && *str <= '9')
+        h += (*str) - '0';
+    else if (*str >= 'A' && *str <= 'F')
+        h += 10 + (*str) - 'A';
+    else if (*str >= 'a' && *str <= 'f')
+        h += 10 + (*str) - 'a';
+    else
+        return 0;
+    h = h << 4;
+    str++;
+    if (*str >= '0' && *str <= '9')
+        h += (*str) - '0';
+    else if (*str >= 'A' && *str <= 'F')
+        h += 10 + (*str) - 'A';
+    else if (*str >= 'a' && *str <= 'f')
+        h += 10 + (*str) - 'a';
+    else
+        return 0;
+    return h;
+}
+
+
+static inline jint j_conf_fetch_string(const jchar * buf,
+                                       JConfNode ** value)
+{
+    static const juchar firstByteMark[7] = {
+        0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC
+    };
+    if (J_UNLIKELY(buf[0] != '\"')) {
+        return ERROR_INVALID_STRING;
+    }
+    jchar *ptr = (jchar *) (buf + 1);
+    jint len = 0;
+    while (*ptr != '\"') {
+        if (*ptr == '\0') {
+            return ERROR_INVALID_STRING;
+        } else if (*ptr++ == '\\') {
+            ptr++;
+        }
+        len++;
+    }
+    const jchar *start = buf++;
+    jchar *out = (jchar *) malloc(sizeof(jchar) * (len + 1));
+    ptr = out;
+    juint32 uc, uc2;
+    while (*buf != '\"') {
+        if (*buf != '\\') {
+            *ptr++ = *buf++;
+        } else {
+            buf++;
+            switch (*buf) {
+            case 'b':
+                *ptr++ = '\b';
+                break;
+            case 'f':
+                *ptr++ = '\f';
+                break;
+            case 'n':
+                *ptr++ = '\n';
+                break;
+            case 'r':
+                *ptr++ = '\r';
+                break;
+            case 't':
+                *ptr++ = '\t';
+                break;
+            case 'u':
+                uc = parse_hex4(buf + 1);
+                buf += 4;
+                if (uc == 0 || (uc > 0xDC00 && uc <= 0xDFFF)) {
+                    goto ERROR;
+                } else if (uc >= 0xD800 && uc <= 0xD8FF) {
+                    if (buf[1] != '\\' || buf[2] != 'u') {
+                        goto ERROR;
+                    }
+                    uc2 = parse_hex4(buf + 3);
+                    buf += 6;
+                    if (uc2 < 0xDC00 || uc2 > 0xDFFF) {
+                        goto ERROR;
+                    }
+                    uc = 0x10000 + (((uc & 0x3FF) << 10) | (uc2 & 0x3FF));
+                }
+                len = 4;
+                if (uc < 0x80) {
+                    len = 1;
+                } else if (uc < 0x800) {
+                    len = 2;
+                } else if (uc < 0x10000) {
+                    len = 3;
+                }
+                ptr += len;
+                switch (len) {
+                case 4:
+                    *--ptr = ((uc | 0x80) & 0xBF);
+                    uc >>= 6;
+                case 3:
+                    *--ptr = ((uc | 0x80) & 0xBF);
+                    uc >>= 6;
+                case 2:
+                    *--ptr = ((uc | 0x80) & 0xBF);
+                    uc >>= 6;
+                case 1:
+                    *--ptr = (uc | firstByteMark[len]);
+                }
+                ptr += len;
+                break;
+            default:
+                *ptr++ = *buf;
+            }
+            buf++;
+        }
+    }
+    *ptr = '\0';
+    *value = j_conf_node_new(J_CONF_NODE_TYPE_STRING, out);
+    j_free(out);
+    return buf + 1 - start;
+  ERROR:
+    j_free(out);
+    return ERROR_INVALID_STRING;
+}
+
 static inline jint j_conf_fetch_value(const jchar * buf,
                                       JConfNode ** value)
 {
@@ -184,9 +343,19 @@ static inline jint j_conf_fetch_value(const jchar * buf,
     }
     if (j_ascii_isdigit(buf[0])) {
         return j_conf_fetch_digit(buf, value);
+    } else if (buf[0] == '\"') {
+        return j_conf_fetch_string(buf, value);
     }
-    return -2;
+    return ERROR_INVALID_VALUE;
 }
+
+/*
+ * 成功返回1
+ * 失败返回小于等于0的错误码
+ */
+static jboolean j_conf_loader_loads_object(JConfLoader * loader,
+                                           JConfObject * root,
+                                           JInputStream * input_stream);
 
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
 {
@@ -194,15 +363,31 @@ jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
     if (input_stream == NULL) {
         return FALSE;
     }
+    jboolean ret = j_conf_loader_loads_object(loader,
+                                              (JConfObject *)
+                                              j_conf_loader_get_root
+                                              (loader),
+                                              (JInputStream *)
+                                              input_stream);
+    j_file_input_stream_unref(input_stream);
+
+    if (!ret) {
+        j_fprintf(stderr, "%s:%lu - %s\n", path, loader->line,
+                  j_conf_errors[loader->errcode]);
+    }
+    return ret;
+}
+
+static jboolean j_conf_loader_loads_object(JConfLoader * loader,
+                                           JConfObject * root,
+                                           JInputStream * input_stream)
+{
     JConfLoaderState state = J_CONF_LOADER_KEY;
     jchar *key = NULL, *buf = NULL;
     JConfNode *value = NULL;
     juint line = 0;             /* 记录当前行号 */
     jint i, next;
-    JConfRoot *root = j_conf_loader_get_root(loader);
-    while ((buf =
-            j_input_stream_readline((JInputStream *) input_stream)) !=
-           NULL) {
+    while ((buf = j_input_stream_readline(input_stream)) != NULL) {
         line++;
         next = 0;
         i = 0;
@@ -221,7 +406,7 @@ jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
                 break;
             case J_CONF_LOADER_KEY_COLON:
                 if (buf[i] != ':') {
-                    next = -3;
+                    next = ERROR_COLON_MISSING;
                     goto OUT;
                 }
                 state = J_CONF_LOADER_VALUE;
@@ -231,13 +416,13 @@ jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
                     goto OUT;
                 }
                 i += next - 1;
-                j_conf_root_set_take(root, key, value);
+                j_conf_object_set_take(root, key, value);
                 key = NULL;
                 state = J_CONF_LOADER_END;
                 break;
             case J_CONF_LOADER_END:
                 if (buf[i] != ';') {
-                    next = -4;
+                    next = ERROR_PUNC_MISSING;
                     goto OUT;
                 }
                 state = J_CONF_LOADER_KEY;
@@ -250,12 +435,12 @@ jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
             state = J_CONF_LOADER_KEY;
         }
     }
+
   OUT:
-    j_file_input_stream_unref(input_stream);
     j_free(key);
     if (next <= 0) {
-        j_fprintf(stderr, "%s:%u error %s\n", path, line,
-                  j_conf_errors[-next]);
+        loader->errcode = -next;
+        loader->line = line;
         return FALSE;
     }
     return TRUE;

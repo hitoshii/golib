@@ -36,6 +36,9 @@ int main(int argc, char const *argv[])
         case J_CONF_NODE_TYPE_NULL:
             j_printf("null");
             break;
+        case J_CONF_NODE_TYPE_STRING:
+            j_printf("\"%s\"", j_conf_string_get(node));
+            break;
         default:
             break;
         }
