@@ -35,7 +35,7 @@ typedef jint(*JInputStreamRead) (JInputStream * stream, void *buffer,
  * 读取一行，如果失败或者到文件结束，返回NULL
  * 读取成功返回读取到的一行数据，不包括换行符，需要释放返回的字符串
  */
-typedef jchar *(*JInputStreamReadline) (JInputStream * stream);
+// typedef jchar *(*JInputStreamReadline) (JInputStream * stream);
 /*
  * 关闭流
  */
@@ -43,15 +43,17 @@ typedef void (*JInputStreamClose) (JInputStream * stream);
 
 struct _JInputStreamInterface {
     JInputStreamRead read;
-    JInputStreamReadline readline;
+    // JInputStreamReadline readline;
     JInputStreamClose close;
 };
 
 void j_input_stream_init(JInputStream * stream,
                          JInputStreamInterface * interface);
 
+jboolean j_input_stream_is_closed(JInputStream * input_stream);
+
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size);
-jchar *j_input_stream_readline(JInputStream * stream);
+// jchar *j_input_stream_readline(JInputStream * stream);
 void j_input_stream_close(JInputStream * stream);
 
 #endif

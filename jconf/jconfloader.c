@@ -345,6 +345,9 @@ static inline jint j_conf_fetch_value(const jchar * buf,
         return j_conf_fetch_digit(buf, value);
     } else if (buf[0] == '\"') {
         return j_conf_fetch_string(buf, value);
+    } else if (buf[0] == '{') {
+        *value = j_conf_node_new(J_CONF_NODE_TYPE_OBJECT);
+        return 1;
     }
     return ERROR_INVALID_VALUE;
 }
@@ -382,51 +385,56 @@ static jboolean j_conf_loader_loads_object(JConfLoader * loader,
                                            JConfObject * root,
                                            JInputStream * input_stream)
 {
+    JBufferedInputStream *buffered_stream =
+        j_buffered_input_stream_new(input_stream);
     JConfLoaderState state = J_CONF_LOADER_KEY;
     jchar *key = NULL, *buf = NULL;
     JConfNode *value = NULL;
     juint line = 0;             /* 记录当前行号 */
     jint i, next;
-    while ((buf = j_input_stream_readline(input_stream)) != NULL) {
+    while ((buf =
+            j_buffered_input_stream_readline(buffered_stream)) != NULL) {
         line++;
         next = 0;
         i = 0;
         while (buf[i] != '\0') {
-            if (j_conf_is_space(buf[i])) {
-                i++;
-                continue;
-            }
-            switch (state) {
-            case J_CONF_LOADER_KEY:
-                if ((next = j_conf_fetch_key(buf + i, &key)) <= 0) {
-                    goto OUT;
+            if (!j_conf_is_space(buf[i])) {
+                switch (state) {
+                case J_CONF_LOADER_KEY:
+                    if ((next = j_conf_fetch_key(buf + i, &key)) <= 0) {
+                        goto OUT;
+                    }
+                    i += next - 1;
+                    state = J_CONF_LOADER_KEY_COLON;
+                    break;
+                case J_CONF_LOADER_KEY_COLON:
+                    if (buf[i] != ':') {
+                        next = ERROR_COLON_MISSING;
+                        goto OUT;
+                    }
+                    state = J_CONF_LOADER_VALUE;
+                    break;
+                case J_CONF_LOADER_VALUE:
+                    if ((next = j_conf_fetch_value(buf + i, &value)) <= 0) {
+                        goto OUT;
+                    }
+                    i += next - 1;
+                    j_conf_object_set_take(root, key, value);
+                    key = NULL;
+                    if (j_conf_node_get_type(value) ==
+                        J_CONF_NODE_TYPE_OBJECT) {
+
+                    }
+                    state = J_CONF_LOADER_END;
+                    break;
+                case J_CONF_LOADER_END:
+                    if (buf[i] != ';') {
+                        next = ERROR_PUNC_MISSING;
+                        goto OUT;
+                    }
+                    state = J_CONF_LOADER_KEY;
+                    break;
                 }
-                i += next - 1;
-                state = J_CONF_LOADER_KEY_COLON;
-                break;
-            case J_CONF_LOADER_KEY_COLON:
-                if (buf[i] != ':') {
-                    next = ERROR_COLON_MISSING;
-                    goto OUT;
-                }
-                state = J_CONF_LOADER_VALUE;
-                break;
-            case J_CONF_LOADER_VALUE:
-                if ((next = j_conf_fetch_value(buf + i, &value)) <= 0) {
-                    goto OUT;
-                }
-                i += next - 1;
-                j_conf_object_set_take(root, key, value);
-                key = NULL;
-                state = J_CONF_LOADER_END;
-                break;
-            case J_CONF_LOADER_END:
-                if (buf[i] != ';') {
-                    next = ERROR_PUNC_MISSING;
-                    goto OUT;
-                }
-                state = J_CONF_LOADER_KEY;
-                break;
             }
             i++;
         }
@@ -438,6 +446,7 @@ static jboolean j_conf_loader_loads_object(JConfLoader * loader,
 
   OUT:
     j_free(key);
+    j_buffered_input_stream_unref(buffered_stream);
     if (next <= 0) {
         loader->errcode = -next;
         loader->line = line;

@@ -27,11 +27,15 @@ int main(int argc, char const *argv[])
     j_object_unref((JObject *) input);
 
     input = j_file_read(f);
+    JBufferedInputStream *buffered_stream =
+        j_buffered_input_stream_new((JInputStream *) input);
+    j_file_input_stream_unref(input);
     if (input == NULL) {
         return 4;
     }
     jchar *line;
-    while ((line = j_input_stream_readline((JInputStream *) input))) {
+    while ((line =
+            j_buffered_input_stream_readline(buffered_stream)) != NULL) {
         j_printf("%s\n", line);
         j_string_append_printf(s2, "%s\n", line);
         j_free(line);
@@ -51,7 +55,7 @@ int main(int argc, char const *argv[])
     }
     j_file_unmap(map, len);
 
-    j_object_unref((JObject *) input);
+    j_buffered_input_stream_unref(buffered_stream);
     j_object_unref((JObject *) f);
     j_string_free(s1, TRUE);
     j_string_free(s2, TRUE);

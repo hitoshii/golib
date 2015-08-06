@@ -15,19 +15,20 @@
  * License along with the package; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
-#ifndef __JIO_H__
-#define __JIO_H__
+#ifndef __JIO_BUFFERED_INPUT_STREAM_H__
+#define __JIO_BUFFERED_INPUT_STREAM_H__
 
-#include "jioenum.h"
-#include "jsocketaddress.h"
-#include "jpoll.h"
-#include "jfile.h"
 #include "jinputstream.h"
-#include "joutputstream.h"
-#include "jbufferedinputstream.h"
-#include "jfileinputstream.h"
-#include "jfileoutputstream.h"
-#include "jsocket.h"
 
+typedef struct _JBufferedInputStream JBufferedInputStream;
+
+JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
+                                                  input_stream);
+
+#define j_buffered_input_stream_ref(s) J_OBJECT_REF(s)
+#define j_buffered_input_stream_unref(s) J_OBJECT_UNREF(s)
+
+jchar *j_buffered_input_stream_readline(JBufferedInputStream *
+                                        buffered_stream);
 
 #endif

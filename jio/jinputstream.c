@@ -26,6 +26,10 @@ void j_input_stream_init(JInputStream * stream,
     stream->closed = FALSE;
 }
 
+jboolean j_input_stream_is_closed(JInputStream * input_stream)
+{
+    return input_stream->closed;
+}
 
 jint j_input_stream_read(JInputStream * stream, void *buffer, juint size)
 {
@@ -35,13 +39,13 @@ jint j_input_stream_read(JInputStream * stream, void *buffer, juint size)
     return -1;
 }
 
-jchar *j_input_stream_readline(JInputStream * stream)
-{
-    if (stream->iface->readline) {
-        return stream->iface->readline(stream);
-    }
-    return NULL;
-}
+// jchar *j_input_stream_readline(JInputStream * stream)
+// {
+//     if (stream->iface->readline) {
+//         return stream->iface->readline(stream);
+//     }
+//     return NULL;
+// }
 
 void j_input_stream_close(JInputStream * stream)
 {

@@ -138,7 +138,8 @@ am_libjio_la_OBJECTS = libjio_la-jsocket.lo \
 	libjio_la-jsocketaddress.lo libjio_la-jpoll.lo \
 	libjio_la-jfile.lo libjio_la-jinputstream.lo \
 	libjio_la-joutputstream.lo libjio_la-jfileinputstream.lo \
-	libjio_la-jfileoutputstream.lo
+	libjio_la-jfileoutputstream.lo \
+	libjio_la-jbufferedinputstream.lo
 libjio_la_OBJECTS = $(am_libjio_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -360,7 +361,8 @@ libjio_la_SOURCES = \
     jinputstream.c \
     joutputstream.c \
     jfileinputstream.c \
-    jfileoutputstream.c
+    jfileoutputstream.c \
+    jbufferedinputstream.c
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 libjio_la_LDFLAGS = 
@@ -376,7 +378,8 @@ jiosubinclude_HEADERS = \
     jinputstream.h \
     joutputstream.h \
     jfileinputstream.h \
-    jfileoutputstream.h
+    jfileoutputstream.h \
+    jbufferedinputstream.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jio-0.1.pc
@@ -463,6 +466,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjio_la-jbufferedinputstream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjio_la-jfile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjio_la-jfileinputstream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjio_la-jfileoutputstream.Plo@am__quote@
@@ -548,6 +552,13 @@ libjio_la-jfileoutputstream.lo: jfileoutputstream.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jfileoutputstream.c' object='libjio_la-jfileoutputstream.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjio_la_CFLAGS) $(CFLAGS) -c -o libjio_la-jfileoutputstream.lo `test -f 'jfileoutputstream.c' || echo '$(srcdir)/'`jfileoutputstream.c
+
+libjio_la-jbufferedinputstream.lo: jbufferedinputstream.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjio_la_CFLAGS) $(CFLAGS) -MT libjio_la-jbufferedinputstream.lo -MD -MP -MF $(DEPDIR)/libjio_la-jbufferedinputstream.Tpo -c -o libjio_la-jbufferedinputstream.lo `test -f 'jbufferedinputstream.c' || echo '$(srcdir)/'`jbufferedinputstream.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjio_la-jbufferedinputstream.Tpo $(DEPDIR)/libjio_la-jbufferedinputstream.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jbufferedinputstream.c' object='libjio_la-jbufferedinputstream.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjio_la_CFLAGS) $(CFLAGS) -c -o libjio_la-jbufferedinputstream.lo `test -f 'jbufferedinputstream.c' || echo '$(srcdir)/'`jbufferedinputstream.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
