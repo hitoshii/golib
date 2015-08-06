@@ -30,5 +30,11 @@ JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
 
 jchar *j_buffered_input_stream_readline(JBufferedInputStream *
                                         buffered_stream);
+void j_buffered_input_stream_push(JBufferedInputStream * stream,
+                                  const jchar * buf, jint size);
+void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
+                                       const jchar * buf, jint size);
+void j_buffered_input_stream_push_c(JBufferedInputStream * stream,
+                                    jchar c);
 
 #endif

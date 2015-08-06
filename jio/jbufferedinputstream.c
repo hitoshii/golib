@@ -122,3 +122,37 @@ static void j_buffered_input_stream_close(JBufferedInputStream *
     buffered_stream->buffer = NULL;
     J_OBJECT_UNREF(buffered_stream->base_stream);
 }
+
+void j_buffered_input_stream_push(JBufferedInputStream * stream,
+                                  const jchar * buf, jint size)
+{
+    if (J_UNLIKELY
+        (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
+        return;
+    }
+    if (size < 0) {
+        size = j_strlen(buf);
+    }
+    j_string_preppend_len(stream->buffer, buf, size);
+}
+
+void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
+                                       const jchar * buf, jint size)
+{
+    if (J_UNLIKELY
+        (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
+        return;
+    }
+    if (size < 0) {
+        size = j_strlen(buf);
+    }
+    j_string_preppend_printf(stream->buffer, "%.*s\n", size, buf);
+}
+
+void j_buffered_input_stream_push_c(JBufferedInputStream * stream, jchar c)
+{
+    if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
+        return;
+    }
+    j_string_preppend_c(stream->buffer, c);
+}

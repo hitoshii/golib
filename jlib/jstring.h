@@ -36,6 +36,12 @@ void j_string_append(JString * string, const jchar * str);
 void j_string_append_len(JString * string, const jchar * str, juint len);
 void j_string_append_c(JString * string, jchar c);
 void j_string_append_printf(JString * string, const jchar * fmt, ...);
+
+void j_string_preppend(JString * string, const jchar * str);
+void j_string_preppend_len(JString * string, const jchar * str, juint len);
+void j_string_preppend_c(JString * string, jchar c);
+void j_string_preppend_printf(JString * string, const jchar * fmt, ...);
+
 jchar *j_string_free(JString * string, jboolean free_segment);
 
 /*

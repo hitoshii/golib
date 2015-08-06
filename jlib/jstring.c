@@ -77,6 +77,42 @@ void j_string_append_printf(JString * string, const jchar * fmt, ...)
     va_end(ap);
 }
 
+void j_string_preppend_printf(JString * string, const jchar * fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    jchar *buf = j_strdup_vprintf(fmt, ap);
+    j_string_preppend(string, buf);
+    j_free(buf);
+    va_end(ap);
+}
+
+void j_string_preppend(JString * string, const jchar * str)
+{
+    juint len = j_strlen(str);
+    j_string_preppend_len(string, str, len);
+}
+
+void j_string_preppend_len(JString * string, const jchar * str, juint len)
+{
+    while (string->len + len >= string->total) {
+        j_string_realloc(string);
+    }
+    memmove(string->data + len, string->data, string->len + 1);
+    memcpy(string->data, str, len);
+    string->len += len;
+}
+
+void j_string_preppend_c(JString * string, jchar c)
+{
+    if (string->len >= string->total - 1) {
+        j_string_realloc(string);
+    }
+    memmove(string->data + 1, string->data, string->len + 1);
+    string->len++;
+    string->data[0] = c;
+}
+
 jchar *j_string_free(JString * string, jboolean free_segment)
 {
     jchar *data = string->data;
