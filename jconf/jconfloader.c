@@ -18,17 +18,43 @@
 #include "jconfloader.h"
 #include <stdlib.h>
 
+
 struct _JConfLoader {
     JObject parent;
     JHashTable *env;
     JConfRoot *root;
 
-    /* 错误信息 */
-    jint errcode;
-    juint line;
+    /* 解析信息 */
+    JStack *info;
+    JConfLoaderInfo *top;       /* 栈顶元素，用于快速访问 */
 };
 
+static inline JConfLoaderInfo *j_conf_loader_info_new(const jchar *
+                                                      filename);
+static inline void j_conf_loader_info_free(JConfLoaderInfo * info);
+
 static void j_conf_loader_free(JConfLoader * loader);
+
+static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
+                                                  JConfObject * root,
+                                                  JBufferedInputStream *
+                                                  input_stream,
+                                                  jboolean is_root);
+static inline jboolean j_conf_loader_loads_array(JConfLoader * loader,
+                                                 JConfArray * array,
+                                                 JBufferedInputStream *
+                                                 buffered_stream);
+static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
+                                                     JConfObject * root,
+                                                     const jchar * path);
+
+static inline void j_conf_loader_push_line(JConfLoader * loader,
+                                           JBufferedInputStream *
+                                           buffered_stream, jchar * buf);
+static inline void j_conf_loader_set_errcode(JConfLoader * loader,
+                                             jint errcode);
+static inline void j_conf_loader_inc_line(JConfLoader * loader);
+static inline void j_conf_loader_dec_line(JConfLoader * loader);
 
 JConfLoader *j_conf_loader_new(void)
 {
@@ -38,14 +64,15 @@ JConfLoader *j_conf_loader_new(void)
     loader->env = j_hash_table_new(5, j_str_hash, j_str_equal,
                                    (JKeyDestroyFunc) j_free,
                                    (JValueDestroyFunc) j_object_unref);
-    loader->errcode = 0;
-    loader->line = 0;
+    loader->info = j_stack_new();
+    loader->top = NULL;
     return loader;
 }
 
 static void j_conf_loader_free(JConfLoader * loader)
 {
     j_hash_table_free_full(loader->env);
+    j_stack_free(loader->info, (JDestroyNotify) j_conf_loader_info_free);
     j_conf_root_unref(loader->root);
 }
 
@@ -107,22 +134,6 @@ typedef enum {
 #define j_conf_is_end(c) (j_conf_is_space(c)||(c)==';')
 
 
-static jchar *j_conf_errors[] = {
-    "success",
-    "invalid key",
-    "invalid value",
-    "invalid string",
-    ": required",
-    "; required"
-};
-
-#define ERROR_UNKNOWN 0
-#define ERROR_INVALID_KEY 1
-#define ERROR_INVALID_VALUE 2
-#define ERROR_INVALID_STRING 3
-#define ERROR_COLON_MISSING 4
-#define ERROR_PUNC_MISSING 5
-
 /*
  * 提取出键值
  * 成功返回键值的长度，并从key返回新分配的键值字符串
@@ -152,8 +163,7 @@ static inline jint j_conf_loader_fetch_key(JConfLoader * loader,
         i++;
     }
     if (!(j_ascii_isalpha(buf[i]) || buf[i] == '_')) {
-        loader->errcode = ERROR_INVALID_KEY;
-        return -1;
+        goto ERROR;
     }
     i++;
     while (buf[i] != '\0') {
@@ -164,14 +174,16 @@ static inline jint j_conf_loader_fetch_key(JConfLoader * loader,
     }
     if (quote) {
         if (buf[i] != '\"') {
-            loader->errcode = ERROR_INVALID_KEY;
-            return -1;
+            goto ERROR;
         }
         *key = j_strndup(buf + 1, i - 1);
         return i + 1;
     }
     *key = j_strndup(buf, i);
     return i;
+  ERROR:
+    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_KEY);
+    return -1;
 }
 
 static inline jint j_conf_loader_fetch_digit(JConfLoader * loader,
@@ -244,23 +256,22 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
     static const juchar firstByteMark[7] = {
         0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC
     };
+    jchar *out = NULL;
     if (J_UNLIKELY(buf[0] != '\"')) {
-        loader->errcode = ERROR_INVALID_STRING;
-        return -1;
+        goto ERROR;
     }
     jchar *ptr = (jchar *) (buf + 1);
     jint len = 0;
     while (*ptr != '\"') {
         if (*ptr == '\0') {
-            loader->errcode = ERROR_INVALID_STRING;
-            return -1;
+            goto ERROR;
         } else if (*ptr++ == '\\') {
             ptr++;
         }
         len++;
     }
     const jchar *start = buf++;
-    jchar *out = (jchar *) malloc(sizeof(jchar) * (len + 1));
+    out = (jchar *) malloc(sizeof(jchar) * (len + 1));
     ptr = out;
     juint32 uc, uc2;
     while (*buf != '\"') {
@@ -336,7 +347,7 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
     return buf + 1 - start;
   ERROR:
     j_free(out);
-    loader->errcode = ERROR_INVALID_STRING;
+    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_STRING);
     return -1;
 }
 
@@ -365,43 +376,37 @@ static inline jint j_conf_loader_fetch_value(JConfLoader * loader,
         *value = j_conf_node_new(J_CONF_NODE_TYPE_ARRAY);
         return 1;
     }
-    loader->errcode = ERROR_INVALID_VALUE;
+    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VALUE);
     return -1;
 }
 
-/*
- * 成功返回1
- * 失败返回小于等于0的错误码
- */
-static jboolean j_conf_loader_loads_object(JConfLoader * loader,
-                                           JConfObject * root,
-                                           JBufferedInputStream *
-                                           input_stream, jboolean is_root);
-static jboolean j_conf_loader_loads_array(JConfLoader * loader,
-                                          JConfArray * array,
-                                          JBufferedInputStream *
-                                          buffered_stream);
-
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
 {
+    j_stack_clear(loader->info, (JDestroyNotify) j_conf_loader_info_free);
+    return j_conf_loader_loads_from_path(loader,
+                                         (JConfObject *)
+                                         j_conf_loader_get_root(loader),
+                                         path);
+}
+
+static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
+                                                     JConfObject * root,
+                                                     const jchar * path)
+{
+    loader->top = j_conf_loader_info_new(path);
+    j_stack_push(loader->info, loader->top);
     JFileInputStream *input_stream = j_file_input_stream_open(path);
     if (input_stream == NULL) {
+        ((JConfLoaderInfo *) j_stack_top(loader->info))->errcode =
+            J_CONF_LOADER_ERR_INVALID_FILE;
         return FALSE;
     }
     JBufferedInputStream *buffered_stream =
         j_buffered_input_stream_new((JInputStream *) input_stream);
-    jboolean ret = j_conf_loader_loads_object(loader,
-                                              (JConfObject *)
-                                              j_conf_loader_get_root
-                                              (loader),
+    jboolean ret = j_conf_loader_loads_object(loader, root,
                                               buffered_stream, TRUE);
     j_file_input_stream_unref(input_stream);
     j_buffered_input_stream_unref(buffered_stream);
-
-    if (!ret) {
-        j_fprintf(stderr, "%s:%lu - %s\n", path, loader->line,
-                  j_conf_errors[loader->errcode]);
-    }
     return ret;
 }
 
@@ -410,7 +415,7 @@ static inline void j_conf_loader_push_line(JConfLoader * loader,
                                            buffered_stream, jchar * buf)
 {
     j_buffered_input_stream_push_line(buffered_stream, buf, -1);
-    loader->line--;
+    j_conf_loader_dec_line(loader);
 }
 
 static inline jint j_conf_loader_loads_more(JConfLoader * loader,
@@ -435,19 +440,20 @@ static inline jint j_conf_loader_loads_more(JConfLoader * loader,
     return ret;
 }
 
-static jboolean j_conf_loader_loads_object(JConfLoader * loader,
-                                           JConfObject * root,
-                                           JBufferedInputStream *
-                                           buffered_stream,
-                                           jboolean is_root)
+static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
+                                                  JConfObject * root,
+                                                  JBufferedInputStream *
+                                                  buffered_stream,
+                                                  jboolean is_root)
 {
     JConfLoaderState state = J_CONF_LOADER_KEY;
-    jchar *key = NULL, *buf = NULL;
+    jchar *key = NULL;
+    jchar *buf = NULL;
     JConfNode *value = NULL;
     jint i, ret;
     while ((buf =
             j_buffered_input_stream_readline(buffered_stream)) != NULL) {
-        loader->line++;
+        j_conf_loader_inc_line(loader);
         i = 0;
         while (buf[i] != '\0') {
             if (!j_conf_is_space(buf[i])) {
@@ -469,7 +475,8 @@ static jboolean j_conf_loader_loads_object(JConfLoader * loader,
                     break;
                 case J_CONF_LOADER_KEY_COLON:
                     if (buf[i] != ':') {
-                        loader->errcode = ERROR_COLON_MISSING;
+                        j_conf_loader_set_errcode(loader,
+                                                  J_CONF_LOADER_ERR_MISSING_COLON);
                         goto OUT;
                     }
                     state = J_CONF_LOADER_VALUE;
@@ -500,10 +507,13 @@ static jboolean j_conf_loader_loads_object(JConfLoader * loader,
                                                 buf + i + 1);
                         goto OUT;
                     } else if (buf[i] != ';') {
-                        loader->errcode = ERROR_PUNC_MISSING;
+                        j_conf_loader_set_errcode(loader,
+                                                  J_CONF_LOADER_ERR_MISSING_END);
                         goto OUT;
                     }
                     state = J_CONF_LOADER_KEY;
+                    break;
+                default:
                     break;
                 }
             }
@@ -521,7 +531,7 @@ static jboolean j_conf_loader_loads_object(JConfLoader * loader,
   OUT:
     j_free(buf);
     j_free(key);
-    return loader->errcode == 0;
+    return j_conf_loader_get_errcode(loader) == 0;
 }
 
 static jboolean j_conf_loader_loads_array(JConfLoader * loader,
@@ -533,7 +543,7 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
     JConfLoaderState state = J_CONF_LOADER_ARRAY_VALUE;
     while ((buf =
             j_buffered_input_stream_readline(buffered_stream)) != NULL) {
-        loader->line++;
+        j_conf_loader_inc_line(loader);
         jint i = 0, ret;
         JConfNode *value = NULL;
         while (buf[i] != '\0') {
@@ -550,6 +560,8 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
                         if ((ret =
                              j_conf_loader_fetch_value(loader, buf + i,
                                                        &value)) < 0) {
+                        j_conf_loader_set_errcode(loader,
+                                                  J_CONF_LOADER_ERR_INVALID_ARRAY_VALUE);
                         goto OUT;
                     }
                     i += ret - 1;
@@ -575,7 +587,11 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
                         j_free(buf);
                         return TRUE;
                     }
+                    j_conf_loader_set_errcode(loader,
+                                              J_CONF_LOADER_ERR_INVALID_ARRAY);
                     goto OUT;
+                    break;
+                default:
                     break;
                 }
             }
@@ -588,6 +604,55 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
     }
   OUT:
     j_free(buf);
-    loader->errcode = ERROR_INVALID_VALUE;
     return FALSE;
+}
+
+jint j_conf_loader_get_errcode(JConfLoader * loader)
+{
+    if (J_UNLIKELY(loader->top == NULL)) {
+        return 0;
+    }
+    return loader->top->errcode;
+}
+
+static inline void j_conf_loader_set_errcode(JConfLoader * loader,
+                                             jint errcode)
+{
+    if (J_UNLIKELY(loader->top == NULL)) {
+        return;
+    }
+    loader->top->errcode = errcode;
+}
+
+static inline void j_conf_loader_inc_line(JConfLoader * loader)
+{
+    if (J_UNLIKELY(loader->top == NULL)) {
+        return;
+    }
+    loader->top->line++;
+}
+
+static inline void j_conf_loader_dec_line(JConfLoader * loader)
+{
+    if (J_UNLIKELY(loader->top == NULL)) {
+        return;
+    }
+    loader->top->line--;
+}
+
+static inline JConfLoaderInfo *j_conf_loader_info_new(const jchar *
+                                                      filename)
+{
+    JConfLoaderInfo *info =
+        (JConfLoaderInfo *) j_malloc(sizeof(JConfLoaderInfo));
+    info->filename = j_strdup(filename);
+    info->errcode = 0;
+    info->line = 0;
+    return info;
+}
+
+static inline void j_conf_loader_info_free(JConfLoaderInfo * info)
+{
+    j_free(info->filename);
+    j_free(info);
 }

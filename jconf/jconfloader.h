@@ -23,12 +23,34 @@
 
 typedef struct _JConfLoader JConfLoader;
 
+typedef struct {
+    jchar *filename;            /* 文件名 */
+    juint line;                 /* 行号  */
+    jint errcode;               /* 错误码，没有错误为0 */
+} JConfLoaderInfo;
+#define j_conf_loader_info_get_filename(info)   (info)->filename
+#define j_conf_loader_info_get_line(info)   (info)->line
+#define j_conf_loader_info_get_errcode(info)    (info)->errcode
+
+#define J_CONF_LOADER_ERR_SUCCESS 0
+#define J_CONF_LOADER_ERR_INVALID_FILE 1
+#define J_CONF_LOADER_ERR_INVALID_KEY 2
+#define J_CONF_LOADER_ERR_INVALID_VALUE 3
+#define J_CONF_LOADER_ERR_INVALID_STRING 4
+#define J_CONF_LOADER_ERR_MISSING_COLON 5
+#define J_CONF_LOADER_ERR_MISSING_END 6
+#define J_CONF_LOADER_ERR_INVALID_ARRAY_VALUE 7
+#define J_CONF_LOADER_ERR_INVALID_ARRAY 8
+
+
 JConfLoader *j_conf_loader_new(void);
 
 #define j_conf_loader_ref(l) J_OBJECT_REF(l)
 #define j_conf_loader_unref(l)  J_OBJECT_UNREF(l)
 
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path);
+
+jint j_conf_loader_get_errcode(JConfLoader * loader);
 
 JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
 

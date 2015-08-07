@@ -48,6 +48,16 @@ void *j_stack_pop(JStack * stack);
 void *j_stack_top(JStack * stack);
 
 
+/**
+ * j_stack_clear:
+ * @stack: JStack
+ * @destroy: the function to destroy element, or NULL
+ *
+ * free all elements in stack, and set length to zero
+ */
+void j_stack_clear(JStack * stack, JDestroyNotify destroy);
+
+
 /*
  * Gets the length of stack
  */

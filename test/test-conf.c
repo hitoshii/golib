@@ -78,6 +78,7 @@ int main(int argc, char const *argv[])
     JConfLoader *loader = j_conf_loader_new();
 
     if (!j_conf_loader_loads(loader, "./test.conf")) {
+        j_printf("%d\n", j_conf_loader_get_errcode(loader));
         j_conf_loader_unref(loader);
         return 1;
     }

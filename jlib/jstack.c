@@ -81,6 +81,20 @@ unsigned int j_stack_length(JStack * stack)
     return stack->len;
 }
 
+/**
+ * j_stack_clear:
+ * @stack: JStack
+ * @destroy: the function to destroy element, or NULL
+ *
+ * free all elements in stack, and set length to zero
+ */
+void j_stack_clear(JStack * stack, JDestroyNotify destroy)
+{
+    j_list_free_full(stack->data, destroy);
+    stack->len = 0;
+    stack->data = NULL;
+}
+
 void j_stack_free(JStack * stack, JDestroyNotify destroy)
 {
     j_list_free_full(stack->data, (JDestroyNotify) destroy);
