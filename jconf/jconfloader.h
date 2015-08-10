@@ -42,6 +42,7 @@ typedef struct {
 #define J_CONF_LOADER_ERR_INVALID_ARRAY_VALUE 7
 #define J_CONF_LOADER_ERR_INVALID_ARRAY 8
 #define J_CONF_LOADER_ERR_INVALID_INCLUDE 9
+#define J_CONF_LOADER_ERR_INVALID_VARIABLE 10
 
 
 JConfLoader *j_conf_loader_new(void);
@@ -57,6 +58,14 @@ const jchar *j_conf_loader_get_path(JConfLoader * loader);
 
 JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
 
+/**
+ * j_conf_loader_put_integer:
+ * @loader: JConfLoader
+ * @name: variable name
+ * @integer: integer value
+ *
+ * Assigns a integer value to a variable.
+ */
 void j_conf_loader_put_integer(JConfLoader * loader, const jchar * name,
                                jint64 integer);
 void j_conf_loader_put_string(JConfLoader * loader, const jchar * name,
@@ -66,5 +75,16 @@ void j_conf_loader_put_float(JConfLoader * loader, const jchar * name,
 void j_conf_loader_put_bool(JConfLoader * loader, const jchar * name,
                             jboolean b);
 void j_conf_loader_put_null(JConfLoader * loader, const jchar * name);
+
+/**
+ * j_conf_loader_get:
+ * @loader: JConfLoader
+ * @name: the name of variable
+ * 
+ * Gets variable node 
+ *
+ * Returns: a JConfNode or NULL
+ */
+JConfNode *j_conf_loader_get(JConfLoader * loader, const jchar * name);
 
 #endif

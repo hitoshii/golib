@@ -76,6 +76,9 @@ static inline void dump_array(JConfArray * array, jint tab)
 int main(int argc, char const *argv[])
 {
     JConfLoader *loader = j_conf_loader_new();
+    j_conf_loader_put_float(loader, "version", 1.3);
+    j_conf_loader_put_string(loader, "program", "jacques");
+    j_conf_loader_put_null(loader, "null");
 
     if (!j_conf_loader_loads(loader, "./test.conf")) {
         j_printf("%d: %s:%d\n", j_conf_loader_get_errcode(loader),

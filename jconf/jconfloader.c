@@ -92,6 +92,12 @@ static inline void j_conf_loader_put(JConfLoader * loader,
     j_hash_table_insert(loader->env, j_strdup(name), node);
 }
 
+JConfNode *j_conf_loader_get(JConfLoader * loader, const jchar * name)
+{
+    JConfNode *node = j_hash_table_find(loader->env, name);
+    return node;
+}
+
 void j_conf_loader_put_integer(JConfLoader * loader, const jchar * name,
                                jint64 integer)
 {
@@ -356,6 +362,33 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
     return -1;
 }
 
+static inline jint j_conf_loader_fetch_variable(JConfLoader * loader,
+                                                const jchar * buf,
+                                                JConfNode ** value)
+{
+    if (J_UNLIKELY(buf[0] != '$')) {
+        return -1;
+    }
+    jchar *key = NULL;
+    jint ret = j_conf_loader_fetch_key(loader, buf + 1, &key);
+    if (ret <= 0) {
+        return -1;
+    }
+    JConfNode *node = j_conf_loader_get(loader, key);
+    j_free(key);
+    if (node) {
+        j_conf_node_ref(node);
+        *value = node;
+        return ret + 1;
+    }
+    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VARIABLE);
+    return -1;
+}
+
+/*
+ * 解析值,如果成功返回，返回被提取的字符串的长度
+ * 如果失败，返回-1
+ */
 static inline jint j_conf_loader_fetch_value(JConfLoader * loader,
                                              const jchar * buf,
                                              JConfNode ** value)
@@ -380,6 +413,8 @@ static inline jint j_conf_loader_fetch_value(JConfLoader * loader,
     } else if (buf[0] == '[') {
         *value = j_conf_node_new(J_CONF_NODE_TYPE_ARRAY);
         return 1;
+    } else if (buf[0] == '$') {
+        return j_conf_loader_fetch_variable(loader, buf, value);
     }
     j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VALUE);
     return -1;
@@ -412,8 +447,9 @@ static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
                                               buffered_stream, is_root);
     j_file_input_stream_unref(input_stream);
     j_buffered_input_stream_unref(buffered_stream);
-    if (!is_root) {
-        j_stack_pop(loader->info);
+    if (!is_root && ret == TRUE) {
+        JConfLoaderInfo *info = j_stack_pop(loader->info);
+        j_conf_loader_info_free(info);
         loader->top = j_stack_top(loader->info);
     }
     return ret;
@@ -559,7 +595,7 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
   OUT:
     j_free(buf);
     j_free(key);
-    return j_conf_loader_get_errcode(loader) == 0;
+    return j_conf_loader_get_errcode(loader) == J_CONF_LOADER_ERR_SUCCESS;
 }
 
 static jboolean j_conf_loader_loads_array(JConfLoader * loader,
