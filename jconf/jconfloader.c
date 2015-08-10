@@ -412,6 +412,10 @@ static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
                                               buffered_stream, is_root);
     j_file_input_stream_unref(input_stream);
     j_buffered_input_stream_unref(buffered_stream);
+    if (!is_root) {
+        j_stack_pop(loader->info);
+        loader->top = j_stack_top(loader->info);
+    }
     return ret;
 }
 
