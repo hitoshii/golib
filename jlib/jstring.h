@@ -32,6 +32,7 @@ typedef struct {
 #define j_string_len(s)     (s)->len
 
 JString *j_string_new();
+JString *j_string_new_with_length(jint length);
 void j_string_append(JString * string, const jchar * str);
 void j_string_append_len(JString * string, const jchar * str, juint len);
 void j_string_append_c(JString * string, jchar c);

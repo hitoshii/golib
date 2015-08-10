@@ -1,0 +1,57 @@
+JConf
+=====================
+配置文件的解析库
+
+###格式
+每个指令由名和值组成，由冒号：分割，如
+
+    name: "value"
+
+表示了指令名为name拥有字符串值"value"。指令名的命名规范同C语言的变量名命名规范。
+
+共有7种值类型，分别是
+
+* 字符串
+* 整数
+* 浮点数
+* 逻辑值（*true*或者*false*）
+* 空值（*null*）
+* 数组
+* 对象
+
+他们的写法与JSON格式类似，
+
+    "hello world"   # 字符串
+    13              # 整数
+    123.21          # 浮点数
+    true            # 真值
+    null            # 空值
+    [1,3,2]         # 整数数组
+    {a:1; b:3}      # 对象
+
+每条指令由换行符或者分号;分隔。如下
+
+    a:1; b:3
+    c:true
+
+###环境变量
+
+JConf支持环境变量，环境变量是表示字符串、整数、浮点数、逻辑值或者空值的变量。
+由$开头，且只能出现在值中。比如
+
+    version: $programVersion
+    name: "custom $programName"
+
+如果programVersion是3.2，programName是"Jacques"，那么上述配置的结果就是
+
+    version: 3.2
+    name: "custom Jacques"
+
+如果环境变量没有定义，那么就用空值代替，上述配置就相当于
+
+    version: null
+    name: "custom "
+
+### 转义
+
+字符串支持转义，要使用$，则输入"hello \$"

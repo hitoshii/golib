@@ -33,8 +33,16 @@ static inline void j_string_realloc(JString * string)
 
 JString *j_string_new()
 {
+    return j_string_new_with_length(-1);
+}
+
+JString *j_string_new_with_length(jint length)
+{
+    if (length <= 0) {
+        length = 1024;
+    }
     JString *string = (JString *) j_malloc(sizeof(JString));
-    string->total = 1024;
+    string->total = length;
     string->len = 0;
     string->data = (char *) j_malloc(sizeof(char) * string->total);
     string->data[0] = '\0';
@@ -115,6 +123,9 @@ void j_string_preppend_c(JString * string, jchar c)
 
 jchar *j_string_free(JString * string, jboolean free_segment)
 {
+    if (J_UNLIKELY(string == NULL)) {
+        return NULL;
+    }
     jchar *data = string->data;
     j_free(string);
     if (free_segment) {

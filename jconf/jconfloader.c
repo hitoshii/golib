@@ -267,7 +267,7 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
     static const juchar firstByteMark[7] = {
         0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC
     };
-    jchar *out = NULL;
+    JString *out = NULL;
     if (J_UNLIKELY(buf[0] != '\"')) {
         goto ERROR;
     }
@@ -282,29 +282,53 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
         len++;
     }
     const jchar *start = buf++;
-    out = (jchar *) malloc(sizeof(jchar) * (len + 1));
-    ptr = out;
+    out = j_string_new_with_length(128);
     juint32 uc, uc2;
     while (*buf != '\"') {
-        if (*buf != '\\') {
-            *ptr++ = *buf++;
+        if (*buf == '$') {
+            jchar *key = NULL;
+            jint ret = j_conf_loader_fetch_key(loader, buf + 1, &key);
+            if (ret < 0) {
+                goto ERROR;
+            }
+            JConfNode *node = j_conf_loader_get(loader, key);
+            j_free(key);
+            if (node) {
+                JConfNodeType type = j_conf_node_get_type(node);
+                if (type == J_CONF_NODE_TYPE_STRING) {
+                    j_string_append(out, j_conf_string_get(node));
+                } else if (type == J_CONF_NODE_TYPE_FLOAT) {
+                    j_string_append_printf(out, "%f",
+                                           j_conf_float_get(node));
+                } else if (type == J_CONF_NODE_TYPE_INTEGER) {
+                    j_string_append_printf(out, "%ld",
+                                           j_conf_integer_get(node));
+                } else if (type == J_CONF_NODE_TYPE_BOOL) {
+                    j_string_append(out,
+                                    j_conf_bool_get(node) ? "true" :
+                                    "false");
+                }
+            }
+            buf += ret;
+        } else if (*buf != '\\') {
+            j_string_append_c(out, *buf);
         } else {
             buf++;
             switch (*buf) {
             case 'b':
-                *ptr++ = '\b';
+                j_string_append_c(out, '\b');
                 break;
             case 'f':
-                *ptr++ = '\f';
+                j_string_append_c(out, '\f');
                 break;
             case 'n':
-                *ptr++ = '\n';
+                j_string_append_c(out, '\n');
                 break;
             case 'r':
-                *ptr++ = '\r';
+                j_string_append_c(out, '\r');
                 break;
             case 't':
-                *ptr++ = '\t';
+                j_string_append_c(out, '\t');
                 break;
             case 'u':
                 uc = parse_hex4(buf + 1);
@@ -330,34 +354,34 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
                 } else if (uc < 0x10000) {
                     len = 3;
                 }
-                ptr += len;
+                char bytes[4];
                 switch (len) {
                 case 4:
-                    *--ptr = ((uc | 0x80) & 0xBF);
+                    bytes[3] = ((uc | 0x80) & 0xBF);
                     uc >>= 6;
                 case 3:
-                    *--ptr = ((uc | 0x80) & 0xBF);
+                    bytes[2] = ((uc | 0x80) & 0xBF);
                     uc >>= 6;
                 case 2:
-                    *--ptr = ((uc | 0x80) & 0xBF);
+                    bytes[1] = ((uc | 0x80) & 0xBF);
                     uc >>= 6;
                 case 1:
-                    *--ptr = (uc | firstByteMark[len]);
+                    bytes[0] = (uc | firstByteMark[len]);
                 }
-                ptr += len;
+                j_string_append_len(out, bytes, len);
                 break;
             default:
-                *ptr++ = *buf;
+                j_string_append_c(out, *buf);
             }
-            buf++;
         }
+        buf++;
     }
-    *ptr = '\0';
-    *value = j_conf_node_new(J_CONF_NODE_TYPE_STRING, out);
-    j_free(out);
+    ptr = j_string_free(out, FALSE);
+    *value = j_conf_node_new(J_CONF_NODE_TYPE_STRING, ptr);
+    j_free(ptr);
     return buf + 1 - start;
   ERROR:
-    j_free(out);
+    j_string_free(out, TRUE);
     j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_STRING);
     return -1;
 }
@@ -379,10 +403,10 @@ static inline jint j_conf_loader_fetch_variable(JConfLoader * loader,
     if (node) {
         j_conf_node_ref(node);
         *value = node;
-        return ret + 1;
+    } else {
+        *value = j_conf_node_new(J_CONF_NODE_TYPE_NULL);
     }
-    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VARIABLE);
-    return -1;
+    return ret + 1;
 }
 
 /*

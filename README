@@ -3,3 +3,12 @@ JLIB
 jlib是[Jacques](https://github.com/jacques-server/jacques)基础库，
 
 jlib的实现，仿照了[glib](https://github.com/GNOME/glib)。
+
+##jlib
+jlib包含了基础的数据结构、多线程和主循环
+
+##jio
+包含了一些IO相关的内容
+
+##jconf
+配置文件的解析库，配置文件的格式相见jconf目录下的README
