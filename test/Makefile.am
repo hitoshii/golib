@@ -99,3 +99,7 @@ test_conf_SOURCES = \
 clean-local:
 	indent -kr -ts4 -nut *.c
 	rm -f *~
+
+dist_check_DATA = \
+	test.conf \
+	conf.d/test2.conf

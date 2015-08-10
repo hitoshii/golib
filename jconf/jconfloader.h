@@ -41,6 +41,7 @@ typedef struct {
 #define J_CONF_LOADER_ERR_MISSING_END 6
 #define J_CONF_LOADER_ERR_INVALID_ARRAY_VALUE 7
 #define J_CONF_LOADER_ERR_INVALID_ARRAY 8
+#define J_CONF_LOADER_ERR_INVALID_INCLUDE 9
 
 
 JConfLoader *j_conf_loader_new(void);
@@ -51,6 +52,8 @@ JConfLoader *j_conf_loader_new(void);
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path);
 
 jint j_conf_loader_get_errcode(JConfLoader * loader);
+jint j_conf_loader_get_line(JConfLoader * loader);
+const jchar *j_conf_loader_get_path(JConfLoader * loader);
 
 JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
 

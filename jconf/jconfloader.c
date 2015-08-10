@@ -46,7 +46,8 @@ static inline jboolean j_conf_loader_loads_array(JConfLoader * loader,
                                                  buffered_stream);
 static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
                                                      JConfObject * root,
-                                                     const jchar * path);
+                                                     const jchar * path,
+                                                     jboolean is_root);
 
 static inline void j_conf_loader_push_line(JConfLoader * loader,
                                            JBufferedInputStream *
@@ -55,6 +56,10 @@ static inline void j_conf_loader_set_errcode(JConfLoader * loader,
                                              jint errcode);
 static inline void j_conf_loader_inc_line(JConfLoader * loader);
 static inline void j_conf_loader_dec_line(JConfLoader * loader);
+
+static inline jboolean j_conf_loader_include(JConfLoader * loader,
+                                             JConfObject * root,
+                                             JConfNode * node);
 
 JConfLoader *j_conf_loader_new(void)
 {
@@ -383,15 +388,15 @@ static inline jint j_conf_loader_fetch_value(JConfLoader * loader,
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path)
 {
     j_stack_clear(loader->info, (JDestroyNotify) j_conf_loader_info_free);
-    return j_conf_loader_loads_from_path(loader,
-                                         (JConfObject *)
+    return j_conf_loader_loads_from_path(loader, (JConfObject *)
                                          j_conf_loader_get_root(loader),
-                                         path);
+                                         path, TRUE);
 }
 
 static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
                                                      JConfObject * root,
-                                                     const jchar * path)
+                                                     const jchar * path,
+                                                     jboolean is_root)
 {
     loader->top = j_conf_loader_info_new(path);
     j_stack_push(loader->info, loader->top);
@@ -404,7 +409,7 @@ static inline jboolean j_conf_loader_loads_from_path(JConfLoader * loader,
     JBufferedInputStream *buffered_stream =
         j_buffered_input_stream_new((JInputStream *) input_stream);
     jboolean ret = j_conf_loader_loads_object(loader, root,
-                                              buffered_stream, TRUE);
+                                              buffered_stream, is_root);
     j_file_input_stream_unref(input_stream);
     j_buffered_input_stream_unref(buffered_stream);
     return ret;
@@ -451,6 +456,7 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
     jchar *buf = NULL;
     JConfNode *value = NULL;
     jint i, ret;
+    jboolean includeconf = FALSE;
     while ((buf =
             j_buffered_input_stream_readline(buffered_stream)) != NULL) {
         j_conf_loader_inc_line(loader);
@@ -487,7 +493,13 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                                                    &value)) < 0) {
                         goto OUT;
                     }
-                    j_conf_object_set_take(root, key, value);
+                    j_conf_object_set(root, key, value);
+                    if (j_strcmp0(key, "include") == 0) {
+                        includeconf = TRUE;
+                    } else {
+                        includeconf = FALSE;
+                    }
+                    j_free(key);
                     key = NULL;
                     i += ret - 1;
                     state = J_CONF_LOADER_END;
@@ -497,7 +509,14 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                                                   buf + i + 1,
                                                   FALSE)) < 0) {
                         goto OUT;
-                    } else if (ret > 0) {
+                    }
+                    if (includeconf) {
+                        if (!j_conf_loader_include(loader, root, value)) {
+                            goto OUT;
+                        }
+                        j_conf_object_remove(root, "include");
+                    }
+                    if (ret > 0) {
                         goto BREAK;
                     }
                     break;
@@ -526,6 +545,11 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
         if (state == J_CONF_LOADER_END) {
             state = J_CONF_LOADER_KEY;
         }
+    }
+    if (state == J_CONF_LOADER_KEY_COLON) {
+        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_FILE);
+    } else if (state == J_CONF_LOADER_VALUE) {
+        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VALUE);
     }
 
   OUT:
@@ -607,12 +631,79 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
     return FALSE;
 }
 
+static inline jboolean j_conf_loader_include_path(JConfLoader * loader,
+                                                  JConfObject * root,
+                                                  const jchar * path)
+{
+    jchar **paths = j_path_glob(path);
+    if (paths == NULL) {
+        j_conf_loader_set_errcode(loader,
+                                  J_CONF_LOADER_ERR_INVALID_INCLUDE);
+        return FALSE;
+    }
+    jint i = 0;
+    while (paths[i] != NULL) {
+        if (!j_conf_loader_loads_from_path(loader, root, paths[i], FALSE)) {
+            j_strfreev(paths);
+            return FALSE;
+        }
+        i++;
+    }
+    j_strfreev(paths);
+    return TRUE;
+}
+
+static inline jboolean j_conf_loader_include(JConfLoader * loader,
+                                             JConfObject * root,
+                                             JConfNode * node)
+{
+    JConfNodeType type = j_conf_node_get_type(node);
+    if (type == J_CONF_NODE_TYPE_NULL) {
+        return TRUE;
+    } else if (type == J_CONF_NODE_TYPE_STRING) {
+        const jchar *value = j_conf_string_get(node);
+        return j_conf_loader_include_path(loader, root, value);
+    } else if (type == J_CONF_NODE_TYPE_ARRAY) {
+        jint i, len = j_conf_array_get_length(node);
+        for (i = 0; i < len; i++) {
+            JConfNode *child = j_conf_array_get(node, i);
+            if (!j_conf_node_is_string(child)) {
+                goto ERROR;
+            }
+            const jchar *value = j_conf_string_get(child);
+            if (!j_conf_loader_include_path(loader, root, value)) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+    }
+  ERROR:
+    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_INCLUDE);
+    return FALSE;
+}
+
 jint j_conf_loader_get_errcode(JConfLoader * loader)
 {
     if (J_UNLIKELY(loader->top == NULL)) {
         return 0;
     }
     return loader->top->errcode;
+}
+
+jint j_conf_loader_get_line(JConfLoader * loader)
+{
+    if (J_UNLIKELY(loader->top == NULL)) {
+        return -1;
+    }
+    return loader->top->line;
+}
+
+const jchar *j_conf_loader_get_path(JConfLoader * loader)
+{
+    if (J_UNLIKELY(loader->top == NULL)) {
+        return NULL;
+    }
+    return loader->top->filename;
 }
 
 static inline void j_conf_loader_set_errcode(JConfLoader * loader,

@@ -55,6 +55,7 @@ jlibsubinclude_HEADERS= \
     jstrfuncs.h \
     jstring.h \
     jstack.h \
+	jwakeup.h \
     jfileutils.h \
     jhashtable.h \
     jarray.h \

@@ -89,5 +89,6 @@ void j_conf_object_set_float(JConfObject * node, const jchar * name,
                              jdouble floating);
 void j_conf_object_set_null(JConfObject * node, const jchar * name);
 JPtrArray *j_conf_object_get_keys(JConfObject * node);
+void j_conf_object_remove(JConfObject * node, const jchar * name);
 
 #endif

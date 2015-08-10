@@ -468,6 +468,11 @@ void j_conf_object_set_null(JConfObject * node, const jchar * name)
     j_conf_object_set(node, name, j_conf_node_new(J_CONF_NODE_TYPE_NULL));
 }
 
+void j_conf_object_remove(JConfObject * node, const jchar * name)
+{
+    j_hash_table_remove_full(node->d_object, (jpointer) name);
+}
+
 JPtrArray *j_conf_object_get_keys(JConfObject * node)
 {
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
