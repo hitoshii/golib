@@ -1,7 +1,22 @@
+/*
+ * Copyright (C) 2015 Wiky L
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+ */
 #include <jio/jio.h>
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     JString *s1 = j_string_new();
     JString *s2 = j_string_new();
 
@@ -16,8 +31,8 @@ int main(int argc, char const *argv[])
     char buf[2];
     jint n;
     while ((n =
-            j_input_stream_read((JInputStream *) input, buf,
-                                sizeof(buf))) > 0) {
+                j_input_stream_read((JInputStream *) input, buf,
+                                    sizeof(buf))) > 0) {
         j_printf("%.*s", n, buf);
         j_string_append_len(s1, buf, n);
     }
@@ -35,7 +50,7 @@ int main(int argc, char const *argv[])
     }
     jchar *line;
     while ((line =
-            j_buffered_input_stream_readline(buffered_stream)) != NULL) {
+                j_buffered_input_stream_readline(buffered_stream)) != NULL) {
         j_printf("%s\n", line);
         j_string_append_printf(s2, "%s\n", line);
         j_free(line);

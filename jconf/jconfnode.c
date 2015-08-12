@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 #include "jconfnode.h"
 #include <stdarg.h>
@@ -68,8 +67,7 @@ struct _JConfNode {
  *
  * Returns: the type of JConfNode
  */
-JConfNodeType j_conf_node_get_type(JConfNode * node)
-{
+JConfNodeType j_conf_node_get_type(JConfNode * node) {
     return node->type;
 }
 
@@ -86,8 +84,7 @@ static void j_conf_node_free(JConfNode * node);
  *
  * Returns: a new JConfNode. free with j_conf_node_unref()
  */
-JConfNode *j_conf_node_new(JConfNodeType type, ...)
-{
+JConfNode *j_conf_node_new(JConfNodeType type, ...) {
     JConfNode *node = (JConfNode *) j_malloc(sizeof(JConfNode));
     J_OBJECT_INIT(node, j_conf_node_free);
     va_list ap;
@@ -127,8 +124,7 @@ JConfNode *j_conf_node_new(JConfNodeType type, ...)
 /*
  * 销毁一个结点
  */
-static void j_conf_node_free(JConfNode * node)
-{
+static void j_conf_node_free(JConfNode * node) {
     switch (node->type) {
     case J_CONF_NODE_TYPE_STRING:
         j_free(node->d_string);
@@ -152,8 +148,7 @@ static void j_conf_node_free(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_null(JConfNode * node)
-{
+jboolean j_conf_node_is_null(JConfNode * node) {
     return J_CONF_NODE_IS_NULL(node);
 }
 
@@ -165,8 +160,7 @@ jboolean j_conf_node_is_null(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_integer(JConfNode * node)
-{
+jboolean j_conf_node_is_integer(JConfNode * node) {
     return J_CONF_NODE_IS_INTEGER(node);
 }
 
@@ -178,8 +172,7 @@ jboolean j_conf_node_is_integer(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_string(JConfNode * node)
-{
+jboolean j_conf_node_is_string(JConfNode * node) {
     return J_CONF_NODE_IS_STRING(node);
 }
 
@@ -191,8 +184,7 @@ jboolean j_conf_node_is_string(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_float(JConfNode * node)
-{
+jboolean j_conf_node_is_float(JConfNode * node) {
     return J_CONF_NODE_IS_FLOAT(node);
 }
 
@@ -204,8 +196,7 @@ jboolean j_conf_node_is_float(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_bool(JConfNode * node)
-{
+jboolean j_conf_node_is_bool(JConfNode * node) {
     return J_CONF_NODE_IS_BOOL(node);
 }
 
@@ -217,8 +208,7 @@ jboolean j_conf_node_is_bool(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_object(JConfNode * node)
-{
+jboolean j_conf_node_is_object(JConfNode * node) {
     return J_CONF_NODE_IS_OBJECT(node);
 }
 
@@ -230,8 +220,7 @@ jboolean j_conf_node_is_object(JConfNode * node)
  *
  * Returns: TRUE otherwise FALSE
  */
-jboolean j_conf_node_is_array(JConfNode * node)
-{
+jboolean j_conf_node_is_array(JConfNode * node) {
     return J_CONF_NODE_IS_ARRAY(node);
 }
 
@@ -241,8 +230,7 @@ jboolean j_conf_node_is_array(JConfNode * node)
  *
  * Returns: integer value
  */
-jint64 j_conf_integer_get(JConfInteger * node)
-{
+jint64 j_conf_integer_get(JConfInteger * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_INTEGER(node))) {
         return -1;
     }
@@ -254,8 +242,7 @@ jint64 j_conf_integer_get(JConfInteger * node)
  * @node: JConfInteger
  * @integer: the new integer value
  */
-void j_conf_integer_set(JConfInteger * node, jint64 integer)
-{
+void j_conf_integer_set(JConfInteger * node, jint64 integer) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_INTEGER(node))) {
         return;
     }
@@ -268,8 +255,7 @@ void j_conf_integer_set(JConfInteger * node, jint64 integer)
  *
  * Returns: string value
  */
-const jchar *j_conf_string_get(JConfString * node)
-{
+const jchar *j_conf_string_get(JConfString * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_STRING(node))) {
         return NULL;
     }
@@ -282,8 +268,7 @@ const jchar *j_conf_string_get(JConfString * node)
  *
  * Returns: float value
  */
-jdouble j_conf_float_get(JConfFloat * node)
-{
+jdouble j_conf_float_get(JConfFloat * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_FLOAT(node))) {
         return 0;
     }
@@ -296,8 +281,7 @@ jdouble j_conf_float_get(JConfFloat * node)
  *
  * Returns: boolean value
  */
-jboolean j_conf_bool_get(JConfBool * node)
-{
+jboolean j_conf_bool_get(JConfBool * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_BOOL(node))) {
         return FALSE;
     }
@@ -310,8 +294,7 @@ jboolean j_conf_bool_get(JConfBool * node)
  *
  * Returns: length of array
  */
-juint j_conf_array_get_length(JConfArray * node)
-{
+juint j_conf_array_get_length(JConfArray * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_ARRAY(node))) {
         return 0;
     }
@@ -325,8 +308,7 @@ juint j_conf_array_get_length(JConfArray * node)
  *
  * Returns: the JConfNode at index
  */
-JConfNode *j_conf_array_get(JConfArray * node, juint index)
-{
+JConfNode *j_conf_array_get(JConfArray * node, juint index) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_ARRAY(node))) {
         return NULL;
     }
@@ -340,8 +322,7 @@ JConfNode *j_conf_array_get(JConfArray * node, juint index)
  *
  * if array is not a valid JConfArray, nothing will be changed
  */
-void j_conf_array_append(JConfArray * array, JConfNode * node)
-{
+void j_conf_array_append(JConfArray * array, JConfNode * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_ARRAY(array))) {
         return;
     }
@@ -353,8 +334,7 @@ void j_conf_array_append(JConfArray * array, JConfNode * node)
  * @array: JConfArray
  * @integer: the integer value to append
  */
-void j_conf_array_append_integer(JConfArray * array, jint64 integer)
-{
+void j_conf_array_append_integer(JConfArray * array, jint64 integer) {
     j_conf_array_append(array,
                         j_conf_node_new(J_CONF_NODE_TYPE_INTEGER,
                                         integer));
@@ -365,8 +345,7 @@ void j_conf_array_append_integer(JConfArray * array, jint64 integer)
  * @array: JConfArray
  * @string: the string value to append
  */
-void j_conf_array_append_string(JConfArray * array, const jchar * string)
-{
+void j_conf_array_append_string(JConfArray * array, const jchar * string) {
     j_conf_array_append(array,
                         j_conf_node_new(J_CONF_NODE_TYPE_STRING, string));
 }
@@ -377,8 +356,7 @@ void j_conf_array_append_string(JConfArray * array, const jchar * string)
  * @array: JConfArray
  * @b: the boolean value to append
  */
-void j_conf_array_append_bool(JConfArray * array, jboolean b)
-{
+void j_conf_array_append_bool(JConfArray * array, jboolean b) {
     j_conf_array_append(array, j_conf_node_new(J_CONF_NODE_TYPE_BOOL, b));
 }
 
@@ -387,8 +365,7 @@ void j_conf_array_append_bool(JConfArray * array, jboolean b)
  * @array: JConfArray
  * @floating: the float value to append
  */
-void j_conf_array_append_float(JConfArray * array, jdouble floating)
-{
+void j_conf_array_append_float(JConfArray * array, jdouble floating) {
     j_conf_array_append(array,
                         j_conf_node_new(J_CONF_NODE_TYPE_FLOAT, floating));
 }
@@ -400,8 +377,7 @@ void j_conf_array_append_float(JConfArray * array, jdouble floating)
  *
  * Returns: JConfNode or NULL if not found
  */
-JConfNode *j_conf_object_get(JConfObject * node, const jchar * name)
-{
+JConfNode *j_conf_object_get(JConfObject * node, const jchar * name) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
         return NULL;
     }
@@ -415,14 +391,12 @@ JConfNode *j_conf_object_get(JConfObject * node, const jchar * name)
  * @child: new child node
  */
 void j_conf_object_set(JConfObject * node, const jchar * name,
-                       JConfNode * child)
-{
+                       JConfNode * child) {
     j_conf_object_set_take(node, j_strdup(name), child);
 }
 
 void j_conf_object_set_take(JConfObject * node, jchar * name,
-                            JConfNode * child)
-{
+                            JConfNode * child) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
         return;
     }
@@ -436,45 +410,38 @@ void j_conf_object_set_take(JConfObject * node, jchar * name,
  * @integer: integer value
  */
 void j_conf_object_set_integer(JConfObject * node, const jchar * name,
-                               jint64 integer)
-{
+                               jint64 integer) {
     j_conf_object_set(node, name,
                       j_conf_node_new(J_CONF_NODE_TYPE_INTEGER, integer));
 }
 
 void j_conf_object_set_string(JConfObject * node, const jchar * name,
-                              const jchar * string)
-{
+                              const jchar * string) {
     j_conf_object_set(node, name,
                       j_conf_node_new(J_CONF_NODE_TYPE_STRING, string));
 }
 
 void j_conf_object_set_bool(JConfObject * node, const jchar * name,
-                            jboolean b)
-{
+                            jboolean b) {
     j_conf_object_set(node, name,
                       j_conf_node_new(J_CONF_NODE_TYPE_BOOL, b));
 }
 
 void j_conf_object_set_float(JConfObject * node, const jchar * name,
-                             jdouble floating)
-{
+                             jdouble floating) {
     j_conf_object_set(node, name,
                       j_conf_node_new(J_CONF_NODE_TYPE_FLOAT, floating));
 }
 
-void j_conf_object_set_null(JConfObject * node, const jchar * name)
-{
+void j_conf_object_set_null(JConfObject * node, const jchar * name) {
     j_conf_object_set(node, name, j_conf_node_new(J_CONF_NODE_TYPE_NULL));
 }
 
-void j_conf_object_remove(JConfObject * node, const jchar * name)
-{
+void j_conf_object_remove(JConfObject * node, const jchar * name) {
     j_hash_table_remove_full(node->d_object, (jpointer) name);
 }
 
-JPtrArray *j_conf_object_get_keys(JConfObject * node)
-{
+JPtrArray *j_conf_object_get_keys(JConfObject * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
         return NULL;
     }

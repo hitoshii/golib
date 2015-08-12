@@ -1,11 +1,26 @@
+/*
+ * Copyright (C) 2015 Wiky L
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+ */
 #include <jconf/jconf.h>
 
 
 static inline void dump_array(JConfArray * array, jint tab);
 static inline void dump_node(JConfNode * node, jint tab);
 
-static inline void dump_object(JConfObject * obj, jint tab)
-{
+static inline void dump_object(JConfObject * obj, jint tab) {
     JPtrArray *keys = j_conf_object_get_keys(obj);
     jint i, j;
     for (i = 0; i < j_ptr_array_get_len(keys); i++) {
@@ -19,8 +34,7 @@ static inline void dump_object(JConfObject * obj, jint tab)
     }
 }
 
-static inline void dump_node(JConfNode * node, jint tab)
-{
+static inline void dump_node(JConfNode * node, jint tab) {
     jint j;
     JConfNodeType type = j_conf_node_get_type(node);
     switch (type) {
@@ -61,8 +75,7 @@ static inline void dump_node(JConfNode * node, jint tab)
     j_printf("\n");
 }
 
-static inline void dump_array(JConfArray * array, jint tab)
-{
+static inline void dump_array(JConfArray * array, jint tab) {
     jint i, j;
     for (i = 0; i < j_conf_array_get_length(array); i++) {
         JConfNode *node = j_conf_array_get(array, i);
@@ -73,8 +86,7 @@ static inline void dump_array(JConfArray * array, jint tab)
     }
 }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     JConfLoader *loader = j_conf_loader_new();
     j_conf_loader_put_float(loader, "version", 1.3);
     j_conf_loader_put_string(loader, "program", "jacques");

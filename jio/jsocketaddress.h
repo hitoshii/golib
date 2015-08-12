@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-
 #ifndef __JIO_SOCKETADDRESS_H__
 #define __JIO_SOCKETADDRESS_H__
 
@@ -78,21 +76,21 @@ jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
  * 从一个struct sockaddr结构创建
  */
 JSocketAddress *j_socket_address_new_from_native(jpointer native,
-                                                 juint size);
+        juint size);
 jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
-                                           jpointer native, juint size);
+        jpointer native, juint size);
 void j_socket_address_init_copy(JSocketAddress * saddr,
                                 JSocketAddress * addr);
 /* 创建一个网络地址  */
 JSocketAddress *j_inet_socket_address_new(JInetAddress * addr,
-                                          juint16 port);
+        juint16 port);
 void j_inet_socket_address_init(JSocketAddress * saddr,
                                 JInetAddress * addr, juint16 port);
 JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
-                                                      address, juint port);
+        address, juint port);
 jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
-                                                const jchar * address,
-                                                juint port);
+        const jchar * address,
+        juint port);
 
 /* 获取地址和端口号 */
 jushort j_inet_socket_address_get_port(JSocketAddress * addr);
@@ -109,19 +107,19 @@ JInetAddress *j_inet_address_new_loopback(JSocketFamily family);
 void j_inet_address_init_loopback(JInetAddress * addr,
                                   JSocketFamily family);
 JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
-                                            const juint8 * bytes);
+        const juint8 * bytes);
 void j_inet_address_init_from_bytes(JInetAddress * addr,
                                     JSocketFamily family,
                                     const juint8 * bytes);
 JInetAddress *j_inet_address_new_from_string(const jchar * string);
 jboolean j_inet_address_init_from_string(JInetAddress * addr,
-                                         const jchar * string);
+        const jchar * string);
 JSocketFamily j_inet_address_get_family(JInetAddress * addr);
 jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another);
 const juint8 *j_inet_address_to_bytes(JInetAddress * addr);
 jchar *j_inet_address_to_string(JInetAddress * addr);
 jchar *j_inet_address_to_string_with_port(JInetAddress * addr,
-                                          jushort port);
+        jushort port);
 juint j_inet_address_get_native_size(JInetAddress * addr);
 jboolean j_inet_address_is_any(JInetAddress * addr);    /* 该地址是否表示任意地址 */
 jboolean j_inet_address_is_loopback(JInetAddress * addr);   /* 判断是否是回环地址，127.0.0.0/8 */

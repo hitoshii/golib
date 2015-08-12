@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 Wiky L
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+ */
 #include <jlib/jlib.h>
 #include <jlib/jwakeup.h>
 #include <stdio.h>
@@ -5,8 +21,7 @@
 
 J_PRIVATE_DEFINE_STATIC(private, NULL);
 
-static jpointer thread_func1(jpointer data)
-{
+static jpointer thread_func1(jpointer data) {
     static jchar *once = NULL;
     jboolean init = FALSE;
     if (j_once_init_enter(&once)) {
@@ -23,8 +38,7 @@ static jpointer thread_func1(jpointer data)
     return "hello";
 }
 
-static jpointer thread_func(jpointer data)
-{
+static jpointer thread_func(jpointer data) {
     JWakeup *wakeup = j_wakeup_new();
     JThread *thread = j_thread_new("test-thread", thread_func1,
                                    wakeup);
@@ -54,8 +68,7 @@ static jpointer thread_func(jpointer data)
     return "hello world";
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     J_MUTEX_DEFINE(lock);
 
     j_mutex_lock(&lock);

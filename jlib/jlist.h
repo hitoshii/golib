@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
 #ifndef __J_LIB_LIST_H__
@@ -91,7 +90,7 @@ void j_list_free1(JList * l, JDestroyNotify destroy);
 int j_list_compare(JList * l1, JList * l2, JCompareFunc compare);
 
 /*
- * Removes an element from a JList. 
+ * Removes an element from a JList.
  * If two or more elements  contain the same data, only the first one is removed.
  * If none of the elements contain the data, JList is unchanged.
  */
@@ -118,7 +117,7 @@ JList *j_list_sort_with_data(JList * list, JCompareDataFunc compare,
                              jpointer user_data);
 
 /*
- * 查找link在list中的位置 
+ * 查找link在list中的位置
  */
 jint j_list_position(JList * list, JList * link);
 /*

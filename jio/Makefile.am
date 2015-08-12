@@ -54,5 +54,5 @@ EXTRA_DIST = \
     jio-0.1.pc.in
 
 clean-local:
-	-indent -kr -ts4 -nut *.c *.h
+	-astyle --style=google -n *.c *.h
 	-rm *~

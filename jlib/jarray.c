@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-
 #include "jarray.h"
 #include "jmem.h"
 #include <string.h>
@@ -31,28 +29,24 @@ typedef struct {
 #define JByteArrayDefaultSize (1024)
 
 
-static inline void j_byte_array_extend(JRealByteArray * ba)
-{
+static inline void j_byte_array_extend(JRealByteArray * ba) {
     ba->total = ba->total << 1;
     ba->data = j_realloc(ba->data, ba->total);
 }
 
 static inline void j_byte_array_may_extend(JRealByteArray * real,
-                                           juint len)
-{
+        juint len) {
     while (real->total < len + real->len) {
         j_byte_array_extend(real);
     }
 }
 
 
-JByteArray *j_byte_array_new(void)
-{
+JByteArray *j_byte_array_new(void) {
     return j_byte_array_sized_new(JByteArrayDefaultSize);
 }
 
-JByteArray *j_byte_array_sized_new(juint size)
-{
+JByteArray *j_byte_array_sized_new(juint size) {
     if (J_UNLIKELY(size == 0)) {
         size = JByteArrayDefaultSize;
     }
@@ -64,8 +58,7 @@ JByteArray *j_byte_array_sized_new(juint size)
     return (JByteArray *) real;
 }
 
-void j_byte_array_append(JByteArray * ba, const juint8 * data, juint len)
-{
+void j_byte_array_append(JByteArray * ba, const juint8 * data, juint len) {
     if (J_UNLIKELY(len == 0)) {
         return;
     }
@@ -77,8 +70,7 @@ void j_byte_array_append(JByteArray * ba, const juint8 * data, juint len)
     ba->len += len;
 }
 
-void j_byte_array_preppend(JByteArray * ba, const juint8 * data, juint len)
-{
+void j_byte_array_preppend(JByteArray * ba, const juint8 * data, juint len) {
     if (J_UNLIKELY(len == 0)) {
         return;
     }
@@ -90,13 +82,11 @@ void j_byte_array_preppend(JByteArray * ba, const juint8 * data, juint len)
     ba->len += len;
 }
 
-void j_byte_array_clear(JByteArray * ba)
-{
+void j_byte_array_clear(JByteArray * ba) {
     ba->len = 0;
 }
 
-juint8 *j_byte_array_free(JByteArray * ba, jboolean f)
-{
+juint8 *j_byte_array_free(JByteArray * ba, jboolean f) {
     juint8 *data = j_byte_array_get_data(ba);
     j_free(ba);
     if (f) {
@@ -118,8 +108,7 @@ typedef struct {
 #define JPtrArrayDefaultSize (32)
 
 static inline void j_real_ptr_array_may_extend(JRealPtrArray * real,
-                                               juint len)
-{
+        juint len) {
     while (J_UNLIKELY(real->total < real->len + len)) {
         real->total <<= 1;
         real->data = (jpointer *) j_realloc(real->data,
@@ -128,13 +117,11 @@ static inline void j_real_ptr_array_may_extend(JRealPtrArray * real,
     }
 }
 
-JPtrArray *j_ptr_array_new(void)
-{
+JPtrArray *j_ptr_array_new(void) {
     return j_ptr_array_new_full(JPtrArrayDefaultSize, NULL);
 }
 
-JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy)
-{
+JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy) {
     if (J_UNLIKELY(size == 0)) {
         size = JPtrArrayDefaultSize;
     }
@@ -147,14 +134,12 @@ JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy)
     return (JPtrArray *) real;
 }
 
-void j_ptr_array_set_free(JPtrArray * pa, JDestroyNotify destroy)
-{
+void j_ptr_array_set_free(JPtrArray * pa, JDestroyNotify destroy) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     real->free_func = destroy;
 }
 
-void j_ptr_array_set_size(JPtrArray * pa, juint size)
-{
+void j_ptr_array_set_size(JPtrArray * pa, juint size) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (size > real->len) {
         j_real_ptr_array_may_extend(real, (size - real->len));
@@ -168,8 +153,7 @@ void j_ptr_array_set_size(JPtrArray * pa, juint size)
     real->len = size;
 }
 
-void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length)
-{
+void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     juint n;
     if (real == NULL || index >= real->len || index + length > real->len) {
@@ -191,16 +175,15 @@ void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length)
 /*
  * Returns the position of the new-added pointer
  */
-juint j_ptr_array_append_ptr(JPtrArray * pa, jpointer ptr)
-{
+juint j_ptr_array_append_ptr(JPtrArray * pa, jpointer ptr) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     j_real_ptr_array_may_extend(real, 1);
     real->data[real->len++] = ptr;
     return real->len - 1;
 }
 
-void j_ptr_array_append(JPtrArray * pa, ...)
-{                               /* Ends with NULL */
+void j_ptr_array_append(JPtrArray * pa, ...) {
+    /* Ends with NULL */
     va_list ap;
     va_start(ap, pa);
     jpointer *ptr = va_arg(ap, jpointer);
@@ -211,8 +194,7 @@ void j_ptr_array_append(JPtrArray * pa, ...)
     va_end(ap);
 }
 
-jpointer j_ptr_array_get(JPtrArray * pa, juint index)
-{
+jpointer j_ptr_array_get(JPtrArray * pa, juint index) {
     if (J_UNLIKELY(index > pa->len)) {
         return NULL;
     }
@@ -220,8 +202,7 @@ jpointer j_ptr_array_get(JPtrArray * pa, juint index)
 }
 
 jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
-                          jpointer user_data)
-{
+                          jpointer user_data) {
     jint i;
     for (i = 0; i < pa->len; i++) {
         jpointer data = pa->data[i];
@@ -233,8 +214,7 @@ jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
 }
 
 jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
-                            jpointer user_data)
-{
+                            jpointer user_data) {
     jint i;
     for (i = 0; i < pa->len; i++) {
         jpointer data = pa->data[i];
@@ -245,8 +225,7 @@ jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
     return -1;
 }
 
-void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index)
-{
+void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (index >= real->len) {
         j_ptr_array_append_ptr(pa, ptr);
@@ -259,8 +238,7 @@ void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index)
     real->data[index] = ptr;
 }
 
-jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr)
-{
+jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr) {
     juint i;
     for (i = 0; i < pa->len; i++) {
         if (pa->data[i] == ptr) {
@@ -270,8 +248,7 @@ jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr)
     return FALSE;
 }
 
-jboolean j_ptr_array_remove_index(JPtrArray * pa, juint index)
-{
+jboolean j_ptr_array_remove_index(JPtrArray * pa, juint index) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (index >= real->len) {
         return FALSE;
@@ -287,8 +264,7 @@ jboolean j_ptr_array_remove_index(JPtrArray * pa, juint index)
     return TRUE;
 }
 
-jboolean j_ptr_array_remove_index_fast(JPtrArray * pa, juint index)
-{
+jboolean j_ptr_array_remove_index_fast(JPtrArray * pa, juint index) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (index >= real->len) {
         return FALSE;
@@ -303,8 +279,7 @@ jboolean j_ptr_array_remove_index_fast(JPtrArray * pa, juint index)
     return TRUE;
 }
 
-void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr)
-{
+void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     JDestroyNotify free_func = real->free_func;
     juint i;
@@ -318,8 +293,7 @@ void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr)
 }
 
 /* 判断数组中是否包含元素data */
-jboolean j_ptr_array_contains(JPtrArray * array, jpointer data)
-{
+jboolean j_ptr_array_contains(JPtrArray * array, jpointer data) {
     JRealPtrArray *real = (JRealPtrArray *) array;
     jint i;
     for (i = 0; i < real->len; i++) {
@@ -331,8 +305,7 @@ jboolean j_ptr_array_contains(JPtrArray * array, jpointer data)
 }
 
 /* 插入指针，保证不重复 */
-void j_ptr_array_append_ptr_unique(JPtrArray * array, jpointer data)
-{
+void j_ptr_array_append_ptr_unique(JPtrArray * array, jpointer data) {
     if (j_ptr_array_contains(array, data)) {
         return;
     }

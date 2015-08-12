@@ -1,10 +1,25 @@
+/*
+ * Copyright (C) 2015 Wiky L
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+ */
 #include <jio/jio.h>
 
 static jboolean async_result = FALSE;
 
 static jboolean recv_callback(JSocket * socket, const jchar * buffer,
-                              jint size, jpointer user_daata)
-{
+                              jint size, jpointer user_daata) {
     if (size == 0) {
         async_result = TRUE;
         j_main_quit();
@@ -17,8 +32,7 @@ static jboolean recv_callback(JSocket * socket, const jchar * buffer,
     return FALSE;
 }
 
-static void send_callback(JSocket * socket, jint ret, jpointer user_data)
-{
+static void send_callback(JSocket * socket, jint ret, jpointer user_data) {
     if (ret <= 0) {
         j_main_quit();
         return;
@@ -34,8 +48,7 @@ static void send_callback(JSocket * socket, jint ret, jpointer user_data)
     j_main_quit();
 }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     JSocket *socket =
         j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,
                      J_SOCKET_PROTOCOL_TCP);
@@ -58,8 +71,8 @@ int main(int argc, char const *argv[])
         j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,
                      J_SOCKET_PROTOCOL_TCP);
     if (socket == NULL
-        || !j_inet_socket_address_init_from_string(&addr, "115.29.105.159",
-                                                   80)) {
+            || !j_inet_socket_address_init_from_string(&addr, "115.29.105.159",
+                    80)) {
         return 5;
     };
 
@@ -76,9 +89,9 @@ int main(int argc, char const *argv[])
     }
 
     if (j_socket_send
-        (socket,
-         "GET / HTTP/1.1\r\nHost: test.scopehigh.top\r\nConnection: Close\r\n\r\n",
-         -1) <= 0) {
+            (socket,
+             "GET / HTTP/1.1\r\nHost: test.scopehigh.top\r\nConnection: Close\r\n\r\n",
+             -1) <= 0) {
         return 8;
     }
     jchar buf[1024];
@@ -97,8 +110,8 @@ int main(int argc, char const *argv[])
         j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,
                      J_SOCKET_PROTOCOL_TCP);
     if (socket == NULL
-        || !j_inet_socket_address_init_from_string(&addr, "192.30.252.128",
-                                                   80)) {
+            || !j_inet_socket_address_init_from_string(&addr, "192.30.252.128",
+                    80)) {
         return 10;
     };
     if (!j_socket_connect(socket, &addr)) {

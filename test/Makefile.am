@@ -96,10 +96,10 @@ test_outputstream_SOURCES = \
 test_conf_SOURCES = \
     test-conf.c
 
-clean-local:
-	indent -kr -ts4 -nut *.c
-	rm -f *~
-
 dist_check_DATA = \
-	test.conf \
-	conf.d/test2.conf
+    test.conf \
+    conf.d/test2.conf
+
+clean-local:
+	-astyle --style=google -n *.c *.h
+	-rm *~

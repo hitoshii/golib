@@ -11,4 +11,4 @@ jlib包含了基础的数据结构、多线程和主循环
 包含了一些IO相关的内容
 
 ##jconf
-配置文件的解析库，配置文件的格式相见jconf目录下的README
+配置文件的解析库，配置文件的格式相见jconf目录下的[README](https://github.com/jacques-server/jlib/tree/master/jconf)

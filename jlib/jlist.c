@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
 
@@ -24,10 +23,9 @@
 
 
 /*
- * Returns the length of JList 
+ * Returns the length of JList
  */
-juint j_list_length(JList * l)
-{
+juint j_list_length(JList * l) {
     juint len = 0;
     while (l) {
         len++;
@@ -37,8 +35,7 @@ juint j_list_length(JList * l)
 }
 
 
-JList *j_list_append(JList * l, jpointer data)
-{
+JList *j_list_append(JList * l, jpointer data) {
     JList *new = j_list_alloc(data);
     if (l == NULL) {
         return new;
@@ -49,8 +46,7 @@ JList *j_list_append(JList * l, jpointer data)
     return l;
 }
 
-JList *j_list_prepend(JList * l, jpointer data)
-{
+JList *j_list_prepend(JList * l, jpointer data) {
     JList *new = j_list_alloc(data);
     if (l == NULL) {
         return new;
@@ -61,8 +57,7 @@ JList *j_list_prepend(JList * l, jpointer data)
     return new;
 }
 
-JList *j_list_first(JList * l)
-{
+JList *j_list_first(JList * l) {
     if (l == NULL) {
         return NULL;
     }
@@ -72,8 +67,7 @@ JList *j_list_first(JList * l)
     return l;
 }
 
-JList *j_list_last(JList * l)
-{
+JList *j_list_last(JList * l) {
     if (l == NULL) {
         return NULL;
     }
@@ -83,8 +77,7 @@ JList *j_list_last(JList * l)
     return l;
 }
 
-JList *j_list_find(JList * l, jconstpointer data)
-{
+JList *j_list_find(JList * l, jconstpointer data) {
     JList *ptr = l;
     while (ptr) {
         if (data == j_list_data(ptr)) {
@@ -96,8 +89,7 @@ JList *j_list_find(JList * l, jconstpointer data)
 }
 
 jpointer j_list_find_custom(JList * l, JCompareFunc compare,
-                            jconstpointer user_data)
-{
+                            jconstpointer user_data) {
     JList *ptr = l;
     while (ptr) {
         const void *data = j_list_data(ptr);
@@ -113,8 +105,7 @@ jpointer j_list_find_custom(JList * l, JCompareFunc compare,
 }
 
 
-JList *j_list_alloc(jpointer data)
-{
+JList *j_list_alloc(jpointer data) {
     JList *l = (JList *) j_malloc(sizeof(JList));
     l->data = data;
     l->prev = NULL;
@@ -122,24 +113,21 @@ JList *j_list_alloc(jpointer data)
     return l;
 }
 
-void j_list_free1(JList * l, JDestroyNotify destroy)
-{
+void j_list_free1(JList * l, JDestroyNotify destroy) {
     if (destroy) {
         destroy(j_list_data(l));
     }
     j_free(l);
 }
 
-void j_list_free(JList * l)
-{
+void j_list_free(JList * l) {
     j_list_free_full(l, NULL);
 }
 
 /*
  * Frees the list and all data using JListDestroy
  */
-void j_list_free_full(JList * l, JDestroyNotify destroy)
-{
+void j_list_free_full(JList * l, JDestroyNotify destroy) {
     if (l == NULL) {
         return;
     }
@@ -150,8 +138,7 @@ void j_list_free_full(JList * l, JDestroyNotify destroy)
     } while (l);
 }
 
-int j_list_compare(JList * l1, JList * l2, JCompareFunc compare)
-{
+int j_list_compare(JList * l1, JList * l2, JCompareFunc compare) {
     while (l1 && l2) {
         int ret = compare(j_list_data(l1), j_list_data(l2));
         if (ret) {
@@ -165,12 +152,11 @@ int j_list_compare(JList * l1, JList * l2, JCompareFunc compare)
 
 
 /*
- * Removes an element from a JList. 
+ * Removes an element from a JList.
  * If two or more elements  contain the same data, only the first one is removed.
  * If none of the elements contain the data, JList is unchanged.
  */
-JList *j_list_remove(JList * l, jpointer data)
-{
+JList *j_list_remove(JList * l, jpointer data) {
     if (l == NULL) {
         return l;
     }
@@ -194,8 +180,7 @@ JList *j_list_remove(JList * l, jpointer data)
     return l;
 }
 
-JList *j_list_remove_link(JList * l, JList * link)
-{
+JList *j_list_remove_link(JList * l, JList * link) {
     if (l == NULL) {
         return l;
     }
@@ -222,8 +207,7 @@ JList *j_list_remove_link(JList * l, JList * link)
 /*
  * Removes the node link from the list and frees it
  */
-JList *j_list_delete_link(JList * l, JList * link)
-{
+JList *j_list_delete_link(JList * l, JList * link) {
     if (l == NULL || link == NULL) {
         return l;
     }
@@ -250,8 +234,7 @@ JList *j_list_delete_link(JList * l, JList * link)
 /*
  * 将双向列表倒转
  */
-JList *j_list_reverse(JList * list)
-{
+JList *j_list_reverse(JList * list) {
     JList *last = NULL;
     while (list) {
         last = list;
@@ -264,8 +247,7 @@ JList *j_list_reverse(JList * list)
 
 static inline JList *j_list_sort_merge(JList * l1, JList * l2,
                                        JCompareDataFunc compare,
-                                       jpointer user_data)
-{
+                                       jpointer user_data) {
     JList list;
     JList *l = &list, *lprev = NULL;
 
@@ -290,8 +272,7 @@ static inline JList *j_list_sort_merge(JList * l1, JList * l2,
 
 static inline JList *j_list_sort_real(JList * list,
                                       JCompareDataFunc compare,
-                                      jpointer user_data)
-{
+                                      jpointer user_data) {
     j_return_val_if_fail(list != NULL && list->next != NULL, list);
 
     JList *l1 = list;
@@ -312,16 +293,14 @@ static inline JList *j_list_sort_real(JList * list,
 }
 
 JList *j_list_sort_with_data(JList * list, JCompareDataFunc compare,
-                             jpointer user_data)
-{
+                             jpointer user_data) {
     return j_list_sort_real(list, compare, user_data);
 }
 
 /*
- * 查找link在list中的位置 
+ * 查找link在list中的位置
  */
-jint j_list_position(JList * list, JList * link)
-{
+jint j_list_position(JList * list, JList * link) {
     jint pos = 0;
     while (list) {
         if (list == link) {
@@ -333,8 +312,7 @@ jint j_list_position(JList * list, JList * link)
     return -1;
 }
 
-jint j_list_index(JList * list, jconstpointer data)
-{
+jint j_list_index(JList * list, jconstpointer data) {
     jint pos = 0;
     while (list) {
         if (j_list_data(list) == data) {
@@ -346,8 +324,7 @@ jint j_list_index(JList * list, jconstpointer data)
     return -1;
 }
 
-JList *j_list_insert_before(JList * list, JList * sibling, jpointer data)
-{
+JList *j_list_insert_before(JList * list, JList * sibling, jpointer data) {
     if (list == NULL) {
         list = j_list_alloc(data);
         j_return_val_if_fail(sibling == NULL, list);

@@ -1,8 +1,22 @@
+/*
+ * Copyright (C) 2015 Wiky L
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+ */
 #include <jlib/jlib.h>
 
-
-void thread_func(jpointer data, jpointer user_data)
-{
+void thread_func(jpointer data, jpointer user_data) {
     JAsyncQueue *queue = (JAsyncQueue *) user_data;
     juint time = JPOINTER_TO_JUINT(data);
 
@@ -13,8 +27,7 @@ void thread_func(jpointer data, jpointer user_data)
 }
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     JPtrArray *ptrs = j_ptr_array_new();
     JAsyncQueue *queue = j_async_queue_new();
     JThreadPool *p1 = j_thread_pool_new(thread_func, queue, 3, TRUE);
@@ -26,8 +39,8 @@ int main(int argc, char *argv[])
     jint i;
     for (i = 1; i < 6; i++) {
         if (!j_thread_pool_push(p1, JUINT_TO_JPOINTER(i)) ||
-            !j_thread_pool_push(p2, JUINT_TO_JPOINTER(7 - i)) ||
-            !j_thread_pool_push(p3, JUINT_TO_JPOINTER(8 - i))) {
+                !j_thread_pool_push(p2, JUINT_TO_JPOINTER(7 - i)) ||
+                !j_thread_pool_push(p3, JUINT_TO_JPOINTER(8 - i))) {
             return -2;
         }
     }

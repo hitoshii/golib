@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 #include "jutils.h"
 #include <unistd.h>
@@ -24,8 +23,7 @@
 #include <sys/resource.h>
 
 /* 使当前进程成为守护进程 */
-jboolean j_daemonize(void)
-{
+jboolean j_daemonize(void) {
     umask(0);
 
     struct rlimit rl;
@@ -75,8 +73,7 @@ jboolean j_daemonize(void)
     return TRUE;
 }
 
-static inline jboolean lockfile(jint fd)
-{
+static inline jboolean lockfile(jint fd) {
     struct flock fl;
     fl.l_type = F_WRLCK;
     fl.l_start = 0;
@@ -88,8 +85,7 @@ static inline jboolean lockfile(jint fd)
 /*
  * 锁定某个文件，如果成功返回文件描述符号，否则返回-1
  */
-jint j_lockfile(const jchar * path)
-{
+jint j_lockfile(const jchar * path) {
     jint fd = open(path, O_RDWR | O_CREAT,
                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {

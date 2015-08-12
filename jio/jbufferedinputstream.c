@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 #include "jbufferedinputstream.h"
 #include <jlib/jlib.h>
@@ -28,9 +27,9 @@ struct _JBufferedInputStream {
 
 
 static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
-                                         void *buffer, juint size);
+        void *buffer, juint size);
 static void j_buffered_input_stream_close(JBufferedInputStream *
-                                          buffered_stream);
+        buffered_stream);
 
 static JInputStreamInterface j_buffered_input_stream_interface = {
     (JInputStreamRead) j_buffered_input_stream_read,
@@ -38,8 +37,7 @@ static JInputStreamInterface j_buffered_input_stream_interface = {
 };
 
 JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
-                                                  input_stream)
-{
+        input_stream) {
     if (J_UNLIKELY(j_input_stream_is_closed(input_stream))) {
         return NULL;
     }
@@ -55,8 +53,7 @@ JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
 }
 
 static jboolean j_buffered_input_stream_read_buffer(JBufferedInputStream *
-                                                    stream)
-{
+        stream) {
     jchar buf[4096];
     jint n = j_input_stream_read(stream->base_stream, buf, sizeof(buf));
     if (n <= 0) {
@@ -68,8 +65,7 @@ static jboolean j_buffered_input_stream_read_buffer(JBufferedInputStream *
 }
 
 static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
-                                         void *buffer, juint size)
-{
+        void *buffer, juint size) {
     if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
         return -1;
     }
@@ -85,10 +81,9 @@ static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
 }
 
 jchar *j_buffered_input_stream_readline(JBufferedInputStream *
-                                        buffered_stream)
-{
+                                        buffered_stream) {
     if (J_UNLIKELY
-        (j_input_stream_is_closed((JInputStream *) buffered_stream))) {
+            (j_input_stream_is_closed((JInputStream *) buffered_stream))) {
         return NULL;
     }
     JString *buffer = buffered_stream->buffer;
@@ -116,18 +111,16 @@ jchar *j_buffered_input_stream_readline(JBufferedInputStream *
 }
 
 static void j_buffered_input_stream_close(JBufferedInputStream *
-                                          buffered_stream)
-{
+        buffered_stream) {
     j_string_free(buffered_stream->buffer, TRUE);
     buffered_stream->buffer = NULL;
     J_OBJECT_UNREF(buffered_stream->base_stream);
 }
 
 void j_buffered_input_stream_push(JBufferedInputStream * stream,
-                                  const jchar * buf, jint size)
-{
+                                  const jchar * buf, jint size) {
     if (J_UNLIKELY
-        (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
+            (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
         return;
     }
     if (size < 0) {
@@ -137,10 +130,9 @@ void j_buffered_input_stream_push(JBufferedInputStream * stream,
 }
 
 void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
-                                       const jchar * buf, jint size)
-{
+                                       const jchar * buf, jint size) {
     if (J_UNLIKELY
-        (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
+            (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
         return;
     }
     if (size < 0) {
@@ -149,8 +141,7 @@ void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
     j_string_preppend_printf(stream->buffer, "%.*s\n", size, buf);
 }
 
-void j_buffered_input_stream_push_c(JBufferedInputStream * stream, jchar c)
-{
+void j_buffered_input_stream_push_c(JBufferedInputStream * stream, jchar c) {
     if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
         return;
     }

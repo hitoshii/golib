@@ -1,19 +1,18 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 #include "jthread.h"
 #include "jmem.h"
@@ -38,48 +37,39 @@ struct _JThread {
     jpointer retval;
 };
 
-void j_mutex_init(JMutex * mutex)
-{
+void j_mutex_init(JMutex * mutex) {
     pthread_mutex_init(&mutex->impl, NULL);
 }
 
-void j_mutex_clear(JMutex * mutex)
-{
+void j_mutex_clear(JMutex * mutex) {
     pthread_mutex_destroy(&mutex->impl);
 }
 
-void j_mutex_lock(JMutex * mutex)
-{
+void j_mutex_lock(JMutex * mutex) {
     pthread_mutex_lock(&mutex->impl);
 }
 
-jboolean j_mutex_trylock(JMutex * mutex)
-{
+jboolean j_mutex_trylock(JMutex * mutex) {
     return pthread_mutex_trylock(&mutex->impl) == 0;
 }
 
-void j_mutex_unlock(JMutex * mutex)
-{
+void j_mutex_unlock(JMutex * mutex) {
     pthread_mutex_unlock(&mutex->impl);
 }
 
-void j_cond_init(JCond * cond)
-{
+void j_cond_init(JCond * cond) {
     pthread_cond_init(&cond->impl, NULL);
 }
 
-void j_cond_clear(JCond * cond)
-{
+void j_cond_clear(JCond * cond) {
     pthread_cond_destroy(&cond->impl);
 }
 
-void j_cond_wait(JCond * cond, JMutex * mutex)
-{
+void j_cond_wait(JCond * cond, JMutex * mutex) {
     pthread_cond_wait(&cond->impl, &mutex->impl);
 }
 
-jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time)
-{
+jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time) {
     struct timespec ts;
     ts.tv_sec = end_time / 1000000;
     ts.tv_nsec = (end_time % 1000000) * 1000;
@@ -87,18 +77,15 @@ jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time)
     return status == 0;
 }
 
-void j_cond_signal(JCond * cond)
-{
+void j_cond_signal(JCond * cond) {
     pthread_cond_signal(&cond->impl);
 }
 
-void j_cond_broadcast(JCond * cond)
-{
+void j_cond_broadcast(JCond * cond) {
     pthread_cond_broadcast(&cond->impl);
 }
 
-static inline pthread_key_t *j_private_get_key(JPrivate * priv)
-{
+static inline pthread_key_t *j_private_get_key(JPrivate * priv) {
     pthread_key_t *key =
         (pthread_key_t *) j_atomic_pointer_get(&priv->impl);
     if (J_UNLIKELY(key == NULL)) {
@@ -113,14 +100,12 @@ static inline pthread_key_t *j_private_get_key(JPrivate * priv)
     return key;
 }
 
-jpointer j_private_get(JPrivate * priv)
-{
+jpointer j_private_get(JPrivate * priv) {
     pthread_key_t *key = j_private_get_key(priv);
     return pthread_getspecific(*key);
 }
 
-void j_private_set(JPrivate * priv, jpointer data)
-{
+void j_private_set(JPrivate * priv, jpointer data) {
     pthread_key_t *key = j_private_get_key(priv);
     pthread_setspecific(*key, data);
 }
@@ -132,13 +117,11 @@ J_PRIVATE_DEFINE_STATIC(j_thread_specific_private, j_thread_cleanup);
 
 
 #include <sys/prctl.h>
-static inline void j_thread_set_name(const jchar * name)
-{
+static inline void j_thread_set_name(const jchar * name) {
     prctl(PR_SET_NAME, name, 0, 0, 0, 0);
 }
 
-static jpointer thread_func_proxy(jpointer data)
-{
+static jpointer thread_func_proxy(jpointer data) {
     if (data == NULL) {
         return NULL;
     }
@@ -154,8 +137,7 @@ static jpointer thread_func_proxy(jpointer data)
     return NULL;
 }
 
-static inline void j_thread_free(JThread * thread)
-{
+static inline void j_thread_free(JThread * thread) {
     if (!thread->joined) {
         pthread_detach(thread->impl);
     }
@@ -163,17 +145,15 @@ static inline void j_thread_free(JThread * thread)
     j_mutex_clear(&thread->lock);
 }
 
-static void j_thread_destroy(JThread * thread)
-{
+static void j_thread_destroy(JThread * thread) {
     if (thread->jlibs) {
         j_thread_free(thread);
     }
 }
 
 static inline JThread *j_thread_new_internal(const jchar * name,
-                                             JThreadFunc func,
-                                             jpointer data)
-{
+        JThreadFunc func,
+        jpointer data) {
     J_LOCK(j_thread_new);
     JThread *thread = (JThread *) j_malloc(sizeof(JThread));
     J_OBJECT_INIT(thread, j_thread_destroy);
@@ -196,22 +176,19 @@ static inline JThread *j_thread_new_internal(const jchar * name,
     return thread;
 }
 
-JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data)
-{
+JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data) {
     JThread *thread = j_thread_new_internal(name, func, data);
     return thread;
 }
 
 JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
-                          jpointer data)
-{
+                          jpointer data) {
     JThread *thread = j_thread_new_internal(name, func, data);
     return thread;
 
 }
 
-static inline void j_thread_join_internal(JThread * thread)
-{
+static inline void j_thread_join_internal(JThread * thread) {
     j_mutex_lock(&thread->lock);
     if (!thread->joined) {
         pthread_join(thread->impl, NULL);
@@ -222,8 +199,7 @@ static inline void j_thread_join_internal(JThread * thread)
 
 }
 
-jpointer j_thread_join(JThread * thread)
-{
+jpointer j_thread_join(JThread * thread) {
     jpointer retval;
 
     j_thread_join_internal(thread);
@@ -233,14 +209,12 @@ jpointer j_thread_join(JThread * thread)
     return retval;
 }
 
-static void j_thread_cleanup(jpointer data)
-{
+static void j_thread_cleanup(jpointer data) {
     j_thread_unref(data);
 }
 
 
-JThread *j_thread_self(void)
-{
+JThread *j_thread_self(void) {
     JThread *thread = j_private_get(&j_thread_specific_private);
     if (thread == NULL) {
         thread = j_malloc(sizeof(JThread));
@@ -252,13 +226,11 @@ JThread *j_thread_self(void)
 }
 
 #include <sched.h>
-void j_thread_yield()
-{
+void j_thread_yield() {
     sched_yield();
 }
 
-void j_thread_exit(jpointer retval)
-{
+void j_thread_exit(jpointer retval) {
     JThread *thread = j_thread_self();
     if (thread == NULL) {
         return;
@@ -273,8 +245,7 @@ J_MUTEX_DEFINE_STATIC(j_once_mutex);
 J_COND_DEFINE_STATIC(j_once_cond);
 static JSList *j_once_init_list = NULL;
 
-jboolean j_once_init_enter(volatile void *location)
-{
+jboolean j_once_init_enter(volatile void *location) {
     volatile jpointer *value_location = location;
     jboolean need_init = FALSE;
     j_mutex_lock(&j_once_mutex);
@@ -295,11 +266,10 @@ jboolean j_once_init_enter(volatile void *location)
     return need_init;
 }
 
-void j_once_init_leave(volatile void *location, jpointer result)
-{
+void j_once_init_leave(volatile void *location, jpointer result) {
     volatile jpointer *value_location = location;
     if (j_atomic_pointer_get(value_location) != NULL || result == NULL
-        || j_once_init_list == NULL) {
+            || j_once_init_list == NULL) {
         return;
     }
 

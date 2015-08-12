@@ -1,21 +1,19 @@
 /*
- * Copyright (C) 2015  Wiky L
+ * Copyright (C) 2015 Wiky L
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-
 #include "jfileutils.h"
 #include "jstrfuncs.h"
 #include "jmem.h"
@@ -23,11 +21,10 @@
 #include <string.h>
 #include <glob.h>
 
- /*
-  * Checks to see if the path is absolute
-  */
-jint j_path_is_absolute(const jchar * path)
-{
+/*
+ * Checks to see if the path is absolute
+ */
+jint j_path_is_absolute(const jchar * path) {
     return j_str_has_prefix(path, "/");
 }
 
@@ -36,8 +33,7 @@ jint j_path_is_absolute(const jchar * path)
  * i.e. after the "/" in UNIX or "C:\" under Windows.
  * If file_name is not an absolute path it returns path it self.
  */
-const jchar *j_path_skip_root(const jchar * path)
-{
+const jchar *j_path_skip_root(const jchar * path) {
     if (!j_path_is_absolute(path)) {
         return path;
     }
@@ -49,8 +45,7 @@ const jchar *j_path_skip_root(const jchar * path)
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname
  */
-jchar *j_path_realpath(const jchar * path)
-{
+jchar *j_path_realpath(const jchar * path) {
     jchar *real = realpath(path, NULL);
     return real;
 }
@@ -60,8 +55,7 @@ jchar *j_path_realpath(const jchar * path)
  * Returns a newly allocated string containing
  * the last component of the filename
  */
-jchar *j_path_basename(const jchar * path)
-{
+jchar *j_path_basename(const jchar * path) {
     jchar *slash = strrchr(path, '/');
     if (slash == NULL) {        /* slash not found */
         return j_strdup(path);
@@ -87,8 +81,7 @@ jchar *j_path_basename(const jchar * path)
  * used by shell (see glob(3)). No tilde expansion or parameter substitution
  * is done
  */
-jchar **j_path_glob(const jchar * pattern)
-{
+jchar **j_path_glob(const jchar * pattern) {
     glob_t globs;
     jint ret = glob(pattern, 0, NULL, &globs);
     if (ret != 0) {
@@ -109,8 +102,7 @@ jchar **j_path_glob(const jchar * pattern)
 /*
  * Joins two path, p2 must be relative
  */
-jchar *j_path_join(const jchar * p1, const jchar * p2)
-{
+jchar *j_path_join(const jchar * p1, const jchar * p2) {
     if (j_path_is_absolute(p2)) {
         return NULL;
     }

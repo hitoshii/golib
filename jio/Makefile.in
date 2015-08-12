@@ -822,7 +822,7 @@ uninstall-am: uninstall-jiosubincludeHEADERS uninstall-libLTLIBRARIES \
 
 
 clean-local:
-	-indent -kr -ts4 -nut *.c *.h
+	-astyle --style=google -n *.c *.h
 	-rm *~
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
