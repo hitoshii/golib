@@ -43,6 +43,11 @@ const jchar *j_path_skip_root(const jchar * path);
 jchar *j_path_basename(const jchar * path);
 
 /*
+ * Gets the directory components of a file name
+ */
+jchar *j_path_dirname(const jchar *path);
+
+/*
  * Expands all symbolic links and resolves references to /./, /../
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname

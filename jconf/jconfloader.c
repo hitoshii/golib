@@ -16,6 +16,7 @@
  */
 #include "jconfloader.h"
 #include <stdlib.h>
+#include <libgen.h>
 
 
 struct _JConfLoader {
@@ -434,10 +435,21 @@ static inline jint j_conf_loader_fetch_value(JConfLoader * loader,
 }
 
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path) {
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+
+    jchar *basename=j_path_basename(path);
+    jchar *dirname=j_path_dirname(path);
+    chdir(dirname);
     j_stack_clear(loader->info, (JDestroyNotify) j_conf_loader_info_free);
-    return j_conf_loader_loads_from_path(loader, (JConfObject *)
-                                         j_conf_loader_get_root(loader),
-                                         path, TRUE);
+    jboolean ret = j_conf_loader_loads_from_path(loader, (JConfObject *)
+                   j_conf_loader_get_root(loader),
+                   basename, TRUE);
+
+    chdir(cwd);
+    j_free(basename);
+    j_free(dirname);
+    return ret;
 }
 
 /*

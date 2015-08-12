@@ -76,6 +76,25 @@ jchar *j_path_basename(const jchar * path) {
     return j_strndup(ptr, slash - ptr);
 }
 
+jchar *j_path_dirname(const jchar *path) {
+    jchar *base;
+    juint len;
+
+    base = strrchr(path, '/');
+    if(!base) {
+        return j_strdup(".");
+    }
+    while(base>path && *base=='/') {
+        base--;
+    }
+
+    len = (juint)1+base-path;
+    base = j_malloc(sizeof(jchar)*(len+1));
+    memmove(base, path,len);
+    base[len]=0;
+    return base;
+}
+
 /*
  * Searches for all the pathnames matching pattern accoding to the rules
  * used by shell (see glob(3)). No tilde expansion or parameter substitution
