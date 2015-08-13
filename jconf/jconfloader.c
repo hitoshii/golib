@@ -531,7 +531,9 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
         j_conf_loader_inc_line(loader);
         i = 0;
         while (buf[i] != '\0') {
-            if (j_conf_is_space(buf[i])) {
+            if (buf[i]=='#') {
+                goto BREAK;
+            } else if (j_conf_is_space(buf[i])) {
                 i++;
                 continue;
             }
@@ -639,7 +641,9 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
         jint i = 0, ret;
         JConfNode *value = NULL;
         while (buf[i] != '\0') {
-            if (j_conf_is_space(buf[i])) {
+            if(buf[i]=='#') {
+                goto BREAK;
+            } else if (j_conf_is_space(buf[i])) {
                 i++;
                 continue;
             }

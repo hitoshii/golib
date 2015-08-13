@@ -448,6 +448,8 @@ JPtrArray *j_conf_object_get_keys(JConfObject * node) {
     return j_hash_table_get_keys(node->d_object);
 }
 
+
+/* 添加缩进 */
 static inline void j_conf_node_dump_indent(jint indent, JString *string) {
     jint i;
     for(i=0; i<indent; i++) {
@@ -455,6 +457,7 @@ static inline void j_conf_node_dump_indent(jint indent, JString *string) {
     }
 }
 
+/* 递归输出字符串  */
 static void j_conf_node_dump_internal(JConfNode *node,jint indent, JString *string) {
     JConfNodeType type=j_conf_node_get_type(node);
     jint i,len;

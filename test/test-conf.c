@@ -23,9 +23,9 @@ int main(int argc, char const *argv[]) {
     j_conf_loader_put_null(loader, "null");
 
     if (!j_conf_loader_loads(loader, "./test.conf")) {
-        j_printf("%d: %s:%d\n", j_conf_loader_get_errcode(loader),
-                 j_conf_loader_get_path(loader),
-                 j_conf_loader_get_line(loader));
+        jchar *msg=j_conf_loader_build_error_message(loader);
+        j_printf("%s\n",msg);
+        j_free(msg);
         j_conf_loader_unref(loader);
         return 1;
     }
@@ -39,6 +39,7 @@ int main(int argc, char const *argv[]) {
     jchar *string=j_conf_node_dump((JConfNode*)j_conf_loader_get_root(loader));
     j_printf("%s", string);
     j_free(string);
+
 
     j_conf_loader_unref(loader);
     return 0;
