@@ -90,4 +90,7 @@ void j_conf_object_set_null(JConfObject * node, const jchar * name);
 JPtrArray *j_conf_object_get_keys(JConfObject * node);
 void j_conf_object_remove(JConfObject * node, const jchar * name);
 
+/* 转化为字符串格式 */
+jchar *j_conf_node_dump(JConfNode *node);
+
 #endif

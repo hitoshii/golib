@@ -9,5 +9,5 @@ Name: JConf
 Description: JLib Config library.
 Version: @VERSION@
 Requires: jlib-0.1 jio-0.1
-Libs: -L${libdir} -lconf
+Libs: -L${libdir} -ljconf
 Cflags: -I${includedir}

@@ -447,3 +447,71 @@ JPtrArray *j_conf_object_get_keys(JConfObject * node) {
     }
     return j_hash_table_get_keys(node->d_object);
 }
+
+static inline void j_conf_node_dump_indent(jint indent, JString *string) {
+    jint i;
+    for(i=0; i<indent; i++) {
+        j_string_append_c(string, ' ');
+    }
+}
+
+static void j_conf_node_dump_internal(JConfNode *node,jint indent, JString *string) {
+    JConfNodeType type=j_conf_node_get_type(node);
+    jint i,len;
+    JPtrArray *keys;
+    switch(type) {
+    case J_CONF_NODE_TYPE_INTEGER:
+        j_string_append_printf(string, "%ld", j_conf_integer_get(node));
+        break;
+    case J_CONF_NODE_TYPE_BOOL:
+        j_string_append_printf(string, "%s", j_conf_bool_get(node)?"true":"false");
+        break;
+    case J_CONF_NODE_TYPE_FLOAT:
+        j_string_append_printf(string, "%f", j_conf_float_get(node));
+        break;
+    case J_CONF_NODE_TYPE_STRING:
+        j_string_append_printf(string,"\"%s\"", j_conf_string_get(node));
+        break;
+    case J_CONF_NODE_TYPE_NULL:
+        j_string_append(string, "null");
+        break;
+    case J_CONF_NODE_TYPE_OBJECT:
+        j_string_append(string, "{\n");
+        keys=j_conf_object_get_keys(node);
+        len = j_ptr_array_get_len(keys);
+        for(i=0; i<len; i++) {
+            const jchar *key=(const jchar*)j_ptr_array_get(keys, i);
+            JConfNode *child=j_conf_object_get(node, key);
+            j_conf_node_dump_indent(indent+4, string);
+            j_string_append_printf(string, "%s: ", key);
+            j_conf_node_dump_internal(child, indent+4, string);
+            j_string_append_c(string, '\n');
+        }
+        j_conf_node_dump_indent(indent, string);
+        j_string_append_c(string, '}');
+        break;
+    case J_CONF_NODE_TYPE_ARRAY:
+        j_string_append(string, "[\n");
+        len = j_conf_array_get_length(node);
+        for(i=0; i<len; i++) {
+            JConfNode *child=j_conf_array_get(node, i);
+            j_conf_node_dump_indent(indent+4, string);
+            j_conf_node_dump_internal(child, indent+4, string);
+            if(i<len-1) {
+                j_string_append(string,",\n");
+            } else {
+                j_string_append_c(string, '\n');
+            }
+        }
+        j_conf_node_dump_indent(indent, string);
+        j_string_append_c(string, ']');
+        break;
+    }
+}
+
+/* 转化为字符串格式 */
+jchar *j_conf_node_dump(JConfNode *node) {
+    JString *string=j_string_new();
+    j_conf_node_dump_internal(node,0, string);
+    return j_string_free(string, FALSE);
+}

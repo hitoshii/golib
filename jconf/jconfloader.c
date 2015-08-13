@@ -560,9 +560,8 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                 state = J_CONF_LOADER_VALUE;
                 break;
             case J_CONF_LOADER_VALUE:
-                if ((ret =
-                            j_conf_loader_fetch_value(loader, buf + i,
-                                                      &value)) < 0) {
+                if ((ret =j_conf_loader_fetch_value(loader, buf + i,
+                                                    &value)) < 0) {
                     goto OUT;
                 }
                 j_conf_object_set(object, key, value);
@@ -654,8 +653,6 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
                     return TRUE;
                 } else if ((ret =j_conf_loader_fetch_value(loader, buf + i,
                                  &value)) < 0) {
-                    j_conf_loader_set_errcode(loader,
-                                              J_CONF_LOADER_ERR_INVALID_ARRAY_VALUE);
                     goto OUT;
                 }
                 i += ret - 1;
@@ -804,4 +801,45 @@ static inline JConfLoaderInfo *j_conf_loader_info_new(const jchar *
 static inline void j_conf_loader_info_free(JConfLoaderInfo * info) {
     j_free(info->filename);
     j_free(info);
+}
+
+
+char *j_conf_loader_build_error_message(JConfLoader *loader) {
+    if(J_UNLIKELY(loader->top==NULL)) {
+        return NULL;
+    }
+    jchar *msg=NULL;
+    JConfLoaderInfo *info=loader->top;
+    switch(info->errcode) {
+    case J_CONF_LOADER_ERR_SUCCESS:
+        msg=j_strdup_printf("%s Success", info->filename);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_FILE:
+        msg = j_strdup_printf("Fail to open %s", info->filename);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_KEY:
+        msg = j_strdup_printf("%s: %u - invalid key", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_MISSING_COLON:
+        msg = j_strdup_printf("%s: %u - : is required", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_VALUE:
+        msg = j_strdup_printf("%s: %u - invalid value", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_STRING:
+        msg = j_strdup_printf("%s: %u - malformed string", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_MISSING_END:
+        msg = j_strdup_printf("%s: %u - ; or newline is required", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_ARRAY:
+        msg = j_strdup_printf("%s: %u - malformed array", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_INCLUDE:
+        msg = j_strdup_printf("%s: %u - invalid include path", info->filename, info->line);
+        break;
+    default:
+        break;
+    }
+    return msg;
 }

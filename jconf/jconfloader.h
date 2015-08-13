@@ -38,10 +38,8 @@ typedef struct {
 #define J_CONF_LOADER_ERR_INVALID_STRING 4
 #define J_CONF_LOADER_ERR_MISSING_COLON 5
 #define J_CONF_LOADER_ERR_MISSING_END 6
-#define J_CONF_LOADER_ERR_INVALID_ARRAY_VALUE 7
-#define J_CONF_LOADER_ERR_INVALID_ARRAY 8
-#define J_CONF_LOADER_ERR_INVALID_INCLUDE 9
-#define J_CONF_LOADER_ERR_INVALID_VARIABLE 10
+#define J_CONF_LOADER_ERR_INVALID_ARRAY 7
+#define J_CONF_LOADER_ERR_INVALID_INCLUDE 8
 
 
 JConfLoader *j_conf_loader_new(void);
@@ -54,6 +52,9 @@ jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path);
 jint j_conf_loader_get_errcode(JConfLoader * loader);
 jint j_conf_loader_get_line(JConfLoader * loader);
 const jchar *j_conf_loader_get_path(JConfLoader * loader);
+
+/* 需要释放  */
+char *j_conf_loader_build_error_message(JConfLoader *loader);
 
 JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
 
