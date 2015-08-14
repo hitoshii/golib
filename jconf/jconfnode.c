@@ -442,6 +442,22 @@ void j_conf_object_remove(JConfObject * node, const jchar * name) {
     j_hash_table_remove_full(node->d_object, (jpointer) name);
 }
 
+jint64 j_conf_object_get_integer(JConfObject *node, const jchar *name, jint64 def) {
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child==NULL||j_conf_node_get_type(child)!=J_CONF_NODE_TYPE_INTEGER) {
+        return def;
+    }
+    return j_conf_integer_get(child);
+}
+
+const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, const jchar *def) {
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child==NULL||j_conf_node_get_type(child)!=J_CONF_NODE_TYPE_STRING) {
+        return def;
+    }
+    return j_conf_string_get(child);
+}
+
 JPtrArray *j_conf_object_get_keys(JConfObject * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
         return NULL;

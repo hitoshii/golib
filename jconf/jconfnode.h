@@ -98,6 +98,17 @@ JPtrArray *j_conf_object_get_keys(JConfObject * node);
 void j_conf_object_remove(JConfObject * node, const jchar * name);
 
 /*
+ * j_conf_object_get_integer:
+ * @node: JConfObject
+ * @name: 节点名
+ * @def: 如果不存在，使用该默认值
+ *
+ * Returns:
+ */
+jint64 j_conf_object_get_integer(JConfObject *node, const jchar *name, jint64 def);
+const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, const jchar *def);
+
+/*
  * j_conf_object_lookup:
  * @node: JConfObject
  * @rexp: 正则表达式
