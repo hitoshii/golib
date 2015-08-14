@@ -87,8 +87,25 @@ void j_conf_object_set_bool(JConfObject * node, const jchar * name,
 void j_conf_object_set_float(JConfObject * node, const jchar * name,
                              jdouble floating);
 void j_conf_object_set_null(JConfObject * node, const jchar * name);
+/*
+ * j_conf_object_get_keys:
+ * @node: JConfObject
+ *
+ * Gets all keys
+ * Returns: 不要修改JPtrArray
+ */
 JPtrArray *j_conf_object_get_keys(JConfObject * node);
 void j_conf_object_remove(JConfObject * node, const jchar * name);
+
+/*
+ * j_conf_object_lookup:
+ * @node: JConfObject
+ * @rexp: 正则表达式
+ * @type: 节点的类型
+ *
+ * Returns: 返回一个包含键值的列表，使用j_list_free()释放
+ */
+JList *j_conf_object_lookup(JConfObject *node, const jchar *rexp, JConfNodeType type);
 
 /* 转化为字符串格式 */
 jchar *j_conf_node_dump(JConfNode *node);

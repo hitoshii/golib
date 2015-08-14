@@ -16,6 +16,7 @@
  */
 #include "jconfnode.h"
 #include <stdarg.h>
+#include <regex.h>
 
 /**
  * SECTION: JConfNode
@@ -446,6 +447,30 @@ JPtrArray *j_conf_object_get_keys(JConfObject * node) {
         return NULL;
     }
     return j_hash_table_get_keys(node->d_object);
+}
+
+JList *j_conf_object_lookup(JConfObject *node, const jchar *reg, JConfNodeType type) {
+    if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
+        return NULL;
+    }
+    regex_t regex;
+    if(regcomp(&regex, reg, 0)) {
+        return NULL;
+    }
+
+    JPtrArray *keys=j_hash_table_get_keys(node->d_object);
+    jint i, len=j_ptr_array_get_len(keys);
+    JList *ret=NULL;
+    for(i=0; i<len; i++) {
+        const jchar *key=(const jchar *)j_ptr_array_get(keys, i);
+        JConfNode *child=j_hash_table_find(node->d_object, key);
+        if(j_conf_node_get_type(child)==type && !regexec(&regex, key, 0, NULL, 0)) {
+            ret=j_list_prepend(ret, (jpointer)key);
+        }
+    }
+
+    regfree(&regex);
+    return ret;
 }
 
 

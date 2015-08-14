@@ -88,11 +88,26 @@ static inline void j_conf_loader_put(JConfLoader * loader,
     j_hash_table_insert(loader->env, j_strdup(name), node);
 }
 
+/*
+ * j_conf_loader_get:
+ * @loader: JConfLoader
+ * @name: the environment variable name
+ *
+ * Gets the value node of an environment variable
+ *
+ * Returns: JConfNode or NULL if not found
+ */
 JConfNode *j_conf_loader_get(JConfLoader * loader, const jchar * name) {
     JConfNode *node = j_hash_table_find(loader->env, name);
     return node;
 }
 
+/*
+ * j_conf_loader_put_integer:
+ * @loader: JConfLoader
+ * @name: the name of variable
+ * @integer: the value of variable
+ */
 void j_conf_loader_put_integer(JConfLoader * loader, const jchar * name,
                                jint64 integer) {
     j_conf_loader_put(loader, name,
@@ -133,7 +148,9 @@ typedef enum {
 
 #define j_conf_is_space(c) ((c)<=32)
 #define j_conf_is_end(c) (j_conf_is_space(c)||(c)==';')
-
+#define j_conf_is_comment(c) ((c)=='#')
+#define j_conf_is_key(c)    (j_ascii_isalnum(c)||(c)=='_'||(c)=='-')
+#define j_conf_is_key_start(c)  (j_ascii_isalpha(c)||(c)=='_')
 
 /*
  * 提取出键值
@@ -162,12 +179,12 @@ static inline jint j_conf_loader_fetch_key(JConfLoader * loader,
         quote = TRUE;
         i++;
     }
-    if (!(j_ascii_isalpha(buf[i]) || buf[i] == '_')) {
+    if (!j_conf_is_key_start(buf[i])) {
         goto ERROR;
     }
     i++;
     while (buf[i] != '\0') {
-        if (!(buf[i] == '_' || j_ascii_isalnum(buf[i]))) {
+        if (!j_conf_is_key(buf[i])) {
             break;
         }
         i++;
@@ -531,7 +548,7 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
         j_conf_loader_inc_line(loader);
         i = 0;
         while (buf[i] != '\0') {
-            if (buf[i]=='#') {
+            if (j_conf_is_comment(buf[i])) {
                 goto BREAK;
             } else if (j_conf_is_space(buf[i])) {
                 i++;
@@ -641,7 +658,7 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
         jint i = 0, ret;
         JConfNode *value = NULL;
         while (buf[i] != '\0') {
-            if(buf[i]=='#') {
+            if(j_conf_is_comment(buf[i])) {
                 goto BREAK;
             } else if (j_conf_is_space(buf[i])) {
                 i++;
