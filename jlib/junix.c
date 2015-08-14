@@ -137,3 +137,14 @@ jint j_write(jint fd, const void *buf, juint count) {
     }
     return ret;
 }
+
+pid_t j_wait(jint *stat_loc) {
+    pid_t ret;
+    while((ret=wait(stat_loc))<0) {
+        if(errno==EINTR) {
+            continue;
+        }
+        break;
+    }
+    return ret;
+}
