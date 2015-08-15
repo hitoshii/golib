@@ -24,6 +24,7 @@ struct _JConfLoader {
     JHashTable *env;
     JConfRoot *root;
 
+    jboolean strict_var;    /* 是否允许未定义的变量 */
     /* 解析信息 */
     JStack *info;
     JConfLoaderInfo *top;       /* 栈顶元素，用于快速访问 */
@@ -70,6 +71,7 @@ JConfLoader *j_conf_loader_new(void) {
                                    (JValueDestroyFunc) j_object_unref);
     loader->info = j_stack_new();
     loader->top = NULL;
+    loader->strict_var=FALSE;
     return loader;
 }
 
@@ -398,23 +400,24 @@ ERROR:
 static inline jint j_conf_loader_fetch_variable(JConfLoader * loader,
         const jchar * buf,
         JConfNode ** value) {
-    if (J_UNLIKELY(buf[0] != '$')) {
-        return -1;
-    }
     jchar *key = NULL;
-    jint ret = j_conf_loader_fetch_key(loader, buf + 1, &key);
+    jint ret = j_conf_loader_fetch_key(loader, buf, &key);
     if (ret <= 0) {
-        return -1;
+        return -2;
     }
     JConfNode *node = j_conf_loader_get(loader, key);
     j_free(key);
     if (node) {
         j_conf_node_ref(node);
         *value = node;
-    } else {
+    } else if(!loader->strict_var) {
+        /* 允许未定义的变量 */
         *value = j_conf_node_new(J_CONF_NODE_TYPE_NULL);
+    } else {
+        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_UNKNOWN_VARIABLE);
+        return -2;
     }
-    return ret + 1;
+    return ret;
 }
 
 /*
@@ -445,12 +448,29 @@ static inline jint j_conf_loader_fetch_value(JConfLoader * loader,
         *value = j_conf_node_new(J_CONF_NODE_TYPE_ARRAY);
         return 1;
     } else if (buf[0] == '$') {
+        return j_conf_loader_fetch_variable(loader, buf+1, value)+1;
+    } else if(j_ascii_isalpha(buf[0])) {
         return j_conf_loader_fetch_variable(loader, buf, value);
     }
     j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VALUE);
     return -1;
 }
 
+static inline void j_conf_loader_clear(JConfLoader *loader) {
+    j_stack_clear(loader->info, (JDestroyNotify) j_conf_loader_info_free);
+    j_conf_node_unref((JConfNode*)j_conf_loader_get_root(loader));
+    loader->root=j_conf_root_new();
+    loader->top=NULL;
+}
+
+
+void j_conf_loader_allow_unknown_variable(JConfLoader *loader, jboolean allow) {
+    loader->strict_var=!allow;
+}
+
+/*
+ * 载入一个配置文件，这会释放原来的JConfRoot，如果要保留原来的JConfRoot，使用j_conf_node_ref()
+ */
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path) {
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
@@ -458,7 +478,7 @@ jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path) {
     jchar *basename=j_path_basename(path);
     jchar *dirname=j_path_dirname(path);
     chdir(dirname);
-    j_stack_clear(loader->info, (JDestroyNotify) j_conf_loader_info_free);
+    j_conf_loader_clear(loader);
     jboolean ret = j_conf_loader_loads_from_path(loader, (JConfObject *)
                    j_conf_loader_get_root(loader),
                    basename, TRUE);
@@ -562,9 +582,8 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                     goto OUT;
                 } else if (buf[i] == ';') {
                     break;
-                } else if ((ret =
-                                j_conf_loader_fetch_key(loader, buf + i,
-                                                        &key)) < 0) {
+                } else if ((ret = j_conf_loader_fetch_key(loader, buf + i,
+                                  &key)) < 0) {
                     goto OUT;
                 }
                 i += ret - 1;
@@ -629,15 +648,22 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
 BREAK:
             break;
         }
-        j_free(buf);
+
         if (state == J_CONF_LOADER_END) {
             state = J_CONF_LOADER_KEY;
+        } else if(state==J_CONF_LOADER_KEY_COLON) {
+            j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_COLON);
+            goto OUT;
+        } else if(state==J_CONF_LOADER_VALUE) {
+            j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_VALUE);
+            goto OUT;
         }
+        j_free(buf);
     }
-    if (state == J_CONF_LOADER_KEY_COLON) {
-        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_FILE);
-    } else if (state == J_CONF_LOADER_VALUE) {
-        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_VALUE);
+    if(state==J_CONF_LOADER_KEY_COLON) {
+        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_COLON);
+    } else if(state==J_CONF_LOADER_VALUE) {
+        j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_VALUE);
     }
 
 OUT:
@@ -847,6 +873,9 @@ char *j_conf_loader_build_error_message(JConfLoader *loader) {
     case J_CONF_LOADER_ERR_INVALID_VALUE:
         msg = j_strdup_printf("%s: %u - invalid value", info->filename, info->line);
         break;
+    case J_CONF_LOADER_ERR_MISSING_VALUE:
+        msg=j_strdup_printf("%s: %u - value is missing", info->filename, info->line);
+        break;
     case J_CONF_LOADER_ERR_INVALID_STRING:
         msg = j_strdup_printf("%s: %u - malformed string", info->filename, info->line);
         break;
@@ -859,7 +888,11 @@ char *j_conf_loader_build_error_message(JConfLoader *loader) {
     case J_CONF_LOADER_ERR_INVALID_INCLUDE:
         msg = j_strdup_printf("%s: %u - invalid include path", info->filename, info->line);
         break;
+    case J_CONF_LOADER_ERR_UNKNOWN_VARIABLE:
+        msg=j_strdup_printf("%s: %u - uknown variable", info->filename, info->line);
+        break;
     default:
+        msg=j_strdup_printf("%s: %u - unknown error", info->filename, info->line);
         break;
     }
     return msg;

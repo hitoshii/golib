@@ -20,7 +20,18 @@ int main(int argc, char const *argv[]) {
     JConfLoader *loader = j_conf_loader_new();
     j_conf_loader_put_float(loader, "version", 1.3);
     j_conf_loader_put_string(loader, "program", "jacques");
-    j_conf_loader_put_null(loader, "null");
+    j_conf_loader_allow_unknown_variable(loader, FALSE);
+
+    if(j_conf_loader_loads(loader, "./test.conf")) {
+        j_conf_loader_unref(loader);
+        return 100;
+    }
+
+    jchar *msg=j_conf_loader_build_error_message(loader);
+    j_printf("%s\n", msg);
+    j_free(msg);
+
+    j_conf_loader_allow_unknown_variable(loader, TRUE);
 
     if (!j_conf_loader_loads(loader, "./test.conf")) {
         jchar *msg=j_conf_loader_build_error_message(loader);

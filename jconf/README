@@ -52,6 +52,10 @@ JConf支持环境变量，环境变量是表示字符串、整数、浮点数、
     version: null
     name: "custom "
 
+如果变量单独存在（不是在字符串中）则可以省略$符号，如
+
+    version: programVersion
+
 ### 转义
 
 字符串支持转义，要使用$，则输入"hello \$"

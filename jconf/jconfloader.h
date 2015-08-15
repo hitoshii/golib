@@ -36,10 +36,12 @@ typedef struct {
 #define J_CONF_LOADER_ERR_INVALID_KEY 2
 #define J_CONF_LOADER_ERR_INVALID_VALUE 3
 #define J_CONF_LOADER_ERR_INVALID_STRING 4
-#define J_CONF_LOADER_ERR_MISSING_COLON 5
-#define J_CONF_LOADER_ERR_MISSING_END 6
-#define J_CONF_LOADER_ERR_INVALID_ARRAY 7
-#define J_CONF_LOADER_ERR_INVALID_INCLUDE 8
+#define J_CONF_LOADER_ERR_MISSING_VALUE 5
+#define J_CONF_LOADER_ERR_MISSING_COLON 6
+#define J_CONF_LOADER_ERR_MISSING_END 7
+#define J_CONF_LOADER_ERR_INVALID_ARRAY 8
+#define J_CONF_LOADER_ERR_INVALID_INCLUDE 9
+#define J_CONF_LOADER_ERR_UNKNOWN_VARIABLE 10
 
 
 JConfLoader *j_conf_loader_new(void);
@@ -47,6 +49,7 @@ JConfLoader *j_conf_loader_new(void);
 #define j_conf_loader_ref(l) J_OBJECT_REF(l)
 #define j_conf_loader_unref(l)  J_OBJECT_UNREF(l)
 
+void j_conf_loader_allow_unknown_variable(JConfLoader *loader, jboolean allow);
 jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path);
 
 jint j_conf_loader_get_errcode(JConfLoader * loader);
