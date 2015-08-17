@@ -20,6 +20,9 @@ int main(int argc, char const *argv[]) {
     JConfLoader *loader = j_conf_loader_new();
     j_conf_loader_put_float(loader, "version", 1.3);
     j_conf_loader_put_string(loader, "program", "jacques");
+    j_conf_loader_put_integer(loader,"INTEGER1",1);
+    j_conf_loader_put_integer(loader, "INTEGER2", 2);
+    j_conf_loader_put_integer(loader, "INTEGER20", 20);
     j_conf_loader_allow_unknown_variable(loader, FALSE);
 
     if(j_conf_loader_loads(loader, "./test.conf")) {

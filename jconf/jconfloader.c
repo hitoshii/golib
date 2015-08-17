@@ -653,7 +653,7 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                 }
                 break;
             case J_CONF_LOADER_INTEGER:
-                if(!j_ascii_isdigit(buf[i])||(ret=j_conf_loader_fetch_digit(loader, buf+i, &integer))<=0) {
+                if((ret=j_conf_loader_fetch_value(loader, buf+i, &integer))<=0) {
                     j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_INTEGER);
                     goto OUT;
                 } else if(!j_conf_node_is_integer(integer)) {
@@ -699,6 +699,9 @@ BREAK:
             goto OUT;
         } else if(state==J_CONF_LOADER_VALUE) {
             j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_VALUE);
+            goto OUT;
+        } else if(state==J_CONF_LOADER_INTEGER) {
+            j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_INTEGER);
             goto OUT;
         }
         j_free(buf);
@@ -935,6 +938,9 @@ char *j_conf_loader_build_error_message(JConfLoader *loader) {
         break;
     case J_CONF_LOADER_ERR_INVALID_INTEGER:
         msg=j_strdup_printf("%s: %u - not a valid integer value", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_MISSING_INTEGER:
+        msg=j_strdup_printf("%s: %u - integer value is required", info->filename, info->line);
         break;
     default:
         msg=j_strdup_printf("%s: %u - unknown error", info->filename, info->line);
