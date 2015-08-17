@@ -458,6 +458,52 @@ const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, cons
     return j_conf_string_get(child);
 }
 
+jboolean j_conf_object_get_bool(JConfObject *node, const jchar *name, jboolean def) {
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child==NULL||!j_conf_node_is_bool(child)) {
+        return def;
+    }
+    return j_conf_bool_get(child);
+}
+
+jint64 j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
+        const jchar *name, jint64 def) {
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child!=NULL && j_conf_node_is_integer(child)) {
+        return j_conf_integer_get(child);
+    }
+    child=j_conf_object_get(root ,name);
+    if(child!=NULL && j_conf_node_is_integer(child)) {
+        return j_conf_integer_get(child);
+    }
+    return def;
+}
+const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *node,
+        const jchar *name, const jchar *def) {
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child!=NULL&&j_conf_node_is_string(child)) {
+        return j_conf_string_get(child);
+    }
+    child=j_conf_object_get(root, name);
+    if(child!=NULL&&j_conf_node_is_string(child)) {
+        return j_conf_string_get(child);
+    }
+    return def;
+}
+
+jboolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
+        const jchar *name, jboolean def) {
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child!=NULL&&j_conf_node_is_bool(child)) {
+        return j_conf_bool_get(child);
+    }
+    child=j_conf_object_get(root,name);
+    if(child!=NULL&&j_conf_node_is_bool(child)) {
+        return j_conf_bool_get(child);
+    }
+    return def;
+}
+
 JPtrArray *j_conf_object_get_keys(JConfObject * node) {
     if (J_UNLIKELY(!J_CONF_NODE_IS_OBJECT(node))) {
         return NULL;

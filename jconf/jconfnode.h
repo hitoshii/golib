@@ -99,15 +99,38 @@ void j_conf_object_remove(JConfObject * node, const jchar * name);
 
 /*
  * j_conf_object_get_integer:
+ * j_conf_object_get_string
+ * j_conf_object_get_bool
  * @node: JConfObject
- * @name: 节点名
+ * @name: 键名
  * @def: 如果不存在，使用该默认值
  *
  * Returns:
  */
 jint64 j_conf_object_get_integer(JConfObject *node, const jchar *name, jint64 def);
 const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, const jchar *def);
+jboolean j_conf_object_get_bool(JConfObject *node, const jchar *name, jboolean def);
 
+/*
+ * j_conf_object_get_integer_priority
+ * j_conf_object_get_string_priority
+ * j_conf_object_get_bool_priority
+ *
+ * @root: 根节点
+ * @node: 优先的节点
+ * @name: 键名
+ * @def: 默认值
+ *
+ * 先从node中寻找name，如果找到，返回该值
+ * 再从root中寻找name，如果找到，返回该值
+ * 返回默认值def
+ */
+jint64 j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
+        const jchar *name, jint64 def);
+const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *node,
+        const jchar *name, const jchar *def);
+jboolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
+        const jchar *name, jboolean def);
 /*
  * j_conf_object_lookup:
  * @node: JConfObject
