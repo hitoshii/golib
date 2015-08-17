@@ -37,17 +37,14 @@ typedef void (*JLogFunc) (const jchar * domain, JLogLevelFlag level,
                           const jchar * message, jpointer user_data);
 
 /*
- * the default log handler
- */
-void j_log_default_handler(const jchar * domain, JLogLevelFlag level,
-                           const jchar * message, jpointer user_data);
-
-/*
  * Sets the log handler for a domain and a set of log levels.
  */
-void j_log_set_handler(const jchar * domain,
-                       JLogFunc func, jpointer user_data);
-void j_log_remove_handler(const jchar * domain);
+juint j_log_set_handler(const jchar *domain, JLogLevelFlag level,
+                        JLogFunc func, jpointer user_data);
+juint j_log_set_handler_full(const jchar *domain, JLogLevelFlag level,
+                             JLogFunc func, jpointer user_data, JDestroyNotify destroy);
+
+void j_log_remove_handler(const jchar * domain, juint id);
 
 
 void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,

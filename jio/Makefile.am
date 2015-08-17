@@ -22,7 +22,7 @@ libjio_la_SOURCES = \
     joutputstream.c \
     jfileinputstream.c \
     jfileoutputstream.c \
-    jbufferedinputstream.c
+    jbufferedinputstream.c 
 
 libjio_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -44,7 +44,7 @@ jiosubinclude_HEADERS= \
     joutputstream.h \
     jfileinputstream.h \
     jfileoutputstream.h \
-    jbufferedinputstream.h
+    jbufferedinputstream.h 
 
 
 pkgconfigdir = $(libdir)/pkgconfig

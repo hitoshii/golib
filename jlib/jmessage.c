@@ -25,118 +25,154 @@
 #include <stdlib.h>
 
 typedef struct {
+    juint id;
+    JLogLevelFlag level;
     JLogFunc func;
-    jpointer user_data;
+    jpointer data;
+    JDestroyNotify destroy; /* 用于释放data */
 } JLogHandler;
 
 
-static inline JLogHandler *j_log_handler_new(JLogFunc func,
-        jpointer user_data) {
-    JLogHandler *handler = (JLogHandler *) j_malloc(sizeof(JLogHandler));
-    handler->func = func;
-    handler->user_data = user_data;
+typedef struct {
+    jchar *name;
+    JList *handlers;
+} JLogDomain;
+
+static JList *log_domains=NULL;
+J_MUTEX_DEFINE_STATIC(log_lock);
+
+static inline void j_log_free(void);
+
+static inline JLogHandler *j_log_handler_new(JLogLevelFlag level, JLogFunc func, jpointer data, JDestroyNotify destroy) {
+    static juint static_id=0;
+    if(J_UNLIKELY(static_id==0)) {
+        atexit(j_log_free);
+    }
+    JLogHandler *handler=(JLogHandler*)j_malloc(sizeof(JLogHandler));
+    handler->id=++static_id;
+    handler->level=level;
+    handler->func=func;
+    handler->data=data;
+    handler->destroy=destroy;
     return handler;
 }
 
-static void j_log_handler_free(JLogHandler * handler) {
+static void j_log_handler_free(JLogHandler *handler) {
+    if(handler->destroy) {
+        handler->destroy(handler->data);
+    }
     j_free(handler);
 }
 
-static JHashTable *j_log_handlers = NULL;
+static inline JLogDomain *j_log_domain_new(const jchar *name) {
+    JLogDomain *domain=j_malloc(sizeof(JLogDomain));
+    domain->name=j_strdup(name);
+    domain->handlers=NULL;
+    return domain;
+}
 
-static inline JHashTable *j_log_get_handlers(void) {
-    if (J_UNLIKELY(j_log_handlers == NULL)) {
-        j_log_handlers =
-            j_hash_table_new(8, j_str_hash, j_str_equal, j_free,
-                             (JDestroyNotify) j_log_handler_free);
-        j_hash_table_insert(j_log_handlers, J_LOG_DOMAIN,
-                            j_log_handler_new(j_log_default_handler,
-                                              NULL));
+static inline void j_log_domain_free(JLogDomain *domain) {
+    j_free(domain->name);
+    j_list_free_full(domain->handlers, (JDestroyNotify)j_log_handler_free);
+    j_free(domain);
+}
+
+static inline void j_log_free(void) {
+    j_mutex_lock(&log_lock);
+    j_list_free_full(log_domains, (JDestroyNotify)j_log_domain_free);
+    log_domains=NULL;
+    j_mutex_unlock(&log_lock);
+}
+
+static inline JLogDomain *j_log_get_domain(const jchar *name) {
+    JList *ptr=log_domains;
+    while(ptr) {
+        JLogDomain *domain=(JLogDomain*)j_list_data(ptr);
+        if(j_strcmp0(domain->name, name)==0) {
+            return domain;
+        }
+        ptr=j_list_next(ptr);
     }
-    return j_log_handlers;
+    JLogDomain *domain=j_log_domain_new(name);
+    log_domains=j_list_append(log_domains, domain);
+    return domain;
 }
 
-void j_log_default_handler(const jchar * domain, JLogLevelFlag flag,
-                           const jchar * message, jpointer user_data) {
-    const jchar *level = NULL;
-    jboolean error = FALSE;
-    switch (flag & J_LOG_LEVEL_MASK) {
-    case J_LOG_LEVEL_CRITICAL:
-        level = "Critical";
-        error = TRUE;
-        break;
-    case J_LOG_LEVEL_ERROR:
-        level = "Error";
-        error = TRUE;
-        break;
-    case J_LOG_LEVEL_WARNING:
-        level = "Warning";
-        break;
-    case J_LOG_LEVEL_MESSAGE:
-        level = "Message";
-        break;
-    case J_LOG_LEVEL_INFO:
-        level = "Info";
-        break;
-    default:
-        level = "Debug";
-#ifndef JLIB_DEBUG
-        return;
-#else
-        break;
-#endif
+juint j_log_set_handler(const jchar *domain, JLogLevelFlag level,
+                        JLogFunc func, jpointer user_data) {
+    return j_log_set_handler_full(domain, level, func, user_data, NULL);
+}
+
+juint j_log_set_handler_full(const jchar *log_domain, JLogLevelFlag level, JLogFunc func,
+                             jpointer user_data, JDestroyNotify destroy) {
+    j_return_val_if_fail(func!=NULL, 0);
+    j_mutex_lock(&log_lock);
+    JLogDomain *domain=j_log_get_domain(log_domain);
+    JLogHandler *handler=j_log_handler_new(level, func, user_data, destroy);
+    domain->handlers=j_list_append(domain->handlers, handler);
+    j_mutex_unlock(&log_lock);
+    return handler->id;
+}
+
+
+static inline JLogHandler *j_log_find_handler(const jchar * name, JLogLevelFlag level) {
+    JList *ptr=log_domains;
+    while(ptr) {
+        JLogDomain *domain=(JLogDomain*)j_list_data(ptr);
+        if(j_strcmp0(domain->name, name)==0) {
+            ptr=domain->handlers;
+            JLogHandler *handler=NULL;
+            while(ptr) {
+                JLogHandler *h=(JLogHandler*)j_list_data(ptr);
+                if(h->level & level) {
+                    handler=h;
+                    break;
+                }
+                ptr=j_list_next(ptr);
+            }
+            return handler;
+        }
+        ptr=j_list_next(ptr);
     }
-    if (!error) {
-        j_printf("%s: %s\n", level, message);
-    } else {
-        j_fprintf(stderr, "%s: %s\n", level, message);
-        abort();
+    return NULL;
+}
+
+
+void j_log_remove_handler(const jchar * name, juint id) {
+    j_mutex_lock(&log_lock);
+    JList *ptr=log_domains;
+    while(ptr) {
+        JLogDomain *d=(JLogDomain*)j_list_data(ptr);
+        if(j_strcmp0(name, d->name)==0) {
+            ptr=d->handlers;
+            while(ptr) {
+                JLogHandler *h=(JLogHandler*)j_list_data(ptr);
+                if(h->id==id) {
+                    d->handlers=j_list_remove(d->handlers, h);
+                    j_log_handler_free(h);
+                    break;
+                }
+                ptr=j_list_next(ptr);
+            }
+            break;
+        }
+        ptr=j_list_next(ptr);
     }
+    j_mutex_unlock(&log_lock);
 }
 
-J_LOCK_DEFINE_STATIC(j_message_lock);
-
-
-static inline JLogHandler *j_log_find_handler(const jchar * domain) {
-    JLogHandler *handler;
-    J_LOCK(j_message_lock);
-    handler = j_hash_table_find(j_log_get_handlers(), domain);
-    J_UNLOCK(j_message_lock);
-    return handler;
-}
-
-/*
- * Sets the log handler for a domain and a set of log levels.
- */
-void j_log_set_handler(const jchar * domain,
-                       JLogFunc func, jpointer user_data) {
-    JLogHandler *handler = j_log_find_handler(domain);
-    J_LOCK(j_message_lock);
-    if (handler) {
-        handler->func = func;
-        handler->user_data = user_data;
-    } else {
-        j_hash_table_insert(j_log_get_handlers(), j_strdup(domain),
-                            j_log_handler_new(func, user_data));
-    }
-    J_UNLOCK(j_message_lock);
-}
-
-void j_log_remove_handler(const jchar * domain) {
-    J_LOCK(j_message_lock);
-    j_hash_table_remove_full(j_log_get_handlers(), (jpointer) domain);
-    J_UNLOCK(j_message_lock);
-}
-
-void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+void j_logv(const jchar * domain, JLogLevelFlag level, const jchar * fmt,
             va_list ap) {
-    JLogHandler *handler = j_log_find_handler(domain);
+    j_mutex_lock(&log_lock);
+    JLogHandler *handler = j_log_find_handler(domain, level);
     if (handler == NULL || handler->func == NULL) {
+        j_mutex_unlock(&log_lock);
         return;
     }
-    jchar buf[4096];            /* 一次输出最长4096 */
-    vsnprintf(buf, sizeof(buf) / sizeof(jchar), msg, ap);
-    handler->func(domain, flag, buf, handler->user_data);
+    jchar *buf=j_strdup_vprintf(fmt, ap);
+    handler->func(domain, level, buf, handler->data);
+    j_free(buf);
+    j_mutex_unlock(&log_lock);
 }
 
 void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,

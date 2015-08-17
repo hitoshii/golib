@@ -23,9 +23,10 @@ static void log_handler(const jchar * domain, JLogLevelFlag level,
 }
 
 int main(int argc, char *argv[]) {
-    j_log(NULL, J_LOG_LEVEL_WARNING, "WARNING!!!!");
+    j_log_set_handler(J_LOG_DOMAIN,J_LOG_LEVEL_WARNING|J_LOG_LEVEL_DEBUG, log_handler, NULL);
+    j_log(J_LOG_DOMAIN, J_LOG_LEVEL_WARNING, "WARNING!!!!");
     j_debug("这是一个DEBUG，%s", "是吗？");
-    j_log_set_handler("test", log_handler, NULL);
+    j_log_set_handler("test",J_LOG_LEVEL_INFO, log_handler, NULL);
     j_log("test", J_LOG_LEVEL_INFO, "Info!!!!");
     return 0;
 }
