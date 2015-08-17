@@ -511,7 +511,7 @@ static void j_conf_node_dump_internal(JConfNode *node,jint indent, JString *stri
         j_string_append_printf(string, "%s", j_conf_bool_get(node)?"true":"false");
         break;
     case J_CONF_NODE_TYPE_FLOAT:
-        j_string_append_printf(string, "%f", j_conf_float_get(node));
+        j_string_append_printf(string, "%g", j_conf_float_get(node));
         break;
     case J_CONF_NODE_TYPE_STRING:
         j_string_append_printf(string,"\"%s\"", j_conf_string_get(node));

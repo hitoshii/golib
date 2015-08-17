@@ -42,6 +42,7 @@ typedef struct {
 #define J_CONF_LOADER_ERR_INVALID_ARRAY 8
 #define J_CONF_LOADER_ERR_INVALID_INCLUDE 9
 #define J_CONF_LOADER_ERR_UNKNOWN_VARIABLE 10
+#define J_CONF_LOADER_ERR_INVALID_INTEGER 11
 
 
 JConfLoader *j_conf_loader_new(void);

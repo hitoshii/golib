@@ -44,6 +44,9 @@ int main(int argc, char const *argv[]) {
     JConfNode *node =
         j_conf_root_get(j_conf_loader_get_root(loader), "wiky");
     if (node == NULL || j_conf_bool_get(node) != TRUE) {
+        jchar *msg=j_conf_loader_build_error_message(loader);
+        j_printf("%s\n",msg);
+        j_free(msg);
         return 2;
     }
 

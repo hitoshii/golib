@@ -143,7 +143,9 @@ typedef enum {
     J_CONF_LOADER_KEY = 0,      /* 下一个应该是一个键值 */
     J_CONF_LOADER_KEY_COLON,    /* 下一个应该是冒号 */
     J_CONF_LOADER_VALUE,
+    J_CONF_LOADER_INTEGER,        /* 下一个必须是数值 */
     J_CONF_LOADER_END,
+    J_CONF_LOADER_END_INTEGER,
     J_CONF_LOADER_ARRAY_VALUE,
     J_CONF_LOADER_ARRAY_DOT,
 } JConfLoaderState;
@@ -205,15 +207,30 @@ ERROR:
     return -1;
 }
 
+static inline jboolean j_strnchr(const jchar *buf, jchar c, juint len) {
+    juint i=0;
+    while(i<len&&buf[i]!='\0') {
+        if(buf[i++]==c) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
 
 /* 获取数字值，该函数不会返回失败 */
 static inline jint j_conf_loader_fetch_digit(JConfLoader * loader,
         const jchar * buf,
         JConfNode ** value) {
     jchar *endptr1 = NULL, *endptr2 = NULL;
+    if(j_strncmp0(buf, "0x", 2)==0||j_strncmp0(buf, "0X", 2)==0) {
+        /* 解析十六进制数 */
+        jint64 l =strtoll(buf +2, &endptr2, 16);
+        *value = j_conf_node_new(J_CONF_NODE_TYPE_INTEGER, l);
+        return endptr2 - buf;
+    }
     jdouble d = strtod(buf, &endptr1);
-    jint64 l = strtoll(buf, &endptr2, 10);
-    if (d == l) {
+    if (!j_strnchr(buf,'.', endptr1-buf)) { /* 没有小数点，是整数 */
+        jint64 l = strtoll(buf, &endptr2, 10);
         *value = j_conf_node_new(J_CONF_NODE_TYPE_INTEGER, l);
         return endptr2 - buf;
     }
@@ -308,7 +325,7 @@ static inline jint j_conf_loader_fetch_string(JConfLoader * loader,
                 if (type == J_CONF_NODE_TYPE_STRING) {
                     j_string_append(out, j_conf_string_get(node));
                 } else if (type == J_CONF_NODE_TYPE_FLOAT) {
-                    j_string_append_printf(out, "%f",
+                    j_string_append_printf(out, "%g",
                                            j_conf_float_get(node));
                 } else if (type == J_CONF_NODE_TYPE_INTEGER) {
                     j_string_append_printf(out, "%ld",
@@ -561,6 +578,7 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
     jchar *key = NULL;
     jchar *buf = NULL;
     JConfNode *value = NULL;
+    JConfNode *integer=NULL;
     jint i, ret;
     jboolean includeconf = FALSE;
     while ((buf =
@@ -611,12 +629,17 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                 j_free(key);
                 key = NULL;
                 i += ret - 1;
-                state = J_CONF_LOADER_END;
-                if ((ret = j_conf_loader_loads_more(loader, value,
-                                                    buffered_stream,
-                                                    buf + i + 1,
-                                                    FALSE)) < 0) {
+                if(j_conf_node_is_integer(value)) {
+                    state=J_CONF_LOADER_END_INTEGER;
+                    ret=0;
+                } else if ((ret = j_conf_loader_loads_more(loader, value,
+                                  buffered_stream,
+                                  buf + i + 1,
+                                  FALSE)) < 0) {
+                    /* 读取object或者array失败 */
                     goto OUT;
+                } else {
+                    state = J_CONF_LOADER_END;
                 }
                 if (includeconf) {
                     if (!j_conf_loader_include(loader, object, value)) {
@@ -625,9 +648,29 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                     j_conf_object_remove(object, "include");
                 }
                 if (ret > 0) {
+                    /* 读取object或者array成功 */
                     goto BREAK;
                 }
                 break;
+            case J_CONF_LOADER_INTEGER:
+                if(!j_ascii_isdigit(buf[i])||(ret=j_conf_loader_fetch_digit(loader, buf+i, &integer))<=0) {
+                    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_INTEGER);
+                    goto OUT;
+                } else if(!j_conf_node_is_integer(integer)) {
+                    j_conf_node_unref(integer);
+                    j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_INVALID_INTEGER);
+                    goto OUT;
+                }
+                i+=ret-1;
+                j_conf_integer_set(value, j_conf_integer_get(value)|j_conf_integer_get(integer));
+                j_conf_node_unref(integer);
+                state=J_CONF_LOADER_END_INTEGER;
+                break;
+            case J_CONF_LOADER_END_INTEGER:
+                if(buf[i]=='|') {
+                    state=J_CONF_LOADER_INTEGER;
+                    break;
+                }
             case J_CONF_LOADER_END:
                 if (!is_root && buf[i] == '}') {
                     j_conf_loader_push_line(loader, buffered_stream,
@@ -649,7 +692,7 @@ BREAK:
             break;
         }
 
-        if (state == J_CONF_LOADER_END) {
+        if (state == J_CONF_LOADER_END||state==J_CONF_LOADER_END_INTEGER) {
             state = J_CONF_LOADER_KEY;
         } else if(state==J_CONF_LOADER_KEY_COLON) {
             j_conf_loader_set_errcode(loader, J_CONF_LOADER_ERR_MISSING_COLON);
@@ -678,8 +721,7 @@ static jboolean j_conf_loader_loads_array(JConfLoader * loader,
         buffered_stream) {
     jchar *buf;
     JConfLoaderState state = J_CONF_LOADER_ARRAY_VALUE;
-    while ((buf =
-                j_buffered_input_stream_readline(buffered_stream)) != NULL) {
+    while ((buf =j_buffered_input_stream_readline(buffered_stream)) != NULL) {
         j_conf_loader_inc_line(loader);
         jint i = 0, ret;
         JConfNode *value = NULL;
@@ -890,6 +932,9 @@ char *j_conf_loader_build_error_message(JConfLoader *loader) {
         break;
     case J_CONF_LOADER_ERR_UNKNOWN_VARIABLE:
         msg=j_strdup_printf("%s: %u - uknown variable", info->filename, info->line);
+        break;
+    case J_CONF_LOADER_ERR_INVALID_INTEGER:
+        msg=j_strdup_printf("%s: %u - not a valid integer value", info->filename, info->line);
         break;
     default:
         msg=j_strdup_printf("%s: %u - unknown error", info->filename, info->line);
