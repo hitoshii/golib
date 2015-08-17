@@ -425,8 +425,13 @@ static inline jint j_conf_loader_fetch_variable(JConfLoader * loader,
     JConfNode *node = j_conf_loader_get(loader, key);
     j_free(key);
     if (node) {
-        j_conf_node_ref(node);
-        *value = node;
+        if(j_conf_node_is_integer(node)) {
+            /* 整数的值在或运算中可能会改变，因此不使用引用而是新创建一个整数节点 */
+            *value=j_conf_node_new(J_CONF_NODE_TYPE_INTEGER, j_conf_integer_get(node));
+        } else {
+            j_conf_node_ref(node);
+            *value = node;
+        }
     } else if(!loader->strict_var) {
         /* 允许未定义的变量 */
         *value = j_conf_node_new(J_CONF_NODE_TYPE_NULL);

@@ -478,6 +478,7 @@ jint64 j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
     }
     return def;
 }
+
 const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *node,
         const jchar *name, const jchar *def) {
     JConfNode *child=j_conf_object_get(node, name);
