@@ -32,7 +32,8 @@ noinst_PROGRAMS= \
     test-listen \
     test-inputstream \
     test-outputstream \
-    test-conf
+    test-conf \
+    test-module
 
 TESTS=\
     test-string \
@@ -49,7 +50,8 @@ TESTS=\
     test-listen \
     test-inputstream \
     test-outputstream \
-    test-conf
+    test-conf \
+    test-module
 
 test_string_SOURCES = \
 	test-string.c
@@ -96,10 +98,20 @@ test_outputstream_SOURCES = \
 test_conf_SOURCES = \
     test-conf.c
 
+test_module_SOURCES = \
+    test-module.c
+
 dist_check_DATA = \
     test.conf \
     conf.d/test2.conf
 
+.PHONY: test-module-mod
+
+test-module-mod: test-module-mod.c
+	$(CC) $(AM_CPPFLAGS) -shared -fPIC test-module-mod.c -o test-mod.so
+
+all-local: test-module-mod
+
 clean-local:
 	-astyle --style=google -n *.c *.h
-	-rm *~
+	-rm -rf *~ test-mod.so

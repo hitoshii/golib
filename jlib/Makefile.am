@@ -38,9 +38,10 @@ libjlib_la_SOURCES = \
     jtimer.c \
     jutils.c \
     junix.c \
-    jobject.c
+    jobject.c \
+    jmodule.c
 
-libjlib_la_LDFLAGS = -pthread
+libjlib_la_LDFLAGS = -pthread -ldl
 
 libjlib_la_LIBADD =
 
@@ -76,7 +77,8 @@ jlibsubinclude_HEADERS= \
     ji18n.h \
     jutils.h \
     junix.h \
-    jobject.h
+    jobject.h \
+    jmodule.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

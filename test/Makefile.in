@@ -94,14 +94,16 @@ noinst_PROGRAMS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
 	test-listen$(EXEEXT) test-inputstream$(EXEEXT) \
-	test-outputstream$(EXEEXT) test-conf$(EXEEXT)
+	test-outputstream$(EXEEXT) test-conf$(EXEEXT) \
+	test-module$(EXEEXT)
 TESTS = test-string$(EXEEXT) test-hashtable$(EXEEXT) \
 	test-array$(EXEEXT) test-thread$(EXEEXT) test-main$(EXEEXT) \
 	test-message$(EXEEXT) test-queue$(EXEEXT) \
 	test-asyncqueue$(EXEEXT) test-threadpool$(EXEEXT) \
 	test-socketaddress$(EXEEXT) test-socket$(EXEEXT) \
 	test-listen$(EXEEXT) test-inputstream$(EXEEXT) \
-	test-outputstream$(EXEEXT) test-conf$(EXEEXT)
+	test-outputstream$(EXEEXT) test-conf$(EXEEXT) \
+	test-module$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gtk-doc.m4 \
@@ -144,6 +146,9 @@ test_main_LDADD = $(LDADD)
 am_test_message_OBJECTS = test-message.$(OBJEXT)
 test_message_OBJECTS = $(am_test_message_OBJECTS)
 test_message_LDADD = $(LDADD)
+am_test_module_OBJECTS = test-module.$(OBJEXT)
+test_module_OBJECTS = $(am_test_module_OBJECTS)
+test_module_LDADD = $(LDADD)
 am_test_outputstream_OBJECTS = test-outputstream.$(OBJEXT)
 test_outputstream_OBJECTS = $(am_test_outputstream_OBJECTS)
 test_outputstream_LDADD = $(LDADD)
@@ -203,18 +208,18 @@ SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
 	$(test_conf_SOURCES) $(test_hashtable_SOURCES) \
 	$(test_inputstream_SOURCES) $(test_listen_SOURCES) \
 	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_outputstream_SOURCES) $(test_queue_SOURCES) \
-	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES) \
-	$(test_threadpool_SOURCES)
+	$(test_module_SOURCES) $(test_outputstream_SOURCES) \
+	$(test_queue_SOURCES) $(test_socket_SOURCES) \
+	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
 DIST_SOURCES = $(test_array_SOURCES) $(test_asyncqueue_SOURCES) \
 	$(test_conf_SOURCES) $(test_hashtable_SOURCES) \
 	$(test_inputstream_SOURCES) $(test_listen_SOURCES) \
 	$(test_main_SOURCES) $(test_message_SOURCES) \
-	$(test_outputstream_SOURCES) $(test_queue_SOURCES) \
-	$(test_socket_SOURCES) $(test_socketaddress_SOURCES) \
-	$(test_string_SOURCES) $(test_thread_SOURCES) \
-	$(test_threadpool_SOURCES)
+	$(test_module_SOURCES) $(test_outputstream_SOURCES) \
+	$(test_queue_SOURCES) $(test_socket_SOURCES) \
+	$(test_socketaddress_SOURCES) $(test_string_SOURCES) \
+	$(test_thread_SOURCES) $(test_threadpool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -637,6 +642,9 @@ test_outputstream_SOURCES = \
 test_conf_SOURCES = \
     test-conf.c
 
+test_module_SOURCES = \
+    test-module.c
+
 dist_check_DATA = \
     test.conf \
     conf.d/test2.conf
@@ -716,6 +724,10 @@ test-message$(EXEEXT): $(test_message_OBJECTS) $(test_message_DEPENDENCIES) $(EX
 	@rm -f test-message$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_message_OBJECTS) $(test_message_LDADD) $(LIBS)
 
+test-module$(EXEEXT): $(test_module_OBJECTS) $(test_module_DEPENDENCIES) $(EXTRA_test_module_DEPENDENCIES) 
+	@rm -f test-module$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_module_OBJECTS) $(test_module_LDADD) $(LIBS)
+
 test-outputstream$(EXEEXT): $(test_outputstream_OBJECTS) $(test_outputstream_DEPENDENCIES) $(EXTRA_test_outputstream_DEPENDENCIES) 
 	@rm -f test-outputstream$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_outputstream_OBJECTS) $(test_outputstream_LDADD) $(LIBS)
@@ -758,6 +770,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-listen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-message.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-module.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-outputstream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-queue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket.Po@am__quote@
@@ -1091,6 +1104,13 @@ test-conf.log: test-conf$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-module.log: test-module$(EXEEXT)
+	@p='test-module$(EXEEXT)'; \
+	b='test-module'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -1140,7 +1160,7 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(dist_check_DATA)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(PROGRAMS) all-local
 installdirs:
 install: install-am
 install-exec: install-exec-am
@@ -1248,26 +1268,34 @@ uninstall-am:
 
 .MAKE: check-am install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am check check-TESTS check-am clean \
-	clean-generic clean-libtool clean-local clean-noinstPROGRAMS \
-	cscopelist-am ctags ctags-am distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	recheck tags tags-am uninstall uninstall-am
+.PHONY: CTAGS GTAGS TAGS all all-am all-local check check-TESTS \
+	check-am clean clean-generic clean-libtool clean-local \
+	clean-noinstPROGRAMS cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am recheck tags tags-am uninstall \
+	uninstall-am
 
 .PRECIOUS: Makefile
 
 
+.PHONY: test-module-mod
+
+test-module-mod: test-module-mod.c
+	$(CC) $(AM_CPPFLAGS) -shared -fPIC test-module-mod.c -o test-mod.so
+
+all-local: test-module-mod
+
 clean-local:
 	-astyle --style=google -n *.c *.h
-	-rm *~
+	-rm -rf *~ test-mod.so
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

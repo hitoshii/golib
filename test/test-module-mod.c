@@ -14,39 +14,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-#ifndef __JLIB_H__
-#define __JLIB_H__
 
-#define __JLIB_MAIN_INCLUDE__
+#include <jlib/jlib.h>
 
-#include "jmacros.h"
-#include "jtypes.h"
-#include "jmem.h"
-#include "jerror.h"
-#include "jenviron.h"
-#include "jtimer.h"
-#include "jmessage.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jqueue.h"
-#include "jasyncqueue.h"
-#include "jprintf.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jthreadpool.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jarray.h"
-#include "jepoll.h"
-#include "jmain.h"
-#include "junix.h"
-#include "jutils.h"
-#include "jobject.h"
-#include "jmodule.h"
+const jchar *name="nice";
 
-#undef __JLIB_MAIN_INCLUDE__
+jint id=123;
 
-#endif
+jfloat scale=0.5;
+
+int sum(int a, int b) {
+    return a+b;
+}

@@ -14,39 +14,34 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-#ifndef __JLIB_H__
-#define __JLIB_H__
+#ifndef __JLIB_MODULE_H__
+#define __JLIB_MODULE_H__
 
-#define __JLIB_MAIN_INCLUDE__
-
-#include "jmacros.h"
 #include "jtypes.h"
-#include "jmem.h"
-#include "jerror.h"
-#include "jenviron.h"
-#include "jtimer.h"
-#include "jmessage.h"
-#include "jstrfuncs.h"
-#include "jstring.h"
-#include "jslist.h"
-#include "jlist.h"
-#include "jqueue.h"
-#include "jasyncqueue.h"
-#include "jprintf.h"
-#include "jatomic.h"
-#include "jthread.h"
-#include "jthreadpool.h"
-#include "jstack.h"
-#include "jfileutils.h"
-#include "jhashtable.h"
-#include "jarray.h"
-#include "jepoll.h"
-#include "jmain.h"
-#include "junix.h"
-#include "jutils.h"
-#include "jobject.h"
-#include "jmodule.h"
+#include <dlfcn.h>
 
-#undef __JLIB_MAIN_INCLUDE__
+#define J_MODULE_SUFFIX "so"
+
+typedef enum {
+    J_MODULE_LAZY=RTLD_LAZY,
+    J_MODULE_NOW=RTLD_NOW,
+    J_MODULE_GLOBAL=RTLD_GLOBAL,
+    J_MODULE_LOCAL=RTLD_LOCAL,
+    J_MODULE_NODELETE=RTLD_NODELETE,
+    J_MODULE_NOLOAD=RTLD_NOLOAD,
+    J_MODULE_DEEPBIND=RTLD_DEEPBIND,
+} JModuleFlags;
+
+typedef struct _JModule JModule;
+
+JModule *j_module_open(const jchar *filepath, JModuleFlags flags);
+
+const jchar *j_module_name(JModule *mod);
+
+/* NULL也是一个有效的符号 */
+jboolean j_module_symbol(JModule *module, const jchar *symbol_name, jpointer *symbol);
+
+void j_module_close(JModule *module);
+
 
 #endif
