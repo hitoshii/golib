@@ -43,7 +43,10 @@ const jchar *j_path_skip_root(const jchar * path);
 jchar *j_path_basename(const jchar * path);
 
 /*
+ * j_path_dirname:
+ * @path:
  * Gets the directory components of a file name
+ * Returns: a new allocated string
  */
 jchar *j_path_dirname(const jchar *path);
 
@@ -65,6 +68,20 @@ jchar **j_path_glob(const jchar * pattern);
  * Joins two path, p2 must be relative
  */
 jchar *j_path_join(const jchar * p1, const jchar * p2);
+
+
+/*
+ * j_mkdir_with_parents:
+ * @pathname: a pathname
+ * @mode: permissions to use for newly created directories
+ *
+ * Create a directory if it doesn't already exist. Create itermediate
+ * parent directories as needed, too
+ *
+ * Returns: 0 if the directory already exists, or was successfully created.
+ *          Returns -1 on error, with errno set.
+ */
+jint j_mkdir_with_parents(const jchar *pathname, int mode);
 
 
 #endif

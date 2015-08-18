@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <glob.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 /*
  * Checks to see if the path is absolute
@@ -129,4 +131,49 @@ jchar *j_path_join(const jchar * p1, const jchar * p2) {
         return j_strdup_printf("%s%s", p1, p2);
     }
     return j_strdup_printf("%s/%s", p1, p2);
+}
+
+jint j_mkdir_with_parents(const jchar *pathname, int mode) {
+    jchar *fn, *p;
+
+    if(pathname==NULL||*pathname=='\0') {
+        errno=EINVAL;
+        return -1;
+    }
+
+    fn=j_strdup(pathname);
+
+    if(j_path_is_absolute(fn)) {
+        p=(jchar*) j_path_skip_root(fn);
+    } else {
+        p=fn;
+    }
+
+    do {
+        while(*p && *p!='/') {
+            p++;
+        }
+
+        if(*p=='\0') {
+            p=NULL;
+        } else {
+            *p='\0';
+        }
+
+        if(mkdir(fn, mode)<0&&errno!=EEXIST) {
+            j_free(fn);
+            return -1;
+        }
+
+        if(p) {
+            *p++='/';
+            while(*p && *p=='/') {
+                p++;
+            }
+        }
+    } while(p);
+
+    j_free(fn);
+
+    return 0;
 }

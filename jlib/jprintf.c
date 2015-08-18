@@ -58,7 +58,7 @@ jint j_snprintf(jchar * string, juint size, jchar const *format, ...) {
     jint retval;
 
     va_start(args, format);
-    retval = j_snprintf(string, size, format, args);
+    retval = j_vsnprintf(string, size, format, args);
     va_end(args);
     return retval;
 }
