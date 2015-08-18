@@ -19,10 +19,13 @@
 
 #include "jtypes.h"
 
+#define J_PATH_SEPARATOR '/'
+#define j_is_path_separator(c) ((c)==J_PATH_SEPARATOR)
+
 /*
  * Checks to see if the path is absolute
  */
-jint j_path_is_absolute(const jchar * path);
+jboolean j_path_is_absolute(const jchar * path);
 
 /*
  * Returns a pointer into file_name after the root component,
@@ -82,6 +85,19 @@ jchar *j_path_join(const jchar * p1, const jchar * p2);
  *          Returns -1 on error, with errno set.
  */
 jint j_mkdir_with_parents(const jchar *pathname, int mode);
+
+
+typedef enum {
+    J_FILE_TEST_IS_REGULAR = 1<<0,
+    J_FILE_TEST_IS_SYMLINK = 1<<1,
+    J_FILE_TEST_IS_DIR = 1<<2,
+    J_FILE_TEST_IS_EXECUTABLE = 1<<3,
+    J_FILE_TEST_IS_BLOCK=1<<4,
+    J_FILE_TEST_EXISTS = 1<<5,
+} JFileTest;
+
+/* 可以合并多个测试选项，J_FILE_TEST_EXISTS总是被测试的 */
+jboolean j_file_test(const jchar *path, JFileTest test);
 
 
 #endif

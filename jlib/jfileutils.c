@@ -26,8 +26,8 @@
 /*
  * Checks to see if the path is absolute
  */
-jint j_path_is_absolute(const jchar * path) {
-    return j_str_has_prefix(path, "/");
+jboolean j_path_is_absolute(const jchar * path) {
+    return j_is_path_separator(path[0]);
 }
 
 /*
@@ -58,7 +58,7 @@ jchar *j_path_realpath(const jchar * path) {
  * the last component of the filename
  */
 jchar *j_path_basename(const jchar * path) {
-    jchar *slash = strrchr(path, '/');
+    jchar *slash = strrchr(path, J_PATH_SEPARATOR);
     if (slash == NULL) {        /* slash not found */
         return j_strdup(path);
     }
@@ -67,12 +67,12 @@ jchar *j_path_basename(const jchar * path) {
     }
     jchar *ptr = slash - 1;
     while (ptr != path) {
-        if (*ptr == '/') {
+        if (j_is_path_separator(*ptr)) {
             break;
         }
         ptr--;
     }
-    if (*ptr == '/') {
+    if (j_is_path_separator(*ptr)) {
         ptr++;
     }
     return j_strndup(ptr, slash - ptr);
@@ -82,11 +82,11 @@ jchar *j_path_dirname(const jchar *path) {
     jchar *base;
     juint len;
 
-    base = strrchr(path, '/');
+    base = strrchr(path, J_PATH_SEPARATOR);
     if(!base) {
         return j_strdup(".");
     }
-    while(base>path && *base=='/') {
+    while(base>path && j_is_path_separator(*base)) {
         base--;
     }
 
@@ -130,7 +130,7 @@ jchar *j_path_join(const jchar * p1, const jchar * p2) {
     if (j_str_has_suffix(p1, "/")) {
         return j_strdup_printf("%s%s", p1, p2);
     }
-    return j_strdup_printf("%s/%s", p1, p2);
+    return j_strdup_printf("%s%c%s", p1,J_PATH_SEPARATOR, p2);
 }
 
 jint j_mkdir_with_parents(const jchar *pathname, int mode) {
@@ -150,7 +150,7 @@ jint j_mkdir_with_parents(const jchar *pathname, int mode) {
     }
 
     do {
-        while(*p && *p!='/') {
+        while(*p && !j_is_path_separator(*p)) {
             p++;
         }
 
@@ -166,8 +166,8 @@ jint j_mkdir_with_parents(const jchar *pathname, int mode) {
         }
 
         if(p) {
-            *p++='/';
-            while(*p && *p=='/') {
+            *p++=J_PATH_SEPARATOR;
+            while(*p && j_is_path_separator(*p)) {
                 p++;
             }
         }
@@ -176,4 +176,29 @@ jint j_mkdir_with_parents(const jchar *pathname, int mode) {
     j_free(fn);
 
     return 0;
+}
+
+
+jboolean j_file_test(const jchar *path, JFileTest test) {
+    struct stat buf;
+    if(lstat(path, &buf)) {
+        return FALSE;
+    }
+    jboolean ret=TRUE;
+    if(test&J_FILE_TEST_IS_SYMLINK) {
+        ret=ret&&S_ISLNK(buf.st_mode);
+    }
+    if(test&J_FILE_TEST_IS_REGULAR) {
+        ret=ret&&S_ISREG(buf.st_mode);
+    }
+    if(test&J_FILE_TEST_IS_DIR) {
+        ret=ret&&S_ISDIR(buf.st_mode);
+    }
+    if(test&J_FILE_TEST_IS_EXECUTABLE) {
+        ret=ret&&(buf.st_mode&S_IXUSR);
+    }
+    if(test&J_FILE_TEST_IS_BLOCK) {
+        ret=ret&&S_ISBLK(buf.st_mode);
+    }
+    return ret;
 }

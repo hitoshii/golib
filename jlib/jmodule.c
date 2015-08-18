@@ -18,6 +18,7 @@
 #include "jmodule.h"
 #include "jstrfuncs.h"
 #include "jmem.h"
+#include "jfileutils.h"
 
 struct _JModule {
     void *handle;
@@ -33,10 +34,16 @@ static inline JModule *j_module_alloc(jchar *path, void *handle) {
 
 JModule *j_module_open(const jchar *filepath, JModuleFlags flags) {
     jchar *path;
-    void *handle=dlopen(filepath, flags);
+    void *handle=NULL;
+    if(j_file_test(filepath, J_FILE_TEST_IS_REGULAR)) {
+        handle=dlopen(filepath, flags);
+    }
+
     if(handle==NULL) {
         path=j_strconcat(filepath, "." J_MODULE_SUFFIX,NULL);
-        handle=dlopen(path, flags);
+        if(j_file_test(path, J_FILE_TEST_EXISTS)) {
+            handle=dlopen(path, flags);
+        }
     } else {
         path=j_strdup(filepath);
     }
