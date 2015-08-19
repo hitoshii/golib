@@ -40,7 +40,6 @@
 #include "jfileutils.h"
 #include "jhashtable.h"
 #include "jarray.h"
-#include "jepoll.h"
 #include "jmain.h"
 #include "junix.h"
 #include "jutils.h"

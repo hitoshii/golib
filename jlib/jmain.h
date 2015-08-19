@@ -17,7 +17,7 @@
 #ifndef __JLIB_MAIN_H__
 #define __JLIB_MAIN_H__
 #include "jtypes.h"
-#include "jepoll.h"
+#include "jxpoll.h"
 #include "jthread.h"
 #include "jslist.h"
 
@@ -72,7 +72,7 @@ struct _JSource {
     JMainContext *context;
     juint flags;
     juint id;                   /* source id */
-    JSList *poll_fds;           /* JEPollRecord* */
+    JSList *poll_fds;           /* JXPollRecord* */
     jchar *name;
 
     jint64 ready_time;
@@ -185,7 +185,7 @@ void j_main_context_wakeup(JMainContext * ctx);
 jboolean j_main_context_prepare(JMainContext * ctx);
 jint j_main_context_query(JMainContext * ctx, jint * timeout);
 jboolean j_main_context_check(JMainContext * ctx,
-                              JEPollEvent * fds, jint n_fds);
+                              JXPollEvent * fds, jint n_fds);
 void j_main_context_dispatch(JMainContext * ctx);
 
 /*

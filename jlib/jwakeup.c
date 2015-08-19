@@ -50,11 +50,11 @@ JWakeup *j_wakeup_new(void) {
     return wakeup;
 }
 
-jint j_wakeup_get_pollfd(JWakeup * wakeup, JEPollEvent * e) {
+jint j_wakeup_get_pollfd(JWakeup * wakeup, JXPollEvent * e) {
     if (e) {
         e->fd = wakeup->fds[0];
-        e->events = J_EPOLL_IN;
-        e->data = NULL;
+        e->events = J_XPOLL_IN;
+        e->user_data = NULL;
     }
     return wakeup->fds[0];
 }

@@ -24,7 +24,6 @@ libjlib_la_SOURCES = \
     jarray.c \
     jatomic.c \
     jthread.c \
-    jepoll.c \
     jslist.c \
     jwakeup.c \
     jmain.c \
@@ -64,7 +63,6 @@ jlibsubinclude_HEADERS= \
     jmacros.h \
     jatomic.h \
     jthread.h \
-    jepoll.h \
     jslist.h \
     jmain.h \
     jmessage.h \

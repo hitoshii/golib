@@ -52,17 +52,17 @@ static jpointer thread_func(jpointer data) {
     thread = j_thread_new("test-thread", thread_func1, wakeup);
     j_thread_unref(thread);
 
-    JEPoll *ep = j_epoll_new();
-    JEPollEvent e;
+    JXPoll *ep = j_xpoll_new();
+    JXPollEvent e;
     j_wakeup_get_pollfd(wakeup, &e);
-    j_epoll_ctl(ep, e.fd, J_EPOLL_CTL_ADD, e.events, NULL, NULL);
-    JEPollEvent event[1];
-    jint n = j_epoll_wait(ep, event, 1, -1);
+    j_xpoll_add(ep, e.fd, e.events, NULL);
+    JXPollEvent event[1];
+    jint n = j_xpoll_wait(ep, event, 1, -1);
     if (n != 1) {
         return NULL;
     }
     j_wakeup_acknowledge(wakeup);
-    j_epoll_close(ep);
+    j_xpoll_close(ep);
     j_wakeup_free(wakeup);
     printf("%s\n", (const jchar *) data);
     return "hello world";

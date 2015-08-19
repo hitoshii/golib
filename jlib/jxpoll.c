@@ -47,7 +47,7 @@ JXPoll *j_xpoll_new(void) {
     }
     JXPoll *p=(JXPoll*)j_malloc(sizeof(JXPoll));
     p->fd=fd;
-    p->datas=j_hash_table_new(1024, j_int_hash,j_int_equal, NULL, j_xpoll_datas_free);
+    p->datas=j_hash_table_new(10, j_int_hash,j_int_equal, NULL, j_xpoll_datas_free);
     p->n_cached_events=0;
     p->cached_events=NULL;
     p->count=0;

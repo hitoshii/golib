@@ -16,6 +16,7 @@
  */
 #include "jsocket.h"
 #include "jpoll.h"
+#include <jlib/jxpoll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -590,11 +591,11 @@ static jboolean j_socket_source_dispatch(JSource * source,
         JSourceFunc callback,
         jpointer user_data) {
     JSocketSource *src = (JSocketSource *) source;
-    if (src->event & J_EPOLL_OUT) {
+    if (src->event & J_XPOLL_OUT) {
         jint ret = j_socket_send_with_blocking(src->socket, src->buffer,
                                                src->size, FALSE);
         ((JSocketSendCallback) callback) (src->socket, ret, user_data);
-    } else if (src->event & J_EPOLL_IN) {
+    } else if (src->event & J_XPOLL_IN) {
         if (!src->listening) {
             jint ret =
                 j_socket_receive_with_blocking(src->socket, src->buffer,
@@ -641,7 +642,7 @@ void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
     if (size < 0) {
         size = j_strlen(buffer);
     }
-    JSocketSource *src = j_socket_source_new(socket, J_EPOLL_OUT);
+    JSocketSource *src = j_socket_source_new(socket, J_XPOLL_OUT);
     src->buffer = j_memdup(buffer, size);
     src->size = size;
     j_source_set_callback((JSource *) src, (JSourceFunc) callback,
@@ -661,7 +662,7 @@ void j_socket_receive_with_length_async(JSocket * socket, juint length,
                                         jpointer user_data) {
     j_return_if_fail(socket->closed == FALSE);
     JSocketSource *src =
-        (JSocketSource *) j_socket_source_new(socket, J_EPOLL_IN);
+        (JSocketSource *) j_socket_source_new(socket, J_XPOLL_IN);
     src->size = length;
     src->buffer = j_malloc(sizeof(jchar) * src->size);
     j_source_set_callback((JSource *) src, (JSourceFunc) callback,
@@ -675,7 +676,7 @@ void j_socket_accept_async(JSocket * socket,
                            jpointer user_data) {
     j_return_if_fail(socket->closed == FALSE);
     JSocketSource *src =
-        (JSocketSource *) j_socket_source_new(socket, J_EPOLL_IN);
+        (JSocketSource *) j_socket_source_new(socket, J_XPOLL_IN);
     src->listening = TRUE;
     j_source_set_callback((JSource *) src, (JSourceFunc) callback,
                           user_data, NULL);

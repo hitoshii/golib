@@ -136,7 +136,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libjlib_la_DEPENDENCIES =
 am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
 	jstack.lo jfileutils.lo jhashtable.lo jarray.lo jatomic.lo \
-	jthread.lo jepoll.lo jslist.lo jwakeup.lo jmain.lo jmessage.lo \
+	jthread.lo jslist.lo jwakeup.lo jmain.lo jmessage.lo \
 	jprintf.lo jenviron.lo jthreadpool.lo jerror.lo jqueue.lo \
 	jasyncqueue.lo jtimer.lo jutils.lo junix.lo jobject.lo \
 	jmodule.lo jxpoll.lo
@@ -364,7 +364,6 @@ libjlib_la_SOURCES = \
     jarray.c \
     jatomic.c \
     jthread.c \
-    jepoll.c \
     jslist.c \
     jwakeup.c \
     jmain.c \
@@ -400,7 +399,6 @@ jlibsubinclude_HEADERS = \
     jmacros.h \
     jatomic.h \
     jthread.h \
-    jepoll.h \
     jslist.h \
     jmain.h \
     jmessage.h \
@@ -507,7 +505,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jasyncqueue.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jatomic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jenviron.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jepoll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jerror.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfileutils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jhashtable.Plo@am__quote@

@@ -27,9 +27,9 @@
 
 
 typedef struct {
-    JEPollEvent event;
+    JXPollEvent event;
     jushort revent;             /* epoll_wait 返回的事件 */
-} JEPollRecord;
+} JXPollRecord;
 
 
 struct _JSourceCallbackFuncs {
@@ -68,15 +68,12 @@ struct _JMainContext {
     jint in_check_or_prepare;
 
     JWakeup *wakeup;
-    JEPollRecord wakeup_record;
+    JXPollRecord wakeup_record;
 
-    JEPoll *epoll;
+    JXPoll *xp;
 
-    /* JEPollEvent, fd就是文件描述符，events就是events，data是JSource中的JEPollRecord
-     * poll_records 中只保存JEPollEvent的指针
-     */
     JPtrArray *poll_records;
-    JEPollEvent *cached_poll_array;
+    JXPollEvent *cached_poll_array;
     juint cached_poll_array_size;
     jboolean poll_changed;
 
@@ -148,9 +145,9 @@ jboolean j_source_is_destroyed(JSource * src) {
 }
 
 static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
-        JEPollEvent * p) {
+        JXPollEvent * p) {
     j_ptr_array_remove(ctx->poll_records, p);
-    if (j_epoll_del(ctx->epoll, p->fd, NULL)) {
+    if (j_xpoll_del(ctx->xp, p->fd, p->events)) {
         ctx->poll_changed = TRUE;
         j_wakeup_signal(ctx->wakeup);
     }
@@ -158,7 +155,7 @@ static inline void j_main_context_remove_poll_unlocked(JMainContext * ctx,
 
 
 static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
-        JEPollEvent * p) {
+        JXPollEvent * p) {
     j_ptr_array_append_ptr(ctx->poll_records, p);
     ctx->poll_changed = TRUE;
     j_wakeup_signal(ctx->wakeup);
@@ -319,10 +316,10 @@ void j_source_set_callback(JSource * src, JSourceFunc func,
  * Monitors fd for the IO events in events .
  */
 void j_source_add_poll_fd(JSource * src, jint fd, juint io) {
-    JEPollRecord *e = (JEPollRecord *) j_malloc(sizeof(JEPollRecord));
+    JXPollRecord *e = (JXPollRecord *) j_malloc(sizeof(JXPollRecord));
     e->event.fd = fd;
     e->event.events = io;
-    e->event.data = e;
+    e->event.user_data = e;
     e->revent = 0;
     src->poll_fds = j_slist_append(src->poll_fds, e);
     if (src->context) {
@@ -367,8 +364,8 @@ static inline void j_source_destroy_internal(JSource * src,
         if (!J_SOURCE_IS_BLOCKED(src)) {
             tmp_list = src->poll_fds;
             while (tmp_list) {
-                JEPollRecord *rec =
-                    (JEPollRecord *) j_slist_data(tmp_list);
+                JXPollRecord *rec =
+                    (JXPollRecord *) j_slist_data(tmp_list);
                 j_main_context_remove_poll_unlocked(ctx, &rec->event);
                 tmp_list = j_slist_next(tmp_list);
             }
@@ -526,7 +523,7 @@ JMainContext *j_main_context_new(void) {
 
     ctx->source_lists = NULL;
 
-    ctx->epoll = j_epoll_new();
+    ctx->xp = j_xpoll_new();
     ctx->poll_records = j_ptr_array_new_full(100, NULL);
 
     ctx->cached_poll_array = NULL;
@@ -537,7 +534,7 @@ JMainContext *j_main_context_new(void) {
 
     ctx->wakeup = j_wakeup_new();
     j_wakeup_get_pollfd(ctx->wakeup, &(ctx->wakeup_record.event));
-    ctx->wakeup_record.event.data = &(ctx->wakeup_record);
+    ctx->wakeup_record.event.user_data = &(ctx->wakeup_record);
     j_main_context_add_poll_unlocked(ctx, &(ctx->wakeup_record.event));
 
     return ctx;
@@ -751,7 +748,7 @@ static inline juint j_source_attach_unlocked(JSource * src,
     if (!J_SOURCE_IS_BLOCKED(src)) {
         tmp_list = src->poll_fds;
         while (tmp_list) {
-            JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
+            JXPollRecord *rec = (JXPollRecord *) j_slist_data(tmp_list);
             j_main_context_add_poll_unlocked(ctx, &rec->event);
             tmp_list = j_slist_next(tmp_list);
         }
@@ -888,12 +885,10 @@ jint j_main_context_query(JMainContext * ctx, jint * timeout) {
     jint i, total = j_ptr_array_get_len(ctx->poll_records);
     jpointer *data = j_ptr_array_get_data(ctx->poll_records);
     for (i = 0; i < total; i++) {
-        JEPollEvent *event = (JEPollEvent *) data[i];
-        JEPollRecord *rec = (JEPollRecord *) event->data;
+        JXPollEvent *event = (JXPollEvent *) data[i];
+        JXPollRecord *rec = (JXPollRecord *) event->user_data;
         rec->revent = 0;        /* clear */
-        if (!j_epoll_has(ctx->epoll, event->fd)) {
-            j_epoll_add(ctx->epoll, event->fd, event->events, event->data);
-        }
+        j_xpoll_add(ctx->xp, event->fd, event->events, event->user_data);
     }
     ctx->wakeup_record.revent = 0;
     ctx->poll_changed = FALSE;
@@ -908,16 +903,16 @@ jint j_main_context_query(JMainContext * ctx, jint * timeout) {
     if (ctx->cached_poll_array_size < total) {
         j_free(ctx->cached_poll_array);
         ctx->cached_poll_array_size = total;
-        ctx->cached_poll_array = j_new(JEPollEvent, total);
+        ctx->cached_poll_array = j_new(JXPollEvent, total);
     }
 
     J_MAIN_CONTEXT_UNLOCK(ctx);
 
-    return total;
+    return MAX(total, j_xpoll_event_count(ctx->xp));
 }
 
 jboolean j_main_context_check(JMainContext * ctx,
-                              JEPollEvent * fds, jint n_fds) {
+                              JXPollEvent * fds, jint n_fds) {
     J_MAIN_CONTEXT_LOCK(ctx);
     if (ctx->in_check_or_prepare) {
         j_warning("j_main_context_check() called recursively from "
@@ -965,8 +960,8 @@ jboolean j_main_context_check(JMainContext * ctx,
             if (result == FALSE) {
                 JSList *tmp_slist = src->poll_fds;
                 while (tmp_slist) {
-                    JEPollRecord *rec =
-                        (JEPollRecord *) j_slist_data(tmp_slist);
+                    JXPollRecord *rec =
+                        (JXPollRecord *) j_slist_data(tmp_slist);
                     if (rec->revent) {
                         result = TRUE;
                         break;
@@ -1013,7 +1008,7 @@ static inline void j_source_block(JSource * src) {
     if (src->context) {
         tmp_list = src->poll_fds;
         while (tmp_list) {
-            JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
+            JXPollRecord *rec = (JXPollRecord *) j_slist_data(tmp_list);
             j_main_context_remove_poll_unlocked(src->context,
                                                 &(rec->event));
             tmp_list = j_slist_next(tmp_list);
@@ -1029,7 +1024,7 @@ static inline void j_source_unblock(JSource * src) {
     src->flags &= ~J_SOURCE_FLAG_BLOCKED;
     tmp_list = src->poll_fds;
     while (tmp_list) {
-        JEPollRecord *rec = (JEPollRecord *) j_slist_data(tmp_list);
+        JXPollRecord *rec = (JXPollRecord *) j_slist_data(tmp_list);
         j_main_context_add_poll_unlocked(src->context, &(rec->event));
         tmp_list = j_slist_next(tmp_list);
     }
@@ -1135,16 +1130,13 @@ void j_main_context_dispatch(JMainContext * ctx) {
  * Hold context lock
  */
 static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
-                                       JEPollEvent * fds, jint n_fds) {
+                                       JXPollEvent * fds, jint n_fds) {
     jint i, n;
     J_MAIN_CONTEXT_LOCK(ctx);
-    n = j_epoll_wait(ctx->epoll, fds, n_fds, timeout);
-#if defined(J_MAIN_EPOLL_DEBUG)
-    j_info("j_epoll_wait() timeout %d retval: %d\n", timeout, n);
-#endif
+    n = j_xpoll_wait(ctx->xp, fds, n_fds, timeout);
     for (i = 0; i < n; i += 1) {
         /* 这里设置相应JSource的poll_records */
-        JEPollRecord *rec = (JEPollRecord *) (fds[i].data);
+        JXPollRecord *rec = (JXPollRecord *) (fds[i].user_data);
         rec->revent |= fds[i].events;
     }
     J_MAIN_CONTEXT_UNLOCK(ctx);
@@ -1161,7 +1153,7 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
     jint timeout;
     jboolean some_ready;
     jint nfds;
-    JEPollEvent *fds = NULL;
+    JXPollEvent *fds = NULL;
 
     J_MAIN_CONTEXT_UNLOCK(ctx);
     if (!j_main_context_acquire(ctx)) {
