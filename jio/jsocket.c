@@ -43,6 +43,9 @@ struct _JSocket {
     juint timed_out:1;
     juint connect_pending:1;
 
+    jchar *local_address;
+    jchar *remote_address;
+
     struct {
         JSocketAddress addr;
         struct sockaddr *native;
@@ -88,6 +91,10 @@ void j_socket_close(JSocket * socket) {
         close(socket->fd);
         socket->closed = TRUE;
     }
+    j_free(socket->local_address);
+    j_free(socket->remote_address);
+    socket->local_address=NULL;
+    socket->remote_address=NULL;
 }
 
 /* 根据文件描述符设置套接字信息 */
@@ -674,4 +681,24 @@ void j_socket_accept_async(JSocket * socket,
                           user_data, NULL);
     j_source_attach((JSource *) src, NULL);
     j_source_unref((JSource *) src);
+}
+
+
+const jchar *j_socket_get_remote_address_string(JSocket *socket) {
+    if(socket->remote_address==NULL) {
+        JSocketAddress address;
+        if(j_socket_get_local_address(socket, &address)) {
+            socket->remote_address=j_inet_socket_address_to_string(&address);
+        }
+    }
+    return socket->remote_address;
+}
+const jchar *j_socket_get_local_address_string(JSocket *socket) {
+    if(socket->local_address==NULL) {
+        JSocketAddress address;
+        if(j_socket_get_local_address(socket, &address)) {
+            socket->local_address=j_inet_socket_address_to_string(&address);
+        }
+    }
+    return socket->local_address;
 }

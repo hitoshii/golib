@@ -31,8 +31,6 @@ void j_socket_close(JSocket * socket);
 
 #define j_socket_ref(s) J_OBJECT_REF(s)
 #define j_socket_unref(s) J_OBJECT_UNREF(s)
-// void j_socket_ref(JSocket * socket);
-// void j_socket_unref(JSocket * socket);
 
 /* 绑定一个地址 */
 jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
@@ -116,5 +114,8 @@ jboolean j_socket_get_local_address(JSocket * socket,
 /* 获取套接字的远程地址，只对已经连接的套接字有效 */
 jboolean j_socket_get_remote_address(JSocket * socket,
                                      JSocketAddress * address);
+
+const jchar *j_socket_get_remote_address_string(JSocket *socket);
+const jchar *j_socket_get_local_address_string(JSocket *socket);
 
 #endif
