@@ -39,7 +39,8 @@ libjlib_la_SOURCES = \
     jutils.c \
     junix.c \
     jobject.c \
-    jmodule.c
+    jmodule.c \
+    jxpoll.c
 
 libjlib_la_LDFLAGS = -pthread -ldl
 
@@ -78,7 +79,8 @@ jlibsubinclude_HEADERS= \
     jutils.h \
     junix.h \
     jobject.h \
-    jmodule.h
+    jmodule.h \
+    jxpoll.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jlib-0.1.pc

@@ -207,13 +207,10 @@ jboolean j_hash_table_insert(JHashTable * h, jpointer key, jpointer value) {
 jboolean j_hash_table_update(JHashTable * h, jpointer key, jpointer value) {
     JHashTableNode *node = j_hash_table_find_node(h, key);
     if (node == NULL) {         /* not found */
-        return -1;
-    }
-    if (h->value_func) {        /* free old value */
-        h->value_func(node->value);
+        return FALSE;
     }
     node->value = value;
-    return 0;
+    return TRUE;
 }
 
 static inline jpointer j_hash_table_remove_internal(JHashTable * h,
