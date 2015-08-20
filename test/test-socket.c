@@ -110,7 +110,7 @@ int main(int argc, char const *argv[]) {
         j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,
                      J_SOCKET_PROTOCOL_TCP);
     if (socket == NULL
-            || !j_inet_socket_address_init_from_string(&addr, "192.30.252.128",
+            || !j_inet_socket_address_init_from_string(&addr, "115.239.210.27",
                     80)) {
         return 10;
     };
@@ -118,7 +118,7 @@ int main(int argc, char const *argv[]) {
         return 11;
     }
     j_socket_send_async(socket,
-                        "GET / HTTP/1.1\r\nHost: github.com\r\nConnection: Close\r\n\r\n",
+                        "GET / HTTP/1.1\r\nHost: baidu.com\r\nConnection: Close\r\n\r\n",
                         -1, send_callback, NULL);
 
     j_socket_unref(socket);

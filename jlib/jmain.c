@@ -669,14 +669,6 @@ jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
 
     J_MAIN_CONTEXT_CHECK(ctx);
 
-    if (J_UNLIKELY(cond != &ctx->cond || mutex != &ctx->mutex)) {
-        static jboolean warned = FALSE;
-        if (!warned) {
-            j_critical("WARNING!! j_main_context_wait() has a BUG!");
-            warned = TRUE;
-        }
-    }
-
     loop_internal_waiter = (mutex == &ctx->mutex);
 
     if (!loop_internal_waiter) {
@@ -787,9 +779,7 @@ jboolean j_main_context_prepare(JMainContext * ctx) {
     J_MAIN_CONTEXT_LOCK(ctx);
     ctx->time_is_fresh = FALSE; /* 是否已经刷新过时间  */
     if (ctx->in_check_or_prepare) {
-        j_warning
-        ("j_main_context_prepare() called recursively from within "
-         "a source's check() or prepare() member");
+        /* j_main_context_prepare() called recursively from within a source's check() or prepare() member */;
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return FALSE;
     }
@@ -915,8 +905,8 @@ jboolean j_main_context_check(JMainContext * ctx,
                               JXPollEvent * fds, jint n_fds) {
     J_MAIN_CONTEXT_LOCK(ctx);
     if (ctx->in_check_or_prepare) {
-        j_warning("j_main_context_check() called recursively from "
-                  "within a source's check() or prepare() member");
+        /* j_main_context_check() called recursively from "
+                  "within a source's check() or prepare() member */
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return FALSE;
     }
@@ -1052,9 +1042,6 @@ void j_main_context_dispatch(JMainContext * ctx) {
     for (i = 0; i < j_ptr_array_get_len(ctx->pending_dispatches); i += 1) {
         JSource *src = ctx->pending_dispatches->data[i];
         ctx->pending_dispatches->data[i] = NULL;
-        if (src == NULL) {
-            j_error("dispatching a NULL source!!!");
-        }
         src->flags &= ~J_SOURCE_FLAG_READY;
         if (!J_SOURCE_IS_DESTROYED(src)) {
             jboolean was_in_call;
@@ -1287,8 +1274,8 @@ void j_main_loop_run(JMainLoop * loop) {
     }
 
     if (loop->context->in_check_or_prepare) {
-        j_warning("j_main_loop_run() called recursively from within a "
-                  "source's check() or prepare() member, iteration not possible.");
+        /* j_main_loop_run() called recursively from within a
+           source's check() or prepare() member, iteration not possible. */
         return;
     }
 
@@ -1365,8 +1352,7 @@ static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
     JTimeoutSource *timeout_src = (JTimeoutSource *) src;
     jboolean again;
     if (J_UNLIKELY(!callback)) {
-        j_warning("Timeout source dispatched without callback\n"
-                  "You must call j_source_set_callback().");
+        /* Timeout source dispatched without callback You must call j_source_set_callback() */
         return FALSE;
     }
     again = callback(user_data);
