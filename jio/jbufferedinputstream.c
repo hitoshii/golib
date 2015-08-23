@@ -69,7 +69,7 @@ static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
     if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
         return -1;
     }
-    if (j_string_len(stream->buffer) < size && stream->eof == FALSE) {
+    while (j_string_len(stream->buffer) < size && stream->eof == FALSE) {
         j_buffered_input_stream_read_buffer(stream);
     }
     size = MIN(j_string_len(stream->buffer), size);
@@ -108,6 +108,22 @@ jchar *j_buffered_input_stream_readline(JBufferedInputStream *
                   j_string_len(buffered_stream->buffer));
     j_string_erase(buffered_stream->buffer, 0, -1);
     return ret;
+}
+
+jint j_buffered_input_stream_get(JBufferedInputStream *stream) {
+    if (J_UNLIKELY
+            (j_input_stream_is_closed((JInputStream *) stream))) {
+        return -1;
+    }
+    while (j_string_len(stream->buffer) < 1 && stream->eof == FALSE) {
+        j_buffered_input_stream_read_buffer(stream);
+    }
+    if(j_string_len(stream->buffer)<=0) {
+        return -1;
+    }
+    jint c=j_string_data(stream->buffer)[0];
+    j_string_erase(stream->buffer, 0, 1);
+    return c;
 }
 
 static void j_buffered_input_stream_close(JBufferedInputStream *

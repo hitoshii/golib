@@ -71,6 +71,7 @@ int main(int argc, char const *argv[]) {
     j_file_unmap(map, len);
 
     j_buffered_input_stream_unref(buffered_stream);
+
     j_object_unref((JObject *) f);
     j_string_free(s1, TRUE);
     j_string_free(s2, TRUE);

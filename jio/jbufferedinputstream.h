@@ -36,4 +36,13 @@ void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
 void j_buffered_input_stream_push_c(JBufferedInputStream * stream,
                                     jchar c);
 
+/**
+ * j_buffered_input_stream_get:
+ * @buffered_stream: JBufferedInputStream
+ *
+ * Read a byte from buffer
+ * Returns: negative if EOF
+ */
+jint j_buffered_input_stream_get(JBufferedInputStream *buffered_stream);
+
 #endif
