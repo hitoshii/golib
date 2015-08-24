@@ -20,7 +20,7 @@ int main(int argc, char const *argv[]) {
     JString *s1 = j_string_new();
     JString *s2 = j_string_new();
 
-    JFile *f = j_file_new("./test-inputstream.c");
+    JFile *f = j_file_new("./" __FILE__);
     if (f == NULL) {
         return 1;
     }
@@ -30,8 +30,7 @@ int main(int argc, char const *argv[]) {
     }
     char buf[2];
     jint n;
-    while ((n =
-                j_input_stream_read((JInputStream *) input, buf,
+    while ((n = j_input_stream_read((JInputStream *) input, buf,
                                     sizeof(buf))) > 0) {
         j_printf("%.*s", n, buf);
         j_string_append_len(s1, buf, n);
@@ -48,12 +47,10 @@ int main(int argc, char const *argv[]) {
     if (input == NULL) {
         return 4;
     }
-    jchar *line;
-    while ((line =
-                j_buffered_input_stream_readline(buffered_stream)) != NULL) {
-        j_printf("%s\n", line);
-        j_string_append_printf(s2, "%s\n", line);
-        j_free(line);
+    jint c;
+    while ((c = j_buffered_input_stream_get(buffered_stream)) >0) {
+        j_printf("%c", c);
+        j_string_append_c(s2, (jchar)c);
     }
 
     if (j_strcmp0(s1->data, s2->data)) {

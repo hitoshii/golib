@@ -1,7 +1,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = jlib jio jconf test docs
+SUBDIRS = jlib jio jconf test
 
 dist_doc_DATA = \
 	README\

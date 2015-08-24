@@ -16,12 +16,6 @@ AC_PREFIX_DEFAULT(/usr)
 AC_CHECK_LIB([pthread],[pthread_create], ,[AC_MSG_ERROR(You need to have pthread)])
 
 
-m4_ifdef([GTK_DOC_CHECK],[
-GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
-],[
-AM_CONDITIONAL([ENABLE_GTK_DOC], false)
-])
-
 AC_CONFIG_MACRO_DIR(m4)
 
 AC_PROG_CC
@@ -52,7 +46,4 @@ jio/Makefile
 jconf/Makefile
 jconf/jconf-0.1.pc
 test/Makefile
-docs/Makefile
-docs/reference/Makefile
-docs/reference/jconf/Makefile
 ])

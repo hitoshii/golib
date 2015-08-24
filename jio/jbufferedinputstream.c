@@ -21,9 +21,14 @@
 struct _JBufferedInputStream {
     JInputStream parent;
     JInputStream *base_stream;
-    JString *buffer;
+    // JString *buffer;
+    juint8 *buffer;
+    juint buffer_len;
+    juint buffer_total;
+    juint buffer_start;
     jboolean eof;
 };
+#define DEFAULT_BUFFER_SIZE (1024)
 
 
 static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
@@ -48,19 +53,31 @@ JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
     J_OBJECT_REF(input_stream);
     buffered_stream->base_stream = input_stream;
     buffered_stream->eof = FALSE;
-    buffered_stream->buffer = j_string_new();
+    buffered_stream->buffer=(juint8*)j_malloc(sizeof(juint8)*DEFAULT_BUFFER_SIZE);
+    buffered_stream->buffer_len=0;
+    buffered_stream->buffer_start=0;
+    buffered_stream->buffer_total=DEFAULT_BUFFER_SIZE;
     return buffered_stream;
 }
 
 static jboolean j_buffered_input_stream_read_buffer(JBufferedInputStream *
         stream) {
-    jchar buf[4096];
+    if(stream->buffer_start>0) {
+        memmove(stream->buffer, stream->buffer+stream->buffer_start, stream->buffer_start);
+        stream->buffer_start=0;
+    }
+    juint8 buf[4096];
     jint n = j_input_stream_read(stream->base_stream, buf, sizeof(buf));
     if (n <= 0) {
         stream->eof = TRUE;
         return FALSE;
     }
-    j_string_append_len(stream->buffer, buf, n);
+    while(stream->buffer_len+n>=stream->buffer_total) {
+        stream->buffer_total<<=1;
+        stream->buffer=(juint8*)j_realloc(stream->buffer, stream->buffer_total);
+    }
+    memcpy(stream->buffer+stream->buffer_start+stream->buffer_len, buf, n);
+    stream->buffer_len+=n;
     return TRUE;
 }
 
@@ -69,44 +86,58 @@ static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
     if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
         return -1;
     }
-    while (j_string_len(stream->buffer) < size && stream->eof == FALSE) {
+    while (stream->buffer_len < size && stream->eof == FALSE) {
         j_buffered_input_stream_read_buffer(stream);
     }
-    size = MIN(j_string_len(stream->buffer), size);
+    size = MIN(stream->buffer_len, size);
     if (size > 0) {
-        memcpy(buffer, j_string_data(stream->buffer), size);
-        j_string_erase(stream->buffer, 0, size);
+        memcpy(buffer, stream->buffer+stream->buffer_start, size);
+        stream->buffer_start+=size;
+        stream->buffer_len-=size;
     }
     return size;
 }
 
+juint8 *j_buffered_input_stream_find_newline(JBufferedInputStream *stream) {
+    jint i, len=stream->buffer_start+stream->buffer_len;
+    for (i = stream->buffer_start; i < len; i++) {
+        juint8 c=stream->buffer[i];
+        if(c=='\n') {
+            return stream->buffer+i;
+        }
+    }
+    return NULL;
+}
+
 jchar *j_buffered_input_stream_readline(JBufferedInputStream *
-                                        buffered_stream) {
+                                        stream) {
     if (J_UNLIKELY
-            (j_input_stream_is_closed((JInputStream *) buffered_stream))) {
+            (j_input_stream_is_closed((JInputStream *) stream))) {
         return NULL;
     }
-    JString *buffer = buffered_stream->buffer;
-    jchar *newline = strchr(buffer->data, '\n');
+
+    juint8 *newline = j_buffered_input_stream_find_newline(stream);
     jchar *ret;
     if (newline != NULL) {
-        ret = j_strndup(buffer->data, newline - buffer->data);
-        j_string_erase(buffer, 0, newline - buffer->data + 1);
+        juint len=newline - stream->buffer - stream->buffer_start;
+        ret = j_strndup((jchar*)(stream->buffer+stream->buffer_start), len);
+        len+=1; /* 去除换行符号 */
+        stream->buffer_start+=len;
+        stream->buffer_len-=len;
         return ret;
     }
 
-    if (j_buffered_input_stream_read_buffer(buffered_stream)) {
-        return j_buffered_input_stream_readline(buffered_stream);
+    if (j_buffered_input_stream_read_buffer(stream)) {
+        return j_buffered_input_stream_readline(stream);
     }
 
-    if (j_string_len(buffered_stream->buffer) == 0) {
+    if (stream->buffer_len == 0) {
         return NULL;
     }
 
-    ret =
-        j_strndup(j_string_data(buffered_stream->buffer),
-                  j_string_len(buffered_stream->buffer));
-    j_string_erase(buffered_stream->buffer, 0, -1);
+    ret = j_strndup((jchar*)(stream->buffer+stream->buffer_start), stream->buffer_len);
+    stream->buffer_start+=stream->buffer_len;
+    stream->buffer_len=0;
     return ret;
 }
 
@@ -115,20 +146,21 @@ jint j_buffered_input_stream_get(JBufferedInputStream *stream) {
             (j_input_stream_is_closed((JInputStream *) stream))) {
         return -1;
     }
-    while (j_string_len(stream->buffer) < 1 && stream->eof == FALSE) {
+    while (stream->buffer_len < 1 && stream->eof == FALSE) {
         j_buffered_input_stream_read_buffer(stream);
     }
-    if(j_string_len(stream->buffer)<=0) {
+    if(stream->buffer_len<=0) {
         return -1;
     }
-    jint c=j_string_data(stream->buffer)[0];
-    j_string_erase(stream->buffer, 0, 1);
+    jint c=*(stream->buffer+stream->buffer_start);
+    stream->buffer_start++;
+    stream->buffer_len--;
     return c;
 }
 
 static void j_buffered_input_stream_close(JBufferedInputStream *
         buffered_stream) {
-    j_string_free(buffered_stream->buffer, TRUE);
+    j_free(buffered_stream->buffer);
     buffered_stream->buffer = NULL;
     J_OBJECT_UNREF(buffered_stream->base_stream);
 }
@@ -142,24 +174,25 @@ void j_buffered_input_stream_push(JBufferedInputStream * stream,
     if (size < 0) {
         size = j_strlen(buf);
     }
-    j_string_preppend_len(stream->buffer, buf, size);
+    if(stream->buffer_start<size) {
+        while(size+stream->buffer_len>stream->buffer_total) {
+            stream->buffer_total<<=1;
+            stream->buffer=j_realloc(stream->buffer, stream->buffer_total);
+        }
+        memmove(stream->buffer+size, stream->buffer+stream->buffer_start, stream->buffer_len);
+        stream->buffer_start=size;
+    }
+    memcpy(stream->buffer+stream->buffer_start-size, buf, size);
+    stream->buffer_start-=size;
+    stream->buffer_len+=size;
 }
 
 void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
                                        const jchar * buf, jint size) {
-    if (J_UNLIKELY
-            (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
-        return;
-    }
-    if (size < 0) {
-        size = j_strlen(buf);
-    }
-    j_string_preppend_printf(stream->buffer, "%.*s\n", size, buf);
+    j_buffered_input_stream_push_c(stream, '\n');
+    j_buffered_input_stream_push(stream, buf, size);
 }
 
 void j_buffered_input_stream_push_c(JBufferedInputStream * stream, jchar c) {
-    if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
-        return;
-    }
-    j_string_preppend_c(stream->buffer, c);
+    j_buffered_input_stream_push(stream, &c, 1);
 }

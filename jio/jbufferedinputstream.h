@@ -43,6 +43,6 @@ void j_buffered_input_stream_push_c(JBufferedInputStream * stream,
  * Read a byte from buffer
  * Returns: negative if EOF
  */
-jint j_buffered_input_stream_get(JBufferedInputStream *buffered_stream);
+jint j_buffered_input_stream_get(JBufferedInputStream *stream);
 
 #endif
