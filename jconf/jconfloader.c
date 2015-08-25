@@ -151,7 +151,7 @@ typedef enum {
 } JConfLoaderState;
 
 #define j_conf_is_space(c) ((c)<=32)
-#define j_conf_is_end(c) (j_conf_is_space(c)||(c)==';')
+#define j_conf_is_end(c) (j_conf_is_space(c)||(c)==';'||(c)=='}')
 #define j_conf_is_comment(c) ((c)=='#')
 #define j_conf_is_key(c)    (j_ascii_isalnum(c)||(c)=='_'||(c)=='-')
 #define j_conf_is_key_start(c)  (j_ascii_isalpha(c)||(c)=='_')
@@ -682,6 +682,7 @@ static inline jboolean j_conf_loader_loads_object(JConfLoader * loader,
                                             buf + i + 1);
                     goto OUT;
                 } else if (buf[i] != ';') {
+                    j_printf("%s\n", buf+i);
                     j_conf_loader_set_errcode(loader,
                                               J_CONF_LOADER_ERR_MISSING_END);
                     goto OUT;
