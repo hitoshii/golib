@@ -18,6 +18,7 @@
 #include "junix.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 /* 系统调用socket(int,int,int)的包裹函数 */
 jint j_socket(jint family, jint type, jint protocol) {
@@ -147,4 +148,21 @@ pid_t j_wait(jint *stat_loc) {
         break;
     }
     return ret;
+}
+
+jint j_open(const jchar *path, jint oflag, ...) {
+    jint mode=0, fd;
+    if(oflag & O_CREAT) {
+        va_list ap;
+        va_start(ap, oflag);
+        mode=va_arg(ap, jint);
+        va_end(ap);
+    }
+    while((fd=open(path, oflag, mode))<0) {
+        if(errno==EINTR) {
+            continue;
+        }
+        break;
+    }
+    return fd;
 }

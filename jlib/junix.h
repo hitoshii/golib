@@ -42,4 +42,7 @@ jint j_write(jint fd, const void *buf, juint count);
 
 pid_t j_wait(jint *stat_loc);
 
+
+jint j_open(const jchar *path, jint oflag, ...);
+
 #endif
