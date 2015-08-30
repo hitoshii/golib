@@ -466,13 +466,13 @@ JList *j_conf_object_get_string_list(JConfObject *node, const jchar *name) {
     }
     JConfNodeType type=j_conf_node_get_type(child);
     if(type==J_CONF_NODE_TYPE_STRING) {
-        return j_list_append(NULL, j_strdup(j_conf_string_get((JConfString*)child)));
+        return j_list_append(NULL, (jpointer)j_conf_string_get((JConfString*)child));
     } else if(type==J_CONF_NODE_TYPE_ARRAY) {
         jint i, length=j_conf_array_get_length((JConfArray*)child);
         for (int i = 0; i < length; ++i) {
             JConfObject *obj = j_conf_array_get((JConfArray*)child, i);
             if(j_conf_node_is_string(obj)) {
-                strings=j_list_append(strings, j_strdup(j_conf_string_get((JConfString*)obj)));
+                strings=j_list_append(strings, (jpointer)j_conf_string_get((JConfString*)obj));
             }
         }
     }
