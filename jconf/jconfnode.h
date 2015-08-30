@@ -110,6 +110,9 @@ void j_conf_object_remove(JConfObject * node, const jchar * name);
 jint64 j_conf_object_get_integer(JConfObject *node, const jchar *name, jint64 def);
 const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, const jchar *def);
 jboolean j_conf_object_get_bool(JConfObject *node, const jchar *name, jboolean def);
+/*
+ */
+JList *j_conf_object_get_string_list(JConfObject *node, const jchar *name);
 
 /*
  * j_conf_object_get_integer_priority
@@ -131,6 +134,9 @@ const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *n
         const jchar *name, const jchar *def);
 jboolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
         const jchar *name, jboolean def);
+
+JList *j_conf_object_get_string_list_priority(JConfObject *root, JConfObject *node,
+        const jchar *name);
 /*
  * j_conf_object_lookup:
  * @node: JConfObject

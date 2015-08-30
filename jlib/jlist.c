@@ -346,3 +346,15 @@ JList *j_list_insert_before(JList * list, JList * sibling, jpointer data) {
         return j_list_append(list, data);
     }
 }
+
+JList *j_list_concat(JList *p1, JList *p2) {
+    if(p1==NULL) {
+        return p2;
+    } else if(p2==NULL) {
+        return p1;
+    }
+    JList *last=j_list_last(p1);
+    last->next=p2;
+    p2->prev=last;
+    return p1;
+}

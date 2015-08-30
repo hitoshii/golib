@@ -458,6 +458,27 @@ const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, cons
     return j_conf_string_get(child);
 }
 
+JList *j_conf_object_get_string_list(JConfObject *node, const jchar *name) {
+    JList *strings=NULL;
+    JConfNode *child=j_conf_object_get(node, name);
+    if(child==NULL) {
+        return strings;
+    }
+    JConfNodeType type=j_conf_node_get_type(child);
+    if(type==J_CONF_NODE_TYPE_STRING) {
+        return j_list_append(NULL, j_strdup(j_conf_string_get((JConfString*)child)));
+    } else if(type==J_CONF_NODE_TYPE_ARRAY) {
+        jint i, length=j_conf_array_get_length((JConfArray*)child);
+        for (int i = 0; i < length; ++i) {
+            JConfObject *obj = j_conf_array_get((JConfArray*)child, i);
+            if(j_conf_node_is_string(obj)) {
+                strings=j_list_append(strings, j_strdup(j_conf_string_get((JConfString*)obj)));
+            }
+        }
+    }
+    return strings;
+}
+
 jboolean j_conf_object_get_bool(JConfObject *node, const jchar *name, jboolean def) {
     JConfNode *child=j_conf_object_get(node, name);
     if(child==NULL||!j_conf_node_is_bool(child)) {
@@ -503,6 +524,13 @@ jboolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
         return j_conf_bool_get(child);
     }
     return def;
+}
+
+JList *j_conf_object_get_string_list_priority(JConfObject *root, JConfObject *node,
+        const jchar *name) {
+    JList *strings=j_conf_object_get_string_list(root, name);
+    strings=j_list_concat(strings, j_conf_object_get_string_list(node, name));
+    return strings;
 }
 
 JPtrArray *j_conf_object_get_keys(JConfObject * node) {

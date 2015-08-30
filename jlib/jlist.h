@@ -126,4 +126,6 @@ jint j_list_position(JList * list, JList * link);
 jint j_list_index(JList * list, jconstpointer data);
 
 
+JList *j_list_concat(JList *p1, JList *p2);
+
 #endif
