@@ -489,9 +489,12 @@ jboolean j_conf_object_get_bool(JConfObject *node, const jchar *name, jboolean d
 
 jint64 j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
         const jchar *name, jint64 def) {
-    JConfNode *child=j_conf_object_get(node, name);
-    if(child!=NULL && j_conf_node_is_integer(child)) {
-        return j_conf_integer_get(child);
+    JConfNode *child;
+    if(node!=NULL) {
+        child=j_conf_object_get(node, name);
+        if(child!=NULL && j_conf_node_is_integer(child)) {
+            return j_conf_integer_get(child);
+        }
     }
     child=j_conf_object_get(root ,name);
     if(child!=NULL && j_conf_node_is_integer(child)) {
@@ -502,9 +505,12 @@ jint64 j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
 
 const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *node,
         const jchar *name, const jchar *def) {
-    JConfNode *child=j_conf_object_get(node, name);
-    if(child!=NULL&&j_conf_node_is_string(child)) {
-        return j_conf_string_get(child);
+    JConfNode *child;
+    if(node!=NULL) {
+        child=j_conf_object_get(node, name);
+        if(child!=NULL&&j_conf_node_is_string(child)) {
+            return j_conf_string_get(child);
+        }
     }
     child=j_conf_object_get(root, name);
     if(child!=NULL&&j_conf_node_is_string(child)) {
@@ -515,9 +521,12 @@ const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *n
 
 jboolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
         const jchar *name, jboolean def) {
-    JConfNode *child=j_conf_object_get(node, name);
-    if(child!=NULL&&j_conf_node_is_bool(child)) {
-        return j_conf_bool_get(child);
+    JConfNode *child;
+    if(node!=NULL) {
+        child=j_conf_object_get(node, name);
+        if(child!=NULL&&j_conf_node_is_bool(child)) {
+            return j_conf_bool_get(child);
+        }
     }
     child=j_conf_object_get(root,name);
     if(child!=NULL&&j_conf_node_is_bool(child)) {
