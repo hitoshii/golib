@@ -28,7 +28,7 @@ struct _JAsyncQueue {
     JCond cond;
     JQueue queue;
     JDestroyNotify free_func;
-    juint waiting_threads;
+    unsigned int waiting_threads;
 };
 
 #define ASYNC_QUEUE_LOCK(q) j_mutex_lock(&(q)->mutex)
@@ -70,14 +70,14 @@ void j_async_queue_unlock(JAsyncQueue * queue) {
     ASYNC_QUEUE_UNLOCK(queue);
 }
 
-void j_async_queue_push(JAsyncQueue * queue, jpointer data) {
+void j_async_queue_push(JAsyncQueue * queue, void * data) {
     j_return_if_fail(data != NULL);
     ASYNC_QUEUE_LOCK(queue);
     j_async_queue_push_unlocked(queue, data);
     ASYNC_QUEUE_UNLOCK(queue);
 }
 
-void j_async_queue_push_unlocked(JAsyncQueue * queue, jpointer data) {
+void j_async_queue_push_unlocked(JAsyncQueue * queue, void * data) {
     j_return_if_fail(data != NULL);
     j_queue_push_head(&queue->queue, data);
     if (queue->waiting_threads > 0) {
@@ -85,25 +85,25 @@ void j_async_queue_push_unlocked(JAsyncQueue * queue, jpointer data) {
     }
 }
 
-void j_async_queue_push_sorted(JAsyncQueue * queue, jpointer data,
-                               JCompareDataFunc func, jpointer user_data) {
+void j_async_queue_push_sorted(JAsyncQueue * queue, void * data,
+                               JCompareDataFunc func, void * user_data) {
     ASYNC_QUEUE_LOCK(queue);
     j_async_queue_push_sorted_unlocked(queue, data, func, user_data);
     ASYNC_QUEUE_UNLOCK(queue);
 }
 
-void j_async_queue_push_sorted_unlocked(JAsyncQueue * queue, jpointer data,
+void j_async_queue_push_sorted_unlocked(JAsyncQueue * queue, void * data,
                                         JCompareDataFunc func,
-                                        jpointer user_data) {
+                                        void * user_data) {
     j_queue_insert_sorted(&queue->queue, data, func, user_data);
     if (queue->waiting_threads > 0) {
         j_cond_signal(&queue->cond);
     }
 }
 
-static jpointer j_async_queue_pop_internal_unlocked(JAsyncQueue * queue,
-        jboolean wait,
-        jint64 end_time) {
+static void * j_async_queue_pop_internal_unlocked(JAsyncQueue * queue,
+        boolean wait,
+        int64_t end_time) {
     if (!j_queue_peek_tail_link(&queue->queue) && wait) {
         /* 如果队列的最后一个元素为空，且需要等待 */
         queue->waiting_threads++;
@@ -119,66 +119,66 @@ static jpointer j_async_queue_pop_internal_unlocked(JAsyncQueue * queue,
         }
         queue->waiting_threads--;
     }
-    jpointer retval = j_queue_pop_tail(&queue->queue);
+    void * retval = j_queue_pop_tail(&queue->queue);
     return retval;
 }
 
-jpointer j_async_queue_pop(JAsyncQueue * queue) {
+void * j_async_queue_pop(JAsyncQueue * queue) {
     ASYNC_QUEUE_LOCK(queue);
-    jpointer retval = j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
+    void * retval = j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
     ASYNC_QUEUE_UNLOCK(queue);
     return retval;
 }
 
-jpointer j_async_queue_pop_unlocked(JAsyncQueue * queue) {
+void * j_async_queue_pop_unlocked(JAsyncQueue * queue) {
     return j_async_queue_pop_internal_unlocked(queue, TRUE, -1);
 }
 
-jpointer j_async_queue_try_pop(JAsyncQueue * queue) {
+void * j_async_queue_try_pop(JAsyncQueue * queue) {
     ASYNC_QUEUE_LOCK(queue);
-    jpointer retval =
+    void * retval =
         j_async_queue_pop_internal_unlocked(queue, FALSE, -1);
     ASYNC_QUEUE_UNLOCK(queue);
     return retval;
 }
 
-jpointer j_async_queue_try_pop_unlocked(JAsyncQueue * queue) {
+void * j_async_queue_try_pop_unlocked(JAsyncQueue * queue) {
     return j_async_queue_pop_internal_unlocked(queue, FALSE, -1);
 }
 
-jpointer j_async_queue_timeout_pop(JAsyncQueue * queue, juint64 timeout) {
+void * j_async_queue_timeout_pop(JAsyncQueue * queue, uint64_t timeout) {
     ASYNC_QUEUE_LOCK(queue);
-    jpointer retval = j_async_queue_timeout_pop_unlocked(queue, timeout);
+    void * retval = j_async_queue_timeout_pop_unlocked(queue, timeout);
     ASYNC_QUEUE_UNLOCK(queue);
     return retval;
 }
 
-jpointer j_async_queue_timeout_pop_unlocked(JAsyncQueue * queue,
-        juint64 timeout) {
-    jint64 end_time = j_get_monotonic_time() + timeout;
+void * j_async_queue_timeout_pop_unlocked(JAsyncQueue * queue,
+        uint64_t timeout) {
+    int64_t end_time = j_get_monotonic_time() + timeout;
     return j_async_queue_pop_internal_unlocked(queue, TRUE, end_time);
 }
 
-jint j_async_queue_length(JAsyncQueue * queue) {
+int j_async_queue_length(JAsyncQueue * queue) {
     ASYNC_QUEUE_LOCK(queue);
-    jint retval = queue->queue.length - queue->waiting_threads;
+    int retval = queue->queue.length - queue->waiting_threads;
     ASYNC_QUEUE_UNLOCK(queue);
     return retval;
 }
 
-jint j_async_queue_length_unlocked(JAsyncQueue * queue) {
+int j_async_queue_length_unlocked(JAsyncQueue * queue) {
     return queue->queue.length - queue->waiting_threads;
 }
 
 void j_async_queue_sort(JAsyncQueue * queue, JCompareDataFunc func,
-                        jpointer user_data) {
+                        void * user_data) {
     ASYNC_QUEUE_LOCK(queue);
     j_queue_sort(&queue->queue, func, user_data);
     ASYNC_QUEUE_UNLOCK(queue);
 }
 
 void j_async_queue_sort_unlocked(JAsyncQueue * queue,
-                                 JCompareDataFunc func, jpointer user_data) {
+                                 JCompareDataFunc func, void * user_data) {
     j_queue_sort(&queue->queue, func, user_data);
 }
 

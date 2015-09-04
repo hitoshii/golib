@@ -24,10 +24,10 @@
 /*
  * Queries the system monotonic time.
  */
-jint64 j_get_monotonic_time(void);
+int64_t j_get_monotonic_time(void);
 
 /* JSource */
-typedef jboolean(*JSourceFunc) (jpointer user_data);
+typedef boolean(*JSourceFunc) (void * user_data);
 
 typedef struct _JSourceCallbackFuncs JSourceCallbackFuncs;
 typedef struct _JSourceFuncs JSourceFuncs;
@@ -54,38 +54,38 @@ typedef enum {
  * JSource的事件函数
  */
 struct _JSourceFuncs {
-    jboolean(*prepare) (JSource * source, jint * timeout);
-    jboolean(*check) (JSource * source);
-    jboolean(*dispatch) (JSource * source, JSourceFunc callback,
-                         jpointer user_data);
+    boolean(*prepare) (JSource * source, int * timeout);
+    boolean(*check) (JSource * source);
+    boolean(*dispatch) (JSource * source, JSourceFunc callback,
+                        void * user_data);
     void (*finalize) (JSource * source);
 };
 
 struct _JSource {
     JSourceCallbackFuncs *callback_funcs;
-    jpointer callback_data;
+    void * callback_data;
 
     /* 在不同阶段调用的JSource函数 */
     const JSourceFuncs *funcs;
-    juint ref;
+    unsigned int ref;
 
     JMainContext *context;
-    juint flags;
-    juint id;                   /* source id */
+    unsigned int flags;
+    unsigned int id;                   /* source id */
     JSList *poll_fds;           /* JXPollRecord* */
-    jchar *name;
+    char *name;
 
-    jint64 ready_time;
+    int64_t ready_time;
 };
 
 
-const jchar *j_source_get_name(JSource * src);
-juint j_source_get_id(JSource * src);
+const char *j_source_get_name(JSource * src);
+unsigned int j_source_get_id(JSource * src);
 JMainContext *j_source_get_context(JSource * src);
-void j_source_set_ready_time(JSource * src, jint64 ready_time);
+void j_source_set_ready_time(JSource * src, int64_t ready_time);
 void j_source_set_callback(JSource * src, JSourceFunc func,
-                           jpointer data, JDestroyNotify destroy);
-void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
+                           void * data, JDestroyNotify destroy);
+void j_source_set_callback_indirect(JSource * src, void * callback_data,
                                     JSourceCallbackFuncs * callback_funcs);
 
 /*
@@ -93,12 +93,12 @@ void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
  * The size is specified to allow createing structures derived from JSource that contain additional data.
  * The size must be greater than sizeof(JSource)
  */
-JSource *j_source_new(JSourceFuncs * funcs, juint struct_size);
+JSource *j_source_new(JSourceFuncs * funcs, unsigned int struct_size);
 
 /*
  * Monitors fd for the IO events in events .
  */
-void j_source_add_poll_fd(JSource * src, jint fd, juint io);
+void j_source_add_poll_fd(JSource * src, int fd, unsigned int io);
 
 
 /*
@@ -118,17 +118,17 @@ void j_source_unref(JSource * src);
  */
 void j_source_destroy(JSource * src);
 
-jboolean j_source_is_destroyed(JSource * src);
+boolean j_source_is_destroyed(JSource * src);
 
 
-jint64 j_source_get_time(JSource * src);
+int64_t j_source_get_time(JSource * src);
 
 
 /*
  * Adds a GSource to a context so that it will be executed within that context.
  * Returns the source ID
  */
-juint j_source_attach(JSource * src, JMainContext * ctx);
+unsigned int j_source_attach(JSource * src, JMainContext * ctx);
 
 /*
  * Creates a new JMainContext
@@ -155,7 +155,7 @@ void j_main_context_unref(JMainContext * ctx);
  * If some other thread is the owner of the context, returns FALSE immediately.
  * Ownership is properly recursive: the owner can require ownership again and will release ownership when g_main_context_release() is called as many times as g_main_context_acquire().
  */
-jboolean j_main_context_acquire(JMainContext * ctx);
+boolean j_main_context_acquire(JMainContext * ctx);
 
 
 /*
@@ -168,40 +168,40 @@ void j_main_context_release(JMainContext * ctx);
 /*
  * 检查当前线程是否拥有了该JMainContext
  */
-jboolean j_main_context_is_owner(JMainContext * ctx);
+boolean j_main_context_is_owner(JMainContext * ctx);
 
 /*
  * Tries to become the owner of the specified context, as with g_main_context_acquire().
  * But if another thread is the owner, atomically drop mutex and wait on cond until that owner releases ownership or until cond is signaled, then try again (once) to become the owner.
  */
-jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
-                             JMutex * mutex);
+boolean j_main_context_wait(JMainContext * ctx, JCond * cond,
+                            JMutex * mutex);
 
 /*
  * Wakeup context if it is blocked
  */
 void j_main_context_wakeup(JMainContext * ctx);
 
-jboolean j_main_context_prepare(JMainContext * ctx);
-jint j_main_context_query(JMainContext * ctx, jint * timeout);
-jboolean j_main_context_check(JMainContext * ctx,
-                              JXPollEvent * fds, jint n_fds);
+boolean j_main_context_prepare(JMainContext * ctx);
+int j_main_context_query(JMainContext * ctx, int * timeout);
+boolean j_main_context_check(JMainContext * ctx,
+                             JXPollEvent * fds, int n_fds);
 void j_main_context_dispatch(JMainContext * ctx);
 
 /*
  * Runs a single iteration
  */
-jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block);
+boolean j_main_context_iteration(JMainContext * ctx, boolean may_block);
 
-jint j_main_depth(void);
+int j_main_depth(void);
 JSource *j_main_current_source(void);
 
 /*
  * Creates a new JMainLoop
  */
-JMainLoop *j_main_loop_new(JMainContext * ctx, jboolean is_running);
+JMainLoop *j_main_loop_new(JMainContext * ctx, boolean is_running);
 
-jboolean j_main_loop_is_running(JMainLoop * loop);
+boolean j_main_loop_is_running(JMainLoop * loop);
 JMainContext *j_main_loop_get_context(JMainLoop * loop);
 
 void j_main_loop_ref(JMainLoop * loop);
@@ -225,30 +225,30 @@ void j_main_quit(void);
  */
 typedef struct _JTimeoutSource JTimeoutSource;
 
-JSource *j_timeout_source_new(juint interval);
+JSource *j_timeout_source_new(unsigned int interval);
 
-juint j_timeout_add_full(juint32 interval,
-                         JSourceFunc function, jpointer data,
-                         JDestroyNotify destroy);
-juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data);
+unsigned int j_timeout_add_full(uint32_t interval,
+                                JSourceFunc function, void * data,
+                                JDestroyNotify destroy);
+unsigned int j_timeout_add(uint32_t interval, JSourceFunc function, void * data);
 
 /*
  * XXX seconds版本用来减少回调的次数，它并不保证回调及时，可能快一点也可能慢一点
  */
-JSource *j_timeout_source_new_seconds(juint interval);
-juint j_timeout_add_seconds_full(juint interval,
-                                 JSourceFunc function, jpointer data,
-                                 JDestroyNotify destroy);
-juint j_timeout_add_seconds(juint32 interval, JSourceFunc function,
-                            jpointer data);
+JSource *j_timeout_source_new_seconds(unsigned int interval);
+unsigned int j_timeout_add_seconds_full(unsigned int interval,
+                                        JSourceFunc function, void * data,
+                                        JDestroyNotify destroy);
+unsigned int j_timeout_add_seconds(uint32_t interval, JSourceFunc function,
+                                   void * data);
 
 /*
  * 空闲回调
  */
 JSource *j_idle_source_new(void);
-juint j_idle_add_full(JSourceFunc function, jpointer data,
-                      JDestroyNotify destroy);
-juint j_idle_add(JSourceFunc function, jpointer data);
+unsigned int j_idle_add_full(JSourceFunc function, void * data,
+                             JDestroyNotify destroy);
+unsigned int j_idle_add(JSourceFunc function, void * data);
 
 
 #endif

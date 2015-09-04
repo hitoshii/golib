@@ -16,10 +16,10 @@
  */
 #include <jio/jio.h>
 
-static jboolean async_result = FALSE;
+static boolean async_result = FALSE;
 
-static jboolean recv_callback(JSocket * socket, const jchar * buffer,
-                              jint size, jpointer user_daata) {
+static boolean recv_callback(JSocket * socket, const char * buffer,
+                             int size, void * user_daata) {
     if (size == 0) {
         async_result = TRUE;
         j_main_quit();
@@ -32,14 +32,14 @@ static jboolean recv_callback(JSocket * socket, const jchar * buffer,
     return FALSE;
 }
 
-static void send_callback(JSocket * socket, jint ret, jpointer user_data) {
+static void send_callback(JSocket * socket, int ret, void * user_data) {
     if (ret <= 0) {
         j_main_quit();
         return;
     }
     j_socket_receive_async(socket, recv_callback, NULL);
-    jchar buf[1024];
-    jint n;
+    char buf[1024];
+    int n;
     while ((n = j_socket_receive(socket, buf, sizeof(buf) - 1)) > 0) {
         buf[n - 1] = '\0';
         printf("%s", buf);
@@ -81,7 +81,7 @@ int main(int argc, char const *argv[]) {
         return 6;
     }
 
-    jint err;
+    int err;
     while (!j_socket_check_connect_result(socket, &err) && err == 0) {
     }
     if (err) {
@@ -94,8 +94,8 @@ int main(int argc, char const *argv[]) {
              -1) <= 0) {
         return 8;
     }
-    jchar buf[1024];
-    jint n;
+    char buf[1024];
+    int n;
     while ((n = j_socket_receive(socket, buf, sizeof(buf) - 1)) > 0) {
         buf[n - 1] = '\0';
     }

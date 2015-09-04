@@ -39,16 +39,16 @@ struct _JInetAddress {
 
 struct _JInetSocketAddress {
     JInetAddress address;
-    juint16 port;
-    juint32 flowinfo;
-    juint32 scope_id;
+    uint16_t port;
+    uint32_t flowinfo;
+    uint32_t scope_id;
 };
 
 #define UNIX_PATH_MAX (sizeof(((struct sockaddr_un *)0)->sun_path) + 1)
 
 /* XXX 还没有实现 */
 struct _JUnixSocketAddress {
-    jchar path[UNIX_PATH_MAX];
+    char path[UNIX_PATH_MAX];
     JUnixSocketAddressType type;
 };
 
@@ -69,34 +69,34 @@ struct _JSocketAddress {
 /*
  * 转化为一个struct sockaddr结构
  */
-juint j_socket_address_get_native_size(JSocketAddress * addr);
-jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
-                                    juint len);
+unsigned int j_socket_address_get_native_size(JSocketAddress * addr);
+boolean j_socket_address_to_native(JSocketAddress * addr, void * dest,
+                                   unsigned int len);
 /*
  * 从一个struct sockaddr结构创建
  */
-JSocketAddress *j_socket_address_new_from_native(jpointer native,
-        juint size);
-jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
-        jpointer native, juint size);
+JSocketAddress *j_socket_address_new_from_native(void * native,
+        unsigned int size);
+boolean j_socket_address_init_from_native(JSocketAddress * saddr,
+        void * native, unsigned int size);
 void j_socket_address_init_copy(JSocketAddress * saddr,
                                 JSocketAddress * addr);
 /* 创建一个网络地址  */
 JSocketAddress *j_inet_socket_address_new(JInetAddress * addr,
-        juint16 port);
+        uint16_t port);
 void j_inet_socket_address_init(JSocketAddress * saddr,
-                                JInetAddress * addr, juint16 port);
-JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
-        address, juint port);
-jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
-        const jchar * address,
-        juint port);
+                                JInetAddress * addr, uint16_t port);
+JSocketAddress *j_inet_socket_address_new_from_string(const char *
+        address, unsigned int port);
+boolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
+        const char * address,
+        unsigned int port);
 
 /* 获取地址和端口号 */
-jushort j_inet_socket_address_get_port(JSocketAddress * addr);
+unsigned short j_inet_socket_address_get_port(JSocketAddress * addr);
 JInetAddress *j_inet_socket_address_get_address(JSocketAddress * addr);
 /* 生成地址的字符串形式，如127.0.0.1:1234 */
-jchar *j_inet_socket_address_to_string(JSocketAddress * addr);
+char *j_inet_socket_address_to_string(JSocketAddress * addr);
 
 /*
  * JInetAddress IP地址结构，不包含端口号
@@ -107,23 +107,23 @@ JInetAddress *j_inet_address_new_loopback(JSocketFamily family);
 void j_inet_address_init_loopback(JInetAddress * addr,
                                   JSocketFamily family);
 JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
-        const juint8 * bytes);
+        const uint8_t * bytes);
 void j_inet_address_init_from_bytes(JInetAddress * addr,
                                     JSocketFamily family,
-                                    const juint8 * bytes);
-JInetAddress *j_inet_address_new_from_string(const jchar * string);
-jboolean j_inet_address_init_from_string(JInetAddress * addr,
-        const jchar * string);
+                                    const uint8_t * bytes);
+JInetAddress *j_inet_address_new_from_string(const char * string);
+boolean j_inet_address_init_from_string(JInetAddress * addr,
+                                        const char * string);
 JSocketFamily j_inet_address_get_family(JInetAddress * addr);
-jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another);
-const juint8 *j_inet_address_to_bytes(JInetAddress * addr);
-jchar *j_inet_address_to_string(JInetAddress * addr);
-jchar *j_inet_address_to_string_with_port(JInetAddress * addr,
-        jushort port);
-juint j_inet_address_get_native_size(JInetAddress * addr);
-jboolean j_inet_address_is_any(JInetAddress * addr);    /* 该地址是否表示任意地址 */
-jboolean j_inet_address_is_loopback(JInetAddress * addr);   /* 判断是否是回环地址，127.0.0.0/8 */
-jboolean j_inet_address_is_multicast(JInetAddress * addr);  /* 判断是否是广播地址 */
+boolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another);
+const uint8_t *j_inet_address_to_bytes(JInetAddress * addr);
+char *j_inet_address_to_string(JInetAddress * addr);
+char *j_inet_address_to_string_with_port(JInetAddress * addr,
+        unsigned short port);
+unsigned int j_inet_address_get_native_size(JInetAddress * addr);
+boolean j_inet_address_is_any(JInetAddress * addr);    /* 该地址是否表示任意地址 */
+boolean j_inet_address_is_loopback(JInetAddress * addr);   /* 判断是否是回环地址，127.0.0.0/8 */
+boolean j_inet_address_is_multicast(JInetAddress * addr);  /* 判断是否是广播地址 */
 #define j_inet_address_free(addr) j_free(addr);
 
 

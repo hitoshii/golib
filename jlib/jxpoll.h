@@ -41,19 +41,19 @@ typedef enum {
 } JXPollControl;
 
 typedef struct {
-    jint fd;
-    jushort events;
-    jpointer user_data;
+    int fd;
+    unsigned short events;
+    void * user_data;
 } JXPollEvent;
 
 JXPoll *j_xpoll_new(void);
 void j_xpoll_close(JXPoll *p);
 
-jboolean j_xpoll_add(JXPoll *p, jint fd, jushort events, jpointer user_data);
-jboolean j_xpoll_del(JXPoll *p, jint fd, jushort events);
+boolean j_xpoll_add(JXPoll *p, int fd, unsigned short events, void * user_data);
+boolean j_xpoll_del(JXPoll *p, int fd, unsigned short events);
 
-jint j_xpoll_wait(JXPoll *p, JXPollEvent *events, juint maxevent, jint timeout);
+int j_xpoll_wait(JXPoll *p, JXPollEvent *events, unsigned int maxevent, int timeout);
 
-juint j_xpoll_event_count(JXPoll *p);
+unsigned int j_xpoll_event_count(JXPoll *p);
 
 #endif

@@ -36,9 +36,9 @@
 #define J_GNUC_MALLOC
 #endif
 
-#define JPOINTER_TO_JUINT(p) ((juint)(julong) (p))
-#define JUINT_TO_JPOINTER(u) ((jpointer)(julong) u)
-#define JINT_TO_JPOINTER(i)  ((jpointer)(jlong) i)
+#define JPOINTER_TO_JUINT(p) ((unsigned int)(unsigned long) (p))
+#define JUINT_TO_JPOINTER(u) ((void *)(unsigned long) u)
+#define JINT_TO_JPOINTER(i)  ((void *)(long) i)
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
 #define _J_BOOLEAN_EXPR(expr)                   \

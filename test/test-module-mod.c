@@ -17,11 +17,11 @@
 
 #include <jlib/jlib.h>
 
-const jchar *name="nice";
+const char *name="nice";
 
-jint id=123;
+int id=123;
 
-jfloat scale=0.5;
+float scale=0.5;
 
 int sum(int a, int b) {
     return a+b;

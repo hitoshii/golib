@@ -28,15 +28,15 @@
 
 typedef struct {
     JXPollEvent event;
-    jushort revent;             /* epoll_wait 返回的事件 */
+    unsigned short revent;             /* epoll_wait 返回的事件 */
 } JXPollRecord;
 
 
 struct _JSourceCallbackFuncs {
-    void (*ref) (jpointer cb_data);
-    void (*unref) (jpointer cb_data);
-    void (*get) (jpointer cb_data, JSource * source,
-                 JSourceFunc * func, jpointer * data);
+    void (*ref) (void * cb_data);
+    void (*unref) (void * cb_data);
+    void (*get) (void * cb_data, JSource * source,
+                 JSourceFunc * func, void * * data);
 };
 
 
@@ -54,18 +54,18 @@ struct _JMainContext {
     JMutex mutex;
     JCond cond;
     JThread *owner;
-    juint owner_count;
+    unsigned int owner_count;
     JSList *waiters;
 
-    jint ref;
-    JHashTable *sources;        /* juint -> JSource */
+    int ref;
+    JHashTable *sources;        /* unsigned int -> JSource */
 
     JPtrArray *pending_dispatches;
-    jint timeout;               /* timeout for current iteration */
+    int timeout;               /* timeout for current iteration */
 
-    juint next_id;
+    unsigned int next_id;
     JList *source_lists;
-    jint in_check_or_prepare;
+    int in_check_or_prepare;
 
     JWakeup *wakeup;
     JXPollRecord wakeup_record;
@@ -74,11 +74,11 @@ struct _JMainContext {
 
     JPtrArray *poll_records;
     JXPollEvent *cached_poll_array;
-    juint cached_poll_array_size;
-    jboolean poll_changed;
+    unsigned int cached_poll_array_size;
+    boolean poll_changed;
 
-    jint64 time;
-    jboolean time_is_fresh;
+    int64_t time;
+    boolean time_is_fresh;
 };
 
 #define J_MAIN_CONTEXT_LOCK(ctx)    j_mutex_lock(&(ctx)->mutex)
@@ -92,15 +92,15 @@ struct _JMainContext {
 
 struct _JMainLoop {
     JMainContext *context;
-    jboolean is_running;
-    jint ref;
+    boolean is_running;
+    int ref;
 };
 
 
 typedef struct {
-    juint ref;
+    unsigned int ref;
     JSourceFunc func;
-    jpointer data;
+    void * data;
     JDestroyNotify notify;
 } JSourceCallback;
 
@@ -111,7 +111,7 @@ typedef struct {
 
 
 typedef struct {
-    jint depth;
+    int depth;
     JSource *source;
 } JMainDispatch;
 
@@ -130,7 +130,7 @@ static inline JMainDispatch *j_get_dispatch(void) {
     return dispatch;
 }
 
-jint j_main_depth(void) {
+int j_main_depth(void) {
     JMainDispatch *dispatch = j_get_dispatch();
     return dispatch->depth;
 }
@@ -140,7 +140,7 @@ JSource *j_main_current_source(void) {
     return dispatch->source;
 }
 
-jboolean j_source_is_destroyed(JSource * src) {
+boolean j_source_is_destroyed(JSource * src) {
     return J_SOURCE_IS_DESTROYED(src);
 }
 
@@ -161,15 +161,15 @@ static inline void j_main_context_add_poll_unlocked(JMainContext * ctx,
     j_wakeup_signal(ctx->wakeup);
 }
 
-jint64 j_get_monotonic_time(void) {
+int64_t j_get_monotonic_time(void) {
     struct timespec ts;
-    jint result;
+    int result;
 
     result = clock_gettime(CLOCK_MONOTONIC, &ts);
 
     j_return_val_if_fail(result == 0, -1);
 
-    return (((jint64) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
+    return (((int64_t) ts.tv_sec) * 1000000) + (ts.tv_nsec / 1000);
 }
 
 
@@ -178,7 +178,7 @@ jint64 j_get_monotonic_time(void) {
  * The size is specified to allow createing structures derived from JSource that contain additional data.
  * The size must be greater than sizeof(JSource)
  */
-JSource *j_source_new(JSourceFuncs * funcs, juint struct_size) {
+JSource *j_source_new(JSourceFuncs * funcs, unsigned int struct_size) {
     j_return_val_if_fail(struct_size >= sizeof(JSource), NULL);
 
     JSource *src = (JSource *) j_malloc0(struct_size);
@@ -190,14 +190,14 @@ JSource *j_source_new(JSourceFuncs * funcs, juint struct_size) {
 }
 
 
-const jchar *j_source_get_name(JSource * src) {
+const char *j_source_get_name(JSource * src) {
     return src->name;
 }
 
-juint j_source_get_id(JSource * src) {
+unsigned int j_source_get_id(JSource * src) {
     j_return_val_if_fail(src->context != NULL, 0);
     J_MAIN_CONTEXT_LOCK(src->context);
-    juint result = src->id;
+    unsigned int result = src->id;
     J_MAIN_CONTEXT_UNLOCK(src->context);
     return result;
 }
@@ -208,7 +208,7 @@ JMainContext *j_source_get_context(JSource * src) {
 }
 
 
-jint64 j_source_get_time(JSource * src) {
+int64_t j_source_get_time(JSource * src) {
     j_return_val_if_fail(src->context != NULL, 0);
 
     JMainContext *ctx = src->context;
@@ -218,12 +218,12 @@ jint64 j_source_get_time(JSource * src) {
         ctx->time = j_get_monotonic_time();
         ctx->time_is_fresh = TRUE;
     }
-    jint64 result = ctx->time;
+    int64_t result = ctx->time;
     J_MAIN_CONTEXT_UNLOCK(ctx);
     return result;
 }
 
-void j_source_set_ready_time(JSource * src, jint64 ready_time) {
+void j_source_set_ready_time(JSource * src, int64_t ready_time) {
     j_return_if_fail(src != NULL && src->ref > 0);
     if (src->ready_time == ready_time) {
         return;
@@ -245,7 +245,7 @@ void j_source_set_ready_time(JSource * src, jint64 ready_time) {
     }
 }
 
-void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
+void j_source_set_callback_indirect(JSource * src, void * callback_data,
                                     JSourceCallbackFuncs * callback_funcs) {
     j_return_if_fail(src != NULL && callback_funcs != NULL
                      && callback_data != NULL);
@@ -254,7 +254,7 @@ void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
     if (ctx) {
         J_MAIN_CONTEXT_LOCK(ctx);
     }
-    jpointer old_cb_data = src->callback_data;
+    void * old_cb_data = src->callback_data;
     JSourceCallbackFuncs *old_cb_funcs = src->callback_funcs;
 
     src->callback_data = callback_data;
@@ -268,12 +268,12 @@ void j_source_set_callback_indirect(JSource * src, jpointer callback_data,
     }
 }
 
-static void j_source_callback_ref(jpointer cb_data) {
+static void j_source_callback_ref(void * cb_data) {
     JSourceCallback *callback = cb_data;
     callback->ref++;
 }
 
-static void j_source_callback_unref(jpointer cb_data) {
+static void j_source_callback_unref(void * cb_data) {
     JSourceCallback *callback = cb_data;
     callback->ref--;
     if (callback->ref == 0) {
@@ -284,9 +284,9 @@ static void j_source_callback_unref(jpointer cb_data) {
     }
 }
 
-static void j_source_callback_get(jpointer cb_data,
+static void j_source_callback_get(void * cb_data,
                                   JSource * src, JSourceFunc * func,
-                                  jpointer * data) {
+                                  void * * data) {
     JSourceCallback *callback = (JSourceCallback *) cb_data;
     *func = callback->func;
     *data = callback->data;
@@ -299,7 +299,7 @@ static JSourceCallbackFuncs j_source_callback_funcs = {
 };
 
 void j_source_set_callback(JSource * src, JSourceFunc func,
-                           jpointer data, JDestroyNotify destroy) {
+                           void * data, JDestroyNotify destroy) {
     j_return_if_fail(src != NULL);
 
     JSourceCallback *new_callback = j_malloc(sizeof(JSourceCallback));
@@ -315,7 +315,7 @@ void j_source_set_callback(JSource * src, JSourceFunc func,
 /*
  * Monitors fd for the IO events in events .
  */
-void j_source_add_poll_fd(JSource * src, jint fd, juint io) {
+void j_source_add_poll_fd(JSource * src, int fd, unsigned int io) {
     JXPollRecord *e = (JXPollRecord *) j_malloc(sizeof(JXPollRecord));
     e->event.fd = fd;
     e->event.events = io;
@@ -331,21 +331,21 @@ void j_source_add_poll_fd(JSource * src, jint fd, juint io) {
 
 static inline void j_source_unref_internal(JSource * src,
         JMainContext * ctx,
-        jboolean has_lock);
+        boolean has_lock);
 static inline void j_source_destroy_internal(JSource * src,
         JMainContext * ctx,
-        jboolean has_lock);
+        boolean has_lock);
 
 static inline void j_source_destroy_internal(JSource * src,
         JMainContext * ctx,
-        jboolean has_lock) {
+        boolean has_lock) {
     if (!has_lock) {
         J_MAIN_CONTEXT_LOCK(ctx);
     }
 
     if (!J_SOURCE_IS_DESTROYED(src)) {
         JSList *tmp_list;
-        jpointer old_cb_data;
+        void * old_cb_data;
         JSourceCallbackFuncs *old_cb_funcs;
         src->flags &= ~J_SOURCE_FLAG_ACTIVE;
 
@@ -400,10 +400,10 @@ static inline void source_remove_from_context(JSource * src,
  */
 static inline void j_source_unref_internal(JSource * src,
         JMainContext * ctx,
-        jboolean has_lock) {
+        boolean has_lock) {
     j_return_if_fail(src != NULL);
 
-    jpointer old_cb_data = NULL;
+    void * old_cb_data = NULL;
     JSourceCallbackFuncs *old_cb_funcs = NULL;
 
     if (!has_lock && ctx) {
@@ -559,7 +559,7 @@ void j_main_context_unref(JMainContext * ctx) {
         return;
     }
 
-    jint i;
+    int i;
     /* Free pending dispatches */
     for (i = 0; i < ctx->pending_dispatches->len; i++) {
         j_source_unref_internal(ctx->pending_dispatches->data[i], ctx,
@@ -596,8 +596,8 @@ void j_main_context_unref(JMainContext * ctx) {
  * If some other thread is the owner of the context, returns FALSE immediately.
  * Ownership is properly recursive: the owner can require ownership again and will release ownership when g_main_context_release() is called as many times as g_main_context_acquire().
  */
-jboolean j_main_context_acquire(JMainContext * ctx) {
-    jboolean result = FALSE;
+boolean j_main_context_acquire(JMainContext * ctx) {
+    boolean result = FALSE;
     JThread *self = j_thread_self();
 
     J_MAIN_CONTEXT_CHECK(ctx);
@@ -627,7 +627,7 @@ void j_main_context_release(JMainContext * ctx) {
         ctx->owner = NULL;
         if (ctx->waiters) {
             JMainWaiter *waiter = ctx->waiters->data;
-            jboolean loop_internal_waiter = (waiter->mutex == &ctx->mutex);
+            boolean loop_internal_waiter = (waiter->mutex == &ctx->mutex);
             ctx->waiters = j_slist_delete_link(ctx->waiters, ctx->waiters);
             if (!loop_internal_waiter) {
                 j_mutex_lock(waiter->mutex);
@@ -644,12 +644,12 @@ void j_main_context_release(JMainContext * ctx) {
 /*
  * 检查当前线程是否拥有了该JMainContext
  */
-jboolean j_main_context_is_owner(JMainContext * ctx) {
+boolean j_main_context_is_owner(JMainContext * ctx) {
     if (ctx == NULL) {
         ctx = j_main_context_default();
     }
     J_MAIN_CONTEXT_LOCK(ctx);
-    jboolean is_owner = ctx->owner == j_thread_self();
+    boolean is_owner = ctx->owner == j_thread_self();
     J_MAIN_CONTEXT_UNLOCK(ctx);
     return is_owner;
 }
@@ -661,11 +661,11 @@ jboolean j_main_context_is_owner(JMainContext * ctx) {
  * cond until that owner releases ownership or until cond is signaled,
  * then try again (once) to become the owner.
  */
-jboolean j_main_context_wait(JMainContext * ctx, JCond * cond,
-                             JMutex * mutex) {
-    jboolean result = FALSE;
+boolean j_main_context_wait(JMainContext * ctx, JCond * cond,
+                            JMutex * mutex) {
+    boolean result = FALSE;
     JThread *self = j_thread_self();
-    jboolean loop_internal_waiter;
+    boolean loop_internal_waiter;
 
     J_MAIN_CONTEXT_CHECK(ctx);
 
@@ -718,11 +718,11 @@ void j_main_context_wakeup(JMainContext * ctx) {
     j_wakeup_signal(ctx->wakeup);
 }
 
-static inline juint j_source_attach_unlocked(JSource * src,
+static inline unsigned int j_source_attach_unlocked(JSource * src,
         JMainContext * ctx,
-        jboolean do_wakeup) {
+        boolean do_wakeup) {
     JSList *tmp_list;
-    juint id;
+    unsigned int id;
 
     do {
         id = ctx->next_id++;
@@ -760,20 +760,20 @@ static inline juint j_source_attach_unlocked(JSource * src,
  * Adds a GSource to a context so that it will be executed within that context.
  * Returns the source ID
  */
-juint j_source_attach(JSource * src, JMainContext * ctx) {
+unsigned int j_source_attach(JSource * src, JMainContext * ctx) {
     if (src->context != NULL || J_SOURCE_IS_DESTROYED(src)) {
         return 0;
     }
     J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
-    juint result = j_source_attach_unlocked(src, ctx, TRUE);
+    unsigned int result = j_source_attach_unlocked(src, ctx, TRUE);
     J_MAIN_CONTEXT_UNLOCK(ctx);
     return result;
 }
 
-jboolean j_main_context_prepare(JMainContext * ctx) {
-    juint i;
-    jint n_ready = 0;
+boolean j_main_context_prepare(JMainContext * ctx) {
+    unsigned int i;
+    int n_ready = 0;
 
     J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
@@ -796,14 +796,14 @@ jboolean j_main_context_prepare(JMainContext * ctx) {
     JList *iter = ctx->source_lists;
     while (iter) {
         JSource *src = (JSource *) j_list_data(iter);
-        jint source_timeout = -1;
+        int source_timeout = -1;
         if (J_SOURCE_IS_DESTROYED(src) || J_SOURCE_IS_BLOCKED(src)) {
             goto CONTINUE;
         }
         if (!(src->flags & J_SOURCE_FLAG_READY)) {
             /* 如果没有ready，则执行Source的prepare函数，看看会不会ready */
-            jboolean result;
-            jboolean(*prepare) (JSource * src, jint * timeout);
+            boolean result;
+            boolean(*prepare) (JSource * src, int * timeout);
             prepare = src->funcs->prepare;
             if (prepare) {
                 ctx->in_check_or_prepare++;
@@ -827,7 +827,7 @@ jboolean j_main_context_prepare(JMainContext * ctx) {
                     source_timeout = 0;
                     result = TRUE;
                 } else {        /* 否则计算时间差来设置timeout */
-                    jint timeout;
+                    int timeout;
                     /* rounding down will lead to spinning, so always round up */
                     timeout = (src->ready_time - ctx->time + 999) / 1000;
                     if (source_timeout < 0 || timeout < source_timeout) {
@@ -870,10 +870,10 @@ CONTINUE:
  *   or, if more than @n_fds records need to be stored, the number
  *   of records that need to be stored
  */
-jint j_main_context_query(JMainContext * ctx, jint * timeout) {
+int j_main_context_query(JMainContext * ctx, int * timeout) {
     J_MAIN_CONTEXT_LOCK(ctx);
-    jint i, total = j_ptr_array_get_len(ctx->poll_records);
-    jpointer *data = j_ptr_array_get_data(ctx->poll_records);
+    int i, total = j_ptr_array_get_len(ctx->poll_records);
+    void * *data = j_ptr_array_get_data(ctx->poll_records);
     for (i = 0; i < total; i++) {
         JXPollEvent *event = (JXPollEvent *) data[i];
         JXPollRecord *rec = (JXPollRecord *) event->user_data;
@@ -901,8 +901,8 @@ jint j_main_context_query(JMainContext * ctx, jint * timeout) {
     return MAX(total, j_xpoll_event_count(ctx->xp));
 }
 
-jboolean j_main_context_check(JMainContext * ctx,
-                              JXPollEvent * fds, jint n_fds) {
+boolean j_main_context_check(JMainContext * ctx,
+                             JXPollEvent * fds, int n_fds) {
     J_MAIN_CONTEXT_LOCK(ctx);
     if (ctx->in_check_or_prepare) {
         /* j_main_context_check() called recursively from "
@@ -915,7 +915,7 @@ jboolean j_main_context_check(JMainContext * ctx,
     }
 
 
-    jint n_ready = 0;
+    int n_ready = 0;
 
     /*
      * If the set of poll file descriptors changed, bail out
@@ -934,8 +934,8 @@ jboolean j_main_context_check(JMainContext * ctx,
             goto CONTINUE;
         }
         if (!(src->flags & J_SOURCE_FLAG_READY)) {
-            jboolean result;
-            jboolean(*check) (JSource * src);
+            boolean result;
+            boolean(*check) (JSource * src);
             check = src->funcs->check;
             if (check) {
                 /* If the check function is set, call it */
@@ -1038,19 +1038,19 @@ void j_main_context_dispatch(JMainContext * ctx) {
         J_MAIN_CONTEXT_UNLOCK(ctx);
         return;
     }
-    juint i;
+    unsigned int i;
     for (i = 0; i < j_ptr_array_get_len(ctx->pending_dispatches); i += 1) {
         JSource *src = ctx->pending_dispatches->data[i];
         ctx->pending_dispatches->data[i] = NULL;
         src->flags &= ~J_SOURCE_FLAG_READY;
         if (!J_SOURCE_IS_DESTROYED(src)) {
-            jboolean was_in_call;
-            jpointer user_data = NULL;
+            boolean was_in_call;
+            void * user_data = NULL;
             JSourceFunc callback = NULL;
             JSourceCallbackFuncs *cb_funcs;
-            jpointer cb_data;
-            jboolean need_destroy;
-            jboolean(*dispatch) (JSource * src, JSourceFunc, jpointer);
+            void * cb_data;
+            boolean need_destroy;
+            boolean(*dispatch) (JSource * src, JSourceFunc, void *);
             JSource *prev_src;
 
             dispatch = src->funcs->dispatch;
@@ -1116,9 +1116,9 @@ void j_main_context_dispatch(JMainContext * ctx) {
 /*
  * Hold context lock
  */
-static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
-                                       JXPollEvent * fds, jint n_fds) {
-    jint i, n;
+static inline int j_main_context_poll(JMainContext * ctx, int timeout,
+                                      JXPollEvent * fds, int n_fds) {
+    int i, n;
     J_MAIN_CONTEXT_LOCK(ctx);
     n = j_xpoll_wait(ctx->xp, fds, n_fds, timeout);
     for (i = 0; i < n; i += 1) {
@@ -1133,18 +1133,18 @@ static inline jint j_main_context_poll(JMainContext * ctx, jint timeout,
 /*
  * @param self unused
  */
-static inline jboolean j_main_context_iterate(JMainContext * ctx,
-        jboolean may_block,
-        jboolean dispatch,
+static inline boolean j_main_context_iterate(JMainContext * ctx,
+        boolean may_block,
+        boolean dispatch,
         JThread * self) {
-    jint timeout;
-    jboolean some_ready;
-    jint nfds;
+    int timeout;
+    boolean some_ready;
+    int nfds;
     JXPollEvent *fds = NULL;
 
     J_MAIN_CONTEXT_UNLOCK(ctx);
     if (!j_main_context_acquire(ctx)) {
-        jboolean got_ownership;
+        boolean got_ownership;
         J_MAIN_CONTEXT_LOCK(ctx);
         if (!may_block) {
             return FALSE;
@@ -1185,8 +1185,8 @@ static inline jboolean j_main_context_iterate(JMainContext * ctx,
 /*
  * Runs a single iteration
  */
-jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block) {
-    jboolean retval;
+boolean j_main_context_iteration(JMainContext * ctx, boolean may_block) {
+    boolean retval;
 
     J_MAIN_CONTEXT_CHECK(ctx);
     J_MAIN_CONTEXT_LOCK(ctx);
@@ -1196,7 +1196,7 @@ jboolean j_main_context_iteration(JMainContext * ctx, jboolean may_block) {
 }
 
 
-JMainLoop *j_main_loop_new(JMainContext * ctx, jboolean is_running) {
+JMainLoop *j_main_loop_new(JMainContext * ctx, boolean is_running) {
     if (ctx == NULL) {
         ctx = j_main_context_default();
     }
@@ -1209,7 +1209,7 @@ JMainLoop *j_main_loop_new(JMainContext * ctx, jboolean is_running) {
     return loop;
 }
 
-jboolean j_main_loop_is_running(JMainLoop * loop) {
+boolean j_main_loop_is_running(JMainLoop * loop) {
     j_return_val_if_fail(loop != NULL
                          && j_atomic_int_get(&loop->ref) > 0, FALSE);
     return loop->is_running;
@@ -1247,7 +1247,7 @@ void j_main_loop_run(JMainLoop * loop) {
     JThread *self = j_thread_self();
 
     if (!j_main_context_acquire(loop->context)) {
-        jboolean got_ownership = FALSE;
+        boolean got_ownership = FALSE;
         J_MAIN_CONTEXT_LOCK(loop->context);
 
         j_atomic_int_inc(&loop->ref);
@@ -1331,14 +1331,14 @@ void j_main_quit(void) {
 
 struct _JTimeoutSource {
     JSource source;
-    juint interval;
-    jboolean seconds;
+    unsigned int interval;
+    boolean seconds;
 };
 
-static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
-                                   jpointer user_data);
+static boolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
+                                  void * user_data);
 static void j_timeout_set_expiration(JTimeoutSource * src,
-                                     jint64 current_time);
+                                     int64_t current_time);
 
 JSourceFuncs j_timeout_funcs = {
     NULL,                       /* prepare */
@@ -1347,10 +1347,10 @@ JSourceFuncs j_timeout_funcs = {
     NULL,
 };
 
-static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
-                                   jpointer user_data) {
+static boolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
+                                  void * user_data) {
     JTimeoutSource *timeout_src = (JTimeoutSource *) src;
-    jboolean again;
+    boolean again;
     if (J_UNLIKELY(!callback)) {
         /* Timeout source dispatched without callback You must call j_source_set_callback() */
         return FALSE;
@@ -1366,20 +1366,20 @@ static jboolean j_timeout_dispatch(JSource * src, JSourceFunc callback,
  * 设置超时时间
  */
 static void j_timeout_set_expiration(JTimeoutSource * src,
-                                     jint64 current_time) {
-    jint64 expiration = current_time + (juint64) src->interval * 1000;
+                                     int64_t current_time) {
+    int64_t expiration = current_time + (uint64_t) src->interval * 1000;
 
     if (src->seconds) {
-        static jint timer_perturb = -1;
+        static int timer_perturb = -1;
 
         if (timer_perturb == -1) {
             /*
              * We want a per machine/session unique 'random' value;
              * use the hostname for hashing
              */
-            const jchar *hostname = j_getenv("HOSTNAME");
+            const char *hostname = j_getenv("HOSTNAME");
             if (hostname) {
-                timer_perturb = ABS((jint) j_str_hash(hostname)) % 1000000;
+                timer_perturb = ABS((int) j_str_hash(hostname)) % 1000000;
             } else {
                 timer_perturb = 0;
             }
@@ -1391,7 +1391,7 @@ static void j_timeout_set_expiration(JTimeoutSource * src,
          * second in the case that the microsecond portion descreses.
          */
         expiration -= timer_perturb;
-        jint64 remainder = expiration % 1000000;
+        int64_t remainder = expiration % 1000000;
         if (remainder >= 1000000 / 4) {
             expiration += 1000000;
         }
@@ -1401,7 +1401,7 @@ static void j_timeout_set_expiration(JTimeoutSource * src,
     j_source_set_ready_time((JSource *) src, expiration);
 }
 
-JSource *j_timeout_source_new(juint interval) {
+JSource *j_timeout_source_new(unsigned int interval) {
     JSource *src = j_source_new(&j_timeout_funcs, sizeof(JTimeoutSource));
     JTimeoutSource *timeout_src = (JTimeoutSource *) src;
 
@@ -1412,21 +1412,21 @@ JSource *j_timeout_source_new(juint interval) {
 }
 
 
-juint j_timeout_add_full(juint32 interval,
-                         JSourceFunc function, jpointer data,
-                         JDestroyNotify destroy) {
+unsigned int j_timeout_add_full(uint32_t interval,
+                                JSourceFunc function, void * data,
+                                JDestroyNotify destroy) {
     j_return_val_if_fail(function != NULL, 0);
 
     JSource *src = j_timeout_source_new(interval);
 
     j_source_set_callback(src, function, data, destroy);
-    juint id = j_source_attach(src, NULL);
+    unsigned int id = j_source_attach(src, NULL);
     j_source_unref(src);
 
     return id;
 }
 
-JSource *j_timeout_source_new_seconds(juint interval) {
+JSource *j_timeout_source_new_seconds(unsigned int interval) {
     JSource *src = j_source_new(&j_timeout_funcs, sizeof(JTimeoutSource));
     JTimeoutSource *timeout_src = (JTimeoutSource *) src;
 
@@ -1438,33 +1438,33 @@ JSource *j_timeout_source_new_seconds(juint interval) {
     return src;
 }
 
-juint j_timeout_add(juint32 interval, JSourceFunc function, jpointer data) {
+unsigned int j_timeout_add(uint32_t interval, JSourceFunc function, void * data) {
     return j_timeout_add_full(interval, function, data, NULL);
 }
 
-juint j_timeout_add_seconds_full(juint interval,
-                                 JSourceFunc function, jpointer data,
-                                 JDestroyNotify destroy) {
+unsigned int j_timeout_add_seconds_full(unsigned int interval,
+                                        JSourceFunc function, void * data,
+                                        JDestroyNotify destroy) {
     j_return_val_if_fail(function != NULL, 0);
 
     JSource *src = j_timeout_source_new_seconds(interval);
     j_source_set_callback(src, function, data, destroy);
-    juint id = j_source_attach(src, NULL);
+    unsigned int id = j_source_attach(src, NULL);
     j_source_unref(src);
     return id;
 }
 
-juint j_timeout_add_seconds(juint32 interval, JSourceFunc function,
-                            jpointer data) {
+unsigned int j_timeout_add_seconds(uint32_t interval, JSourceFunc function,
+                                   void * data) {
     return j_timeout_add_seconds_full(interval, function, data, NULL);
 }
 
 /********************************* IDLE ***************************/
 
-static jboolean j_idle_prepare(JSource * src, jint * timeout);
-static jboolean j_idle_check(JSource * src);
-static jboolean j_idle_dispatch(JSource * src, JSourceFunc callback,
-                                jpointer user_data);
+static boolean j_idle_prepare(JSource * src, int * timeout);
+static boolean j_idle_check(JSource * src);
+static boolean j_idle_dispatch(JSource * src, JSourceFunc callback,
+                               void * user_data);
 
 JSourceFuncs j_idle_funcs = {
     j_idle_prepare,
@@ -1474,17 +1474,17 @@ JSourceFuncs j_idle_funcs = {
 };
 
 
-static jboolean j_idle_prepare(JSource * src, jint * timeout) {
+static boolean j_idle_prepare(JSource * src, int * timeout) {
     *timeout = 0;
     return TRUE;
 }
 
-static jboolean j_idle_check(JSource * src) {
+static boolean j_idle_check(JSource * src) {
     return TRUE;
 }
 
-static jboolean j_idle_dispatch(JSource * src, JSourceFunc callback,
-                                jpointer user_data) {
+static boolean j_idle_dispatch(JSource * src, JSourceFunc callback,
+                               void * user_data) {
     return callback(user_data);
 }
 
@@ -1494,18 +1494,18 @@ JSource *j_idle_source_new(void) {
 }
 
 
-juint j_idle_add_full(JSourceFunc function, jpointer data,
-                      JDestroyNotify destroy) {
+unsigned int j_idle_add_full(JSourceFunc function, void * data,
+                             JDestroyNotify destroy) {
     j_return_val_if_fail(function != NULL, 0);
 
     JSource *src = j_idle_source_new();
 
     j_source_set_callback(src, function, data, destroy);
-    juint id = j_source_attach(src, NULL);
+    unsigned int id = j_source_attach(src, NULL);
     j_source_unref(src);
     return id;
 }
 
-juint j_idle_add(JSourceFunc function, jpointer data) {
+unsigned int j_idle_add(JSourceFunc function, void * data) {
     return j_idle_add_full(function, data, NULL);
 }

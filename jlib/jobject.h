@@ -26,10 +26,10 @@
 
 typedef struct _JObject JObject;
 
-typedef void (*JObjectDestroy) (jpointer obj);
+typedef void (*JObjectDestroy) (void * obj);
 
 struct _JObject {
-    jint ref;
+    int ref;
     JObjectDestroy free;
 };
 

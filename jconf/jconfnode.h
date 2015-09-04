@@ -51,42 +51,42 @@ JConfNode *j_conf_node_new(JConfNodeType type, ...);
 
 JConfNodeType j_conf_node_get_type(JConfNode * node);
 
-jboolean j_conf_node_is_null(JConfNode * node);
-jboolean j_conf_node_is_integer(JConfNode * node);
-jboolean j_conf_node_is_string(JConfNode * node);
-jboolean j_conf_node_is_float(JConfNode * node);
-jboolean j_conf_node_is_bool(JConfNode * node);
-jboolean j_conf_node_is_object(JConfNode * node);
-jboolean j_conf_node_is_array(JConfNode * array);
+boolean j_conf_node_is_null(JConfNode * node);
+boolean j_conf_node_is_integer(JConfNode * node);
+boolean j_conf_node_is_string(JConfNode * node);
+boolean j_conf_node_is_float(JConfNode * node);
+boolean j_conf_node_is_bool(JConfNode * node);
+boolean j_conf_node_is_object(JConfNode * node);
+boolean j_conf_node_is_array(JConfNode * array);
 
-jint64 j_conf_integer_get(JConfInteger * node);
-void j_conf_integer_set(JConfInteger * node, jint64 integer);
-const jchar *j_conf_string_get(JConfString * node);
-jdouble j_conf_float_get(JConfFloat * node);
-jboolean j_conf_bool_get(JConfBool * node);
+int64_t j_conf_integer_get(JConfInteger * node);
+void j_conf_integer_set(JConfInteger * node, int64_t integer);
+const char *j_conf_string_get(JConfString * node);
+double j_conf_float_get(JConfFloat * node);
+boolean j_conf_bool_get(JConfBool * node);
 
-juint j_conf_array_get_length(JConfArray * node);
-JConfNode *j_conf_array_get(JConfArray * node, juint index);
+unsigned int j_conf_array_get_length(JConfArray * node);
+JConfNode *j_conf_array_get(JConfArray * node, unsigned int index);
 void j_conf_array_append(JConfArray * array, JConfNode * node);
-void j_conf_array_append_integer(JConfArray * array, jint64 integer);
-void j_conf_array_append_string(JConfArray * array, const jchar * string);
-void j_conf_array_append_bool(JConfArray * array, jboolean b);
-void j_conf_array_append_float(JConfArray * array, jdouble floating);
+void j_conf_array_append_integer(JConfArray * array, int64_t integer);
+void j_conf_array_append_string(JConfArray * array, const char * string);
+void j_conf_array_append_bool(JConfArray * array, boolean b);
+void j_conf_array_append_float(JConfArray * array, double floating);
 
-JConfNode *j_conf_object_get(JConfObject * node, const jchar * name);
-void j_conf_object_set(JConfObject * node, const jchar * name,
+JConfNode *j_conf_object_get(JConfObject * node, const char * name);
+void j_conf_object_set(JConfObject * node, const char * name,
                        JConfNode * child);
-void j_conf_object_set_take(JConfObject * node, jchar * name,
+void j_conf_object_set_take(JConfObject * node, char * name,
                             JConfNode * child);
-void j_conf_object_set_integer(JConfObject * node, const jchar * name,
-                               jint64 integer);
-void j_conf_object_set_string(JConfObject * node, const jchar * name,
-                              const jchar * string);
-void j_conf_object_set_bool(JConfObject * node, const jchar * name,
-                            jboolean b);
-void j_conf_object_set_float(JConfObject * node, const jchar * name,
-                             jdouble floating);
-void j_conf_object_set_null(JConfObject * node, const jchar * name);
+void j_conf_object_set_integer(JConfObject * node, const char * name,
+                               int64_t integer);
+void j_conf_object_set_string(JConfObject * node, const char * name,
+                              const char * string);
+void j_conf_object_set_bool(JConfObject * node, const char * name,
+                            boolean b);
+void j_conf_object_set_float(JConfObject * node, const char * name,
+                             double floating);
+void j_conf_object_set_null(JConfObject * node, const char * name);
 /*
  * j_conf_object_get_keys:
  * @node: JConfObject
@@ -95,7 +95,7 @@ void j_conf_object_set_null(JConfObject * node, const jchar * name);
  * Returns: 不要修改JPtrArray
  */
 JPtrArray *j_conf_object_get_keys(JConfObject * node);
-void j_conf_object_remove(JConfObject * node, const jchar * name);
+void j_conf_object_remove(JConfObject * node, const char * name);
 
 /*
  * j_conf_object_get_integer:
@@ -107,12 +107,12 @@ void j_conf_object_remove(JConfObject * node, const jchar * name);
  *
  * Returns:
  */
-jint64 j_conf_object_get_integer(JConfObject *node, const jchar *name, jint64 def);
-const jchar *j_conf_object_get_string(JConfObject *node, const jchar *name, const jchar *def);
-jboolean j_conf_object_get_bool(JConfObject *node, const jchar *name, jboolean def);
+int64_t j_conf_object_get_integer(JConfObject *node, const char *name, int64_t def);
+const char *j_conf_object_get_string(JConfObject *node, const char *name, const char *def);
+boolean j_conf_object_get_bool(JConfObject *node, const char *name, boolean def);
 /*
  */
-JList *j_conf_object_get_string_list(JConfObject *node, const jchar *name);
+JList *j_conf_object_get_string_list(JConfObject *node, const char *name);
 
 /*
  * j_conf_object_get_integer_priority
@@ -128,15 +128,15 @@ JList *j_conf_object_get_string_list(JConfObject *node, const jchar *name);
  * 再从root中寻找name，如果找到，返回该值
  * 返回默认值def
  */
-jint64 j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
-        const jchar *name, jint64 def);
-const jchar *j_conf_object_get_string_priority(JConfObject *root, JConfObject *node,
-        const jchar *name, const jchar *def);
-jboolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
-        const jchar *name, jboolean def);
+int64_t j_conf_object_get_integer_priority(JConfObject *root, JConfObject *node,
+        const char *name, int64_t def);
+const char *j_conf_object_get_string_priority(JConfObject *root, JConfObject *node,
+        const char *name, const char *def);
+boolean j_conf_object_get_bool_priority(JConfObject *root, JConfObject *node,
+                                        const char *name, boolean def);
 
 JList *j_conf_object_get_string_list_priority(JConfObject *root, JConfObject *node,
-        const jchar *name);
+        const char *name);
 /*
  * j_conf_object_lookup:
  * @node: JConfObject
@@ -145,9 +145,9 @@ JList *j_conf_object_get_string_list_priority(JConfObject *root, JConfObject *no
  *
  * Returns: 返回一个包含键值的列表，使用j_list_free()释放
  */
-JList *j_conf_object_lookup(JConfObject *node, const jchar *rexp, JConfNodeType type);
+JList *j_conf_object_lookup(JConfObject *node, const char *rexp, JConfNodeType type);
 
 /* 转化为字符串格式 */
-jchar *j_conf_node_dump(JConfNode *node);
+char *j_conf_node_dump(JConfNode *node);
 
 #endif

@@ -25,14 +25,14 @@
 /*
  * Checks to see if the path is absolute
  */
-jboolean j_path_is_absolute(const jchar * path);
+boolean j_path_is_absolute(const char * path);
 
 /*
  * Returns a pointer into file_name after the root component,
  * i.e. after the "/" in UNIX or "C:\" under Windows.
  * If file_name is not an absolute path it returns path it self.
  */
-const jchar *j_path_skip_root(const jchar * path);
+const char *j_path_skip_root(const char * path);
 
 
 #define j_path_is_relative(path)    (!(j_path_is_absolute(path)))
@@ -43,7 +43,7 @@ const jchar *j_path_skip_root(const jchar * path);
  * Returns a newly allocated string containing
  * the last component of the filename
  */
-jchar *j_path_basename(const jchar * path);
+char *j_path_basename(const char * path);
 
 /*
  * j_path_dirname:
@@ -51,26 +51,26 @@ jchar *j_path_basename(const jchar * path);
  * Gets the directory components of a file name
  * Returns: a new allocated string
  */
-jchar *j_path_dirname(const jchar *path);
+char *j_path_dirname(const char *path);
 
 /*
  * Expands all symbolic links and resolves references to /./, /../
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname
  */
-jchar *j_path_realpath(const jchar * path);
+char *j_path_realpath(const char * path);
 
 /*
  * Searches for all the pathnames matching pattern accoding to the rules
  * used by shell (see glob(3)). No tilde expansion or parameter substitution
  * is done
  */
-jchar **j_path_glob(const jchar * pattern);
+char **j_path_glob(const char * pattern);
 
 /*
  * Joins two path, p2 must be relative
  */
-jchar *j_path_join(const jchar * p1, const jchar * p2);
+char *j_path_join(const char * p1, const char * p2);
 
 
 /*
@@ -84,7 +84,7 @@ jchar *j_path_join(const jchar * p1, const jchar * p2);
  * Returns: 0 if the directory already exists, or was successfully created.
  *          Returns -1 on error, with errno set.
  */
-jint j_mkdir_with_parents(const jchar *pathname, int mode);
+int j_mkdir_with_parents(const char *pathname, int mode);
 
 
 typedef enum {
@@ -97,7 +97,7 @@ typedef enum {
 } JFileTest;
 
 /* 可以合并多个测试选项，J_FILE_TEST_EXISTS总是被测试的 */
-jboolean j_file_test(const jchar *path, JFileTest test);
+boolean j_file_test(const char *path, JFileTest test);
 
 
 #endif

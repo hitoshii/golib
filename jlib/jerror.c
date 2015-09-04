@@ -22,10 +22,10 @@
 #include <string.h>
 
 /* 获取系统调用的错误码 */
-jint j_errno(void) {
+int j_errno(void) {
     return errno;
 }
 
-jboolean j_strerror(jint errnum, jchar * buf, juint buflen) {
+boolean j_strerror(int errnum, char * buf, unsigned int buflen) {
     return strerror_r(errnum, buf, buflen) == 0;
 }

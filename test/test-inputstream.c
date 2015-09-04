@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
         return 2;
     }
     char buf[2];
-    jint n;
+    int n;
     while ((n = j_input_stream_read((JInputStream *) input, buf,
                                     sizeof(buf))) > 0) {
         j_printf("%.*s", n, buf);
@@ -47,18 +47,18 @@ int main(int argc, char const *argv[]) {
     if (input == NULL) {
         return 4;
     }
-    jint c;
+    int c;
     while ((c = j_buffered_input_stream_get(buffered_stream)) >0) {
         j_printf("%c", c);
-        j_string_append_c(s2, (jchar)c);
+        j_string_append_c(s2, (char)c);
     }
 
     if (j_strcmp0(s1->data, s2->data)) {
         return 5;
     }
 
-    juint len = 0;
-    jchar *map = j_file_map(f, PROT_READ, MAP_PRIVATE, &len);
+    unsigned int len = 0;
+    char *map = j_file_map(f, PROT_READ, MAP_PRIVATE, &len);
     if (map == NULL) {
         return 6;
     }

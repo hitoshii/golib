@@ -21,11 +21,11 @@
 
 struct _JFileInputStream {
     JInputStream parent;
-    jint fd;
+    int fd;
 };
 
-static jint j_file_input_stream_read(JFileInputStream * stream,
-                                     void *buffer, juint size);
+static int j_file_input_stream_read(JFileInputStream * stream,
+                                    void *buffer, unsigned int size);
 static void j_file_input_stream_close(JFileInputStream * stream);
 
 static JInputStreamInterface j_file_input_stream_interface = {
@@ -43,14 +43,14 @@ static inline JFileInputStream *j_file_input_stream_new_from_fd(int fd) {
 
 /* 打开文件读，失败返回NULL */
 JFileInputStream *j_file_read(JFile * f) {
-    jint fd = j_file_open_fd(f, O_RDONLY);
+    int fd = j_file_open_fd(f, O_RDONLY);
     if (fd < 0) {
         return NULL;
     }
     return j_file_input_stream_new_from_fd(fd);
 }
 
-JFileInputStream *j_file_input_stream_open(const jchar * path) {
+JFileInputStream *j_file_input_stream_open(const char * path) {
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
         return NULL;
@@ -62,7 +62,7 @@ static void j_file_input_stream_close(JFileInputStream * stream) {
     close(stream->fd);
 }
 
-static jint j_file_input_stream_read(JFileInputStream * stream,
-                                     void *buffer, juint size) {
+static int j_file_input_stream_read(JFileInputStream * stream,
+                                    void *buffer, unsigned int size) {
     return j_read(stream->fd, buffer, size);
 }

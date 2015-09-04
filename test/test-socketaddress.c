@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
     if (!j_inet_address_init_from_string(&address, "115.28.32.123")) {
         return 3;
     }
-    jchar *string = j_inet_address_to_string(&address);
+    char *string = j_inet_address_to_string(&address);
     if (j_strcmp0(string, "115.28.32.123")) {
         return 4;
     }

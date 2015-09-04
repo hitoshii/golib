@@ -30,14 +30,14 @@ int main(int argc, char const *argv[]) {
         return 100;
     }
 
-    jchar *msg=j_conf_loader_build_error_message(loader);
+    char *msg=j_conf_loader_build_error_message(loader);
     j_printf("%s\n", msg);
     j_free(msg);
 
     j_conf_loader_allow_unknown_variable(loader, TRUE);
 
     if (!j_conf_loader_loads(loader, "./test.conf")) {
-        jchar *msg=j_conf_loader_build_error_message(loader);
+        char *msg=j_conf_loader_build_error_message(loader);
         j_printf("%s\n",msg);
         j_free(msg);
         j_conf_loader_unref(loader);
@@ -47,13 +47,13 @@ int main(int argc, char const *argv[]) {
     JConfNode *node =
         j_conf_root_get(j_conf_loader_get_root(loader), "wiky");
     if (node == NULL || j_conf_bool_get(node) != TRUE) {
-        jchar *msg=j_conf_loader_build_error_message(loader);
+        char *msg=j_conf_loader_build_error_message(loader);
         j_printf("%s\n",msg);
         j_free(msg);
         return 2;
     }
 
-    jchar *string=j_conf_node_dump((JConfNode*)j_conf_loader_get_root(loader));
+    char *string=j_conf_node_dump((JConfNode*)j_conf_loader_get_root(loader));
     j_printf("%s", string);
     j_free(string);
 

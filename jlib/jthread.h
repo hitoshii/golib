@@ -41,7 +41,7 @@ void j_mutex_init(JMutex * mutex);
 void j_mutex_clear(JMutex * mutex);
 
 void j_mutex_lock(JMutex * mutex);
-jboolean j_mutex_trylock(JMutex * mutex);
+boolean j_mutex_trylock(JMutex * mutex);
 void j_mutex_unlock(JMutex * mutex);
 
 
@@ -61,7 +61,7 @@ void j_cond_wait(JCond * cond, JMutex * mutex);
 /*
  * 收到信号返回TRUE，如果是因为end_time超时则返回FALSE
  */
-jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time);
+boolean j_cond_wait_until(JCond * cond, JMutex * mutex, int64_t end_time);
 void j_cond_signal(JCond * cond);
 void j_cond_broadcast(JCond * cond);
 
@@ -77,19 +77,19 @@ struct _JPrivate {
 #define J_PRIVATE_DEFINE_STATIC(name, destroy) \
                     static J_PRIVATE_DEFINE(name, (JDestroyNotify)destroy)
 
-jpointer j_private_get(JPrivate * priv);
-void j_private_set(JPrivate * priv, jpointer data);
+void * j_private_get(JPrivate * priv);
+void j_private_set(JPrivate * priv, void * data);
 
 /*
  * Thread
  */
-typedef jpointer(*JThreadFunc) (jpointer data);
+typedef void *(*JThreadFunc) (void * data);
 
 typedef struct _JThread JThread;
 
-JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data);
-JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
-                          jpointer data);
+JThread *j_thread_new(const char * name, JThreadFunc func, void * data);
+JThread *j_thread_try_new(const char * name, JThreadFunc func,
+                          void * data);
 
 #define j_thread_ref(t) J_OBJECT_REF(t)
 #define j_thread_unref(t) J_OBJECT_UNREF(t)
@@ -97,12 +97,12 @@ JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
 /*
  * join 线程，等待其结束
  */
-jpointer j_thread_join(JThread * thread);
+void * j_thread_join(JThread * thread);
 
 /*
  * Must call j_thread_exit() from a thread that created by j_thread_new
  */
-void j_thread_exit(jpointer retval);
+void j_thread_exit(void * retval);
 
 /*
  * Causes the calling thread to voluntarily relinquish the CPU, so that other threads can run
@@ -125,7 +125,7 @@ JThread *j_thread_self(void);
  *     j_once_init_leave(&a, t);
  * }
  */
-jboolean j_once_init_enter(volatile void *location);
-void j_once_init_leave(volatile void *location, jpointer result);
+boolean j_once_init_enter(volatile void *location);
+void j_once_init_leave(volatile void *location, void * result);
 
 #endif

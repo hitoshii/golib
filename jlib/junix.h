@@ -25,24 +25,24 @@
 
 
 /* 一些系统调用的包裹 */
-jint j_socket(jint family, jint type, jint protocol);
-jint j_accept(jint sockfd, struct sockaddr *addr, socklen_t * addrlen);
-jint j_connect(jint sockfd, const struct sockaddr *addr,
-               socklen_t addrlen);
-jint j_send(jint sockfd, const void *buf, size_t len, int flags);
-jint j_sendto(jint sockfd, const void *buf, size_t len,
-              int flags, const struct sockaddr *dest_addr,
+int j_socket(int family, int type, int protocol);
+int j_accept(int sockfd, struct sockaddr *addr, socklen_t * addrlen);
+int j_connect(int sockfd, const struct sockaddr *addr,
               socklen_t addrlen);
-jint j_recv(int sockfd, void *buf, size_t len, int flags);
-jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
-                struct sockaddr *src_addr, socklen_t * addrlen);
+int j_send(int sockfd, const void *buf, size_t len, int flags);
+int j_sendto(int sockfd, const void *buf, size_t len,
+             int flags, const struct sockaddr *dest_addr,
+             socklen_t addrlen);
+int j_recv(int sockfd, void *buf, size_t len, int flags);
+int j_recvfrom(int sockfd, void *buf, size_t len, int flags,
+               struct sockaddr *src_addr, socklen_t * addrlen);
 
-jint j_read(jint fd, void *buf, juint size);
-jint j_write(jint fd, const void *buf, juint count);
+int j_read(int fd, void *buf, unsigned int size);
+int j_write(int fd, const void *buf, unsigned int count);
 
-pid_t j_wait(jint *stat_loc);
+pid_t j_wait(int *stat_loc);
 
 
-jint j_open(const jchar *path, jint oflag, ...);
+int j_open(const char *path, int oflag, ...);
 
 #endif

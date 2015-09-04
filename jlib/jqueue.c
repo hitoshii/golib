@@ -52,11 +52,11 @@ void j_queue_clear_full(JQueue * queue, JDestroyNotify destroy) {
     j_queue_init(queue);
 }
 
-jboolean j_queue_is_empty(JQueue * queue) {
+boolean j_queue_is_empty(JQueue * queue) {
     return queue->length == 0;
 }
 
-juint j_queue_get_length(JQueue * queue) {
+unsigned int j_queue_get_length(JQueue * queue) {
     return queue->length;
 }
 
@@ -76,7 +76,7 @@ JQueue *j_queue_copy(JQueue * queue) {
     return result;
 }
 
-void j_queue_foreach(JQueue * queue, JFunc func, jpointer user_data) {
+void j_queue_foreach(JQueue * queue, JFunc func, void * user_data) {
     JList *list = queue->head;
     while (list) {
         func(j_list_data(list), user_data);
@@ -84,22 +84,22 @@ void j_queue_foreach(JQueue * queue, JFunc func, jpointer user_data) {
     }
 }
 
-JList *j_queue_find(JQueue * queue, jconstpointer data) {
+JList *j_queue_find(JQueue * queue, const void * data) {
     return j_list_find(queue->head, data);
 }
 
 JList *j_queue_find_custom(JQueue * queue, JCompareFunc compare,
-                           jconstpointer user_data) {
+                           const void * user_data) {
     return j_list_find_custom(queue->head, compare, user_data);
 }
 
 void j_queue_sort(JQueue * queue, JCompareDataFunc compare,
-                  jpointer user_data) {
+                  void * user_data) {
     queue->head = j_list_sort_with_data(queue->head, compare, user_data);
     queue->tail = j_list_last(queue->head);
 }
 
-void j_queue_push_head(JQueue * queue, jpointer data) {
+void j_queue_push_head(JQueue * queue, void * data) {
     queue->head = j_list_prepend(queue->head, data);
     if (queue->tail == NULL) {
         queue->tail = queue->head;
@@ -107,7 +107,7 @@ void j_queue_push_head(JQueue * queue, jpointer data) {
     queue->length++;
 }
 
-void j_queue_push_nth(JQueue * queue, jpointer data, jint n) {
+void j_queue_push_nth(JQueue * queue, void * data, int n) {
     if (n < 0 || n >= queue->length) {
         j_queue_push_tail(queue, data);
         return;
@@ -128,7 +128,7 @@ void j_queue_push_head_link(JQueue * queue, JList * link) {
     queue->length++;
 }
 
-void j_queue_push_tail(JQueue * queue, jpointer data) {
+void j_queue_push_tail(JQueue * queue, void * data) {
     queue->tail = j_list_append(queue->tail, data);
     if (queue->tail->next) {
         queue->tail = queue->tail->next;
@@ -152,7 +152,7 @@ void j_queue_push_tail_link(JQueue * queue, JList * link) {
     queue->length++;
 }
 
-void j_queue_push_nth_link(JQueue * queue, jint n, JList * link) {
+void j_queue_push_nth_link(JQueue * queue, int n, JList * link) {
     j_return_if_fail(link != NULL);
 
     if (n < 0 || n >= queue->length) {
@@ -180,10 +180,10 @@ void j_queue_push_nth_link(JQueue * queue, jint n, JList * link) {
     queue->length++;
 }
 
-jpointer j_queue_pop_head(JQueue * queue) {
+void * j_queue_pop_head(JQueue * queue) {
     if (queue->head) {
         JList *node = queue->head;
-        jpointer data = j_list_data(node);
+        void * data = j_list_data(node);
 
         queue->head = j_list_next(node);
         if (queue->head) {
@@ -198,7 +198,7 @@ jpointer j_queue_pop_head(JQueue * queue) {
     return NULL;
 }
 
-jpointer j_queue_pop_head_link(JQueue * queue) {
+void * j_queue_pop_head_link(JQueue * queue) {
     if (queue->head) {
         JList *node = queue->head;
 
@@ -222,8 +222,8 @@ JList *j_queue_peek_tail_link(JQueue * queue) {
     return queue->tail;
 }
 
-jpointer j_queue_pop_tail(JQueue * queue) {
-    jpointer data = NULL;
+void * j_queue_pop_tail(JQueue * queue) {
+    void * data = NULL;
     JList *node = j_queue_pop_tail_link(queue);
     if (node) {
         data = j_list_data(node);
@@ -232,13 +232,13 @@ jpointer j_queue_pop_tail(JQueue * queue) {
     return data;
 }
 
-jpointer j_queue_pop_nth(JQueue * queue, juint n) {
+void * j_queue_pop_nth(JQueue * queue, unsigned int n) {
     if (n >= queue->length) {
         return NULL;
     }
 
     JList *link = j_queue_peek_nth_link(queue, n);
-    jpointer result = j_list_data(link);
+    void * result = j_list_data(link);
 
     j_queue_delete_link(queue, link);
 
@@ -262,7 +262,7 @@ JList *j_queue_pop_tail_link(JQueue * queue) {
     return NULL;
 }
 
-JList *j_queue_pop_nth_link(JQueue * queue, juint n) {
+JList *j_queue_pop_nth_link(JQueue * queue, unsigned int n) {
     if (n >= queue->length) {
         return NULL;
     }
@@ -272,13 +272,13 @@ JList *j_queue_pop_nth_link(JQueue * queue, juint n) {
     return link;
 }
 
-JList *j_queue_peek_nth_link(JQueue * queue, juint n) {
+JList *j_queue_peek_nth_link(JQueue * queue, unsigned int n) {
     if (n >= queue->length) {
         return NULL;
     }
 
     JList *link;
-    jint i;
+    int i;
     if (n > queue->length / 2) {
         n = queue->length - n - 1;
         link = queue->tail;
@@ -294,7 +294,7 @@ JList *j_queue_peek_nth_link(JQueue * queue, juint n) {
     return link;
 }
 
-jint j_queue_link_index(JQueue * queue, JList * link) {
+int j_queue_link_index(JQueue * queue, JList * link) {
     return j_list_position(queue->head, link);
 }
 
@@ -314,15 +314,15 @@ void j_queue_delete_link(JQueue * queue, JList * link) {
     j_list_free1(link, NULL);
 }
 
-jpointer j_queue_peek_head(JQueue * queue) {
+void * j_queue_peek_head(JQueue * queue) {
     return queue->head ? queue->head->data : NULL;
 }
 
-jpointer j_queue_peek_tail(JQueue * queue) {
+void * j_queue_peek_tail(JQueue * queue) {
     return queue->tail ? queue->tail->data : NULL;
 }
 
-jpointer j_queue_peek_nth(JQueue * queue, juint n) {
+void * j_queue_peek_nth(JQueue * queue, unsigned int n) {
     JList *link = j_queue_peek_nth_link(queue, n);
 
     if (link) {
@@ -331,11 +331,11 @@ jpointer j_queue_peek_nth(JQueue * queue, juint n) {
     return NULL;
 }
 
-jint j_queue_index(JQueue * queue, jconstpointer data) {
+int j_queue_index(JQueue * queue, const void * data) {
     return j_list_index(queue->head, data);
 }
 
-jboolean j_queue_remove(JQueue * queue, jconstpointer data) {
+boolean j_queue_remove(JQueue * queue, const void * data) {
     JList *link = j_list_find(queue->head, data);
     if (link) {
         j_queue_delete_link(queue, link);
@@ -343,8 +343,8 @@ jboolean j_queue_remove(JQueue * queue, jconstpointer data) {
     return link != NULL;
 }
 
-juint j_queue_remove_all(JQueue * queue, jconstpointer data) {
-    juint old_length = queue->length;
+unsigned int j_queue_remove_all(JQueue * queue, const void * data) {
+    unsigned int old_length = queue->length;
 
     JList *list = queue->head;
     while (list) {
@@ -357,7 +357,7 @@ juint j_queue_remove_all(JQueue * queue, jconstpointer data) {
     return old_length - queue->length;
 }
 
-void j_queue_insert_before(JQueue * queue, JList * sibling, jpointer data) {
+void j_queue_insert_before(JQueue * queue, JList * sibling, void * data) {
     if (sibling == NULL) {
         j_queue_push_tail(queue, data);
     } else {
@@ -366,7 +366,7 @@ void j_queue_insert_before(JQueue * queue, JList * sibling, jpointer data) {
     }
 }
 
-void j_queue_insert_after(JQueue * queue, JList * sibling, jpointer data) {
+void j_queue_insert_after(JQueue * queue, JList * sibling, void * data) {
     if (sibling == NULL) {
         j_queue_push_head(queue, data);
     } else {
@@ -374,8 +374,8 @@ void j_queue_insert_after(JQueue * queue, JList * sibling, jpointer data) {
     }
 }
 
-void j_queue_insert_sorted(JQueue * queue, jpointer data,
-                           JCompareDataFunc compare, jpointer user_data) {
+void j_queue_insert_sorted(JQueue * queue, void * data,
+                           JCompareDataFunc compare, void * user_data) {
     JList *list = queue->head;
     while (list && compare(j_list_data(list), data, user_data) < 0) {
         list = j_list_next(list);

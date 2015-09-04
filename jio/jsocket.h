@@ -24,7 +24,7 @@ typedef struct _JSocket JSocket;
 
 JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol);
-JSocket *j_socket_new_from_fd(jint fd);
+JSocket *j_socket_new_from_fd(int fd);
 
 /* XXX 该函数会直接关闭套接字，并释放所有资源，不管引用计数，尽量用j_socket_unref */
 void j_socket_close(JSocket * socket);
@@ -33,89 +33,89 @@ void j_socket_close(JSocket * socket);
 #define j_socket_unref(s) J_OBJECT_UNREF(s)
 
 /* 绑定一个地址 */
-jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
-                       jboolean reuse);
+boolean j_socket_bind(JSocket * socket, JSocketAddress * address,
+                      boolean reuse);
 /* 讲套接字设置为被动监听状态，需要线绑定一个地址 */
-jboolean j_socket_listen(JSocket * socket, jint listen_backlog);
+boolean j_socket_listen(JSocket * socket, int listen_backlog);
 /* 连接目标地址，对于面向连接的套接字，这会执行连接。对于无连接的套接字，设置默认的目标地址 */
-jboolean j_socket_connect(JSocket * socket, JSocketAddress * address);
+boolean j_socket_connect(JSocket * socket, JSocketAddress * address);
 
 /* 接收连接，成功返回新创建得套接字对象，否则返回NULL */
 JSocket *j_socket_accept(JSocket * socket);
-typedef jboolean(*JSocketAcceptCallback) (JSocket * socket, JSocket * conn,
-        jpointer user_data);
+typedef boolean(*JSocketAcceptCallback) (JSocket * socket, JSocket * conn,
+        void * user_data);
 void j_socket_accept_async(JSocket * socket,
                            JSocketAcceptCallback callback,
-                           jpointer user_data);
+                           void * user_data);
 
 /* 发送数据 */
-jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
-                                 jint size, jboolean blocking);
-jint j_socket_send(JSocket * socket, const jchar * buffer, jint size);
+int j_socket_send_with_blocking(JSocket * socket, const char * buffer,
+                                int size, boolean blocking);
+int j_socket_send(JSocket * socket, const char * buffer, int size);
 /* 如果address为NULL，则等同于 j_socket_send() */
-jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
-                      const jchar * buffer, jint size);
+int j_socket_send_to(JSocket * socket, JSocketAddress * address,
+                     const char * buffer, int size);
 
-typedef void (*JSocketSendCallback) (JSocket * socket, jint ret,
-                                     jpointer user_data);
-void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
-                         JSocketSendCallback callback, jpointer user_data);
+typedef void (*JSocketSendCallback) (JSocket * socket, int ret,
+                                     void * user_data);
+void j_socket_send_async(JSocket * socket, const char * buffer, int size,
+                         JSocketSendCallback callback, void * user_data);
 
 /* 读取数据 */
-jint j_socket_receive(JSocket * socket, jchar * buffer, juint size);
-jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
-                                    juint size, jboolean blocking);
+int j_socket_receive(JSocket * socket, char * buffer, unsigned int size);
+int j_socket_receive_with_blocking(JSocket * socket, char * buffer,
+                                   unsigned int size, boolean blocking);
 /* 如果address为NULL，则等同于j_socket_receive() */
-jint j_socket_receive_from(JSocket * socket, JSocketAddress * address,
-                           jchar * buffer, juint size);
-typedef jboolean(*JSocketRecvCallback) (JSocket * socket,
-                                        const jchar * buffer, jint size,
-                                        jpointer user_data);
+int j_socket_receive_from(JSocket * socket, JSocketAddress * address,
+                          char * buffer, unsigned int size);
+typedef boolean(*JSocketRecvCallback) (JSocket * socket,
+                                       const char * buffer, int size,
+                                       void * user_data);
 void j_socket_receive_async(JSocket * socket, JSocketRecvCallback callback,
-                            jpointer user_data);
+                            void * user_data);
 /* 尽可能读取长度为length的数据 */
-void j_socket_receive_with_length_async(JSocket * socket, juint length,
+void j_socket_receive_with_length_async(JSocket * socket, unsigned int length,
                                         JSocketRecvCallback callback,
-                                        jpointer user_data);
+                                        void * user_data);
 
 /* 等待条件condition满足返回TRUE */
-jboolean j_socket_condition_wait(JSocket * socket,
-                                 JPollCondition condition);
-jboolean j_socket_condition_timed_wait(JSocket * socket,
-                                       JPollCondition condition,
-                                       jint64 timeout);
+boolean j_socket_condition_wait(JSocket * socket,
+                                JPollCondition condition);
+boolean j_socket_condition_timed_wait(JSocket * socket,
+                                      JPollCondition condition,
+                                      int64_t timeout);
 
 /* 判断非阻塞连接操作是否成功 */
-jboolean j_socket_check_connect_result(JSocket * socket, jint * err);
+boolean j_socket_check_connect_result(JSocket * socket, int * err);
 
 
-jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking);
-jboolean j_socket_get_blocking(JSocket * socket);
-jboolean j_socket_set_keepalive(JSocket * socket, jboolean keepalive);
-jboolean j_socket_get_keepalive(JSocket * socket);
+boolean j_socket_set_blocking(JSocket * socket, boolean blocking);
+boolean j_socket_get_blocking(JSocket * socket);
+boolean j_socket_set_keepalive(JSocket * socket, boolean keepalive);
+boolean j_socket_get_keepalive(JSocket * socket);
 /*
  * 获取套接字的选项
  * @level API level，如SOL_SOCKET
  * @optname 选项名字，如SO_BROADCAST
  * @value 返回选项值的指针
  */
-jboolean j_socket_get_option(JSocket * socket, jint level, jint optname,
-                             jint * value);
-jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
-                             jint value);
+boolean j_socket_get_option(JSocket * socket, int level, int optname,
+                            int * value);
+boolean j_socket_set_option(JSocket * socket, int level, int optname,
+                            int value);
 
 
-jboolean j_socket_is_closed(JSocket * socket);
-jboolean j_socket_is_connected(JSocket * socket);
+boolean j_socket_is_closed(JSocket * socket);
+boolean j_socket_is_connected(JSocket * socket);
 
 /* 获取套接字的本地地址，明确绑定的或者连接完成自动生成的 */
-jboolean j_socket_get_local_address(JSocket * socket,
-                                    JSocketAddress * address);
+boolean j_socket_get_local_address(JSocket * socket,
+                                   JSocketAddress * address);
 /* 获取套接字的远程地址，只对已经连接的套接字有效 */
-jboolean j_socket_get_remote_address(JSocket * socket,
-                                     JSocketAddress * address);
+boolean j_socket_get_remote_address(JSocket * socket,
+                                    JSocketAddress * address);
 
-const jchar *j_socket_get_remote_address_string(JSocket *socket);
-const jchar *j_socket_get_local_address_string(JSocket *socket);
+const char *j_socket_get_remote_address_string(JSocket *socket);
+const char *j_socket_get_local_address_string(JSocket *socket);
 
 #endif

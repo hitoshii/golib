@@ -17,8 +17,8 @@
 #include <jlib/jlib.h>
 #include <stdio.h>
 
-static void log_handler(const jchar * domain, JLogLevelFlag level,
-                        const jchar * message, jpointer user_data) {
+static void log_handler(const char * domain, JLogLevelFlag level,
+                        const char * message, void * user_data) {
     printf("[%s] %s\n", domain, message);
 }
 

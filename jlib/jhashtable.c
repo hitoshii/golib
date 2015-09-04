@@ -23,11 +23,11 @@
 #include <string.h>
 
 typedef struct {
-    jpointer key;
-    jpointer value;
+    void * key;
+    void * value;
 } JHashTableNode;
 
-static JHashTableNode *j_hash_table_node_new(jpointer key, jpointer value) {
+static JHashTableNode *j_hash_table_node_new(void * key, void * value) {
     JHashTableNode *node =
         (JHashTableNode *) j_malloc(sizeof(JHashTableNode));
     node->key = key;
@@ -51,8 +51,8 @@ static void j_hash_table_node_free(JHashTableNode * node,
  * JHashTable
  */
 struct _JHashTable {
-    juint32 size;               /* size of bucket */
-    juint32 mod;                /* a prime number <= size */
+    uint32_t size;               /* size of bucket */
+    uint32_t mod;                /* a prime number <= size */
 
     JHashFunc hash_func;
     JEqualFunc equal_func;
@@ -69,7 +69,7 @@ struct _JHashTable {
  * then works modulo 2^n. The prime modulo is necessary to get a
  * good distribution with poor hash functions.
  */
-static const juint32 prime_mod[] = {
+static const uint32_t prime_mod[] = {
     1,                          /* For 1 << 0 */
     2,
     3,
@@ -109,7 +109,7 @@ static const juint32 prime_mod[] = {
  */
 #define W_HASH_TABLE_DEFAULT_INDEX  (5)
 
-JHashTable *j_hash_table_new(jushort index,
+JHashTable *j_hash_table_new(unsigned short index,
                              JHashFunc hash_func,
                              JEqualFunc equal_func,
                              JKeyDestroyFunc key_func,
@@ -138,16 +138,16 @@ JHashTable *j_hash_table_new(jushort index,
 /*
  * XXX This function iterates over the whole table to count its elements.
  */
-juint j_hash_table_length(JHashTable * h) {
+unsigned int j_hash_table_length(JHashTable * h) {
     return j_ptr_array_get_len(h->keys);
 }
 
 /*
  * return the bucket index of the key
  */
-static inline juint32 j_hash_table_index(JHashTable * h, jpointer key) {
-    juint32 hash_code = h->hash_func(key);
-    juint32 index = hash_code % h->mod;
+static inline uint32_t j_hash_table_index(JHashTable * h, void * key) {
+    uint32_t hash_code = h->hash_func(key);
+    uint32_t index = hash_code % h->mod;
     return index;
 }
 
@@ -155,12 +155,12 @@ static inline juint32 j_hash_table_index(JHashTable * h, jpointer key) {
  * return the node that contains given key
  */
 static inline JHashTableNode *j_hash_table_find_node(JHashTable * h,
-        jconstpointer
+        const void *
         user_data) {
-    juint i, len = j_ptr_array_get_len(h->keys);
-    jpointer key = NULL;
+    unsigned int i, len = j_ptr_array_get_len(h->keys);
+    void * key = NULL;
     for (i = 0; i < len; ++i) {
-        jpointer data = j_ptr_array_get_ptr(h->keys, i);
+        void * data = j_ptr_array_get_ptr(h->keys, i);
         if (h->equal_func(data, user_data) == 0) {
             key = data;
             break;
@@ -170,7 +170,7 @@ static inline JHashTableNode *j_hash_table_find_node(JHashTable * h,
         return NULL;
     }
 
-    juint32 index = j_hash_table_index(h, key);
+    uint32_t index = j_hash_table_index(h, key);
     JList *bucket = h->buckets[index];
     JHashTableNode *node = NULL;
     while (bucket) {
@@ -184,10 +184,10 @@ static inline JHashTableNode *j_hash_table_find_node(JHashTable * h,
     return node;
 }
 
-jboolean j_hash_table_insert(JHashTable * h, jpointer key, jpointer value) {
+boolean j_hash_table_insert(JHashTable * h, void * key, void * value) {
     JHashTableNode *node = j_hash_table_find_node(h, key);
     if (node == NULL) {         /* if not exists, insert */
-        juint32 index = j_hash_table_index(h, key);
+        uint32_t index = j_hash_table_index(h, key);
         node = j_hash_table_node_new(key, value);
         h->buckets[index] = j_list_append(h->buckets[index], node);
         j_ptr_array_append_ptr(h->keys, node->key);
@@ -204,7 +204,7 @@ jboolean j_hash_table_insert(JHashTable * h, jpointer key, jpointer value) {
     return FALSE;
 }
 
-jboolean j_hash_table_update(JHashTable * h, jpointer key, jpointer value) {
+boolean j_hash_table_update(JHashTable * h, void * key, void * value) {
     JHashTableNode *node = j_hash_table_find_node(h, key);
     if (node == NULL) {         /* not found */
         return FALSE;
@@ -213,17 +213,17 @@ jboolean j_hash_table_update(JHashTable * h, jpointer key, jpointer value) {
     return TRUE;
 }
 
-static inline jpointer j_hash_table_remove_internal(JHashTable * h,
-        jpointer key,
+static inline void * j_hash_table_remove_internal(JHashTable * h,
+        void * key,
         JKeyDestroyFunc
         key_func,
         JValueDestroyFunc
         value_func) {
     JHashTableNode *node = j_hash_table_find_node(h, key);
-    jpointer value = NULL;
+    void * value = NULL;
 
     if (node) {
-        juint32 index = j_hash_table_index(h, key);
+        uint32_t index = j_hash_table_index(h, key);
         j_ptr_array_remove(h->keys, node->key);
         h->buckets[index] = j_list_remove(h->buckets[index], node);
         if (value_func == NULL) {
@@ -235,16 +235,16 @@ static inline jpointer j_hash_table_remove_internal(JHashTable * h,
 }
 
 /* remove but not free key or value */
-jpointer j_hash_table_remove(JHashTable * h, jpointer key) {
+void * j_hash_table_remove(JHashTable * h, void * key) {
     return j_hash_table_remove_internal(h, key, NULL, NULL);
 }
 
 /* remove and free key and value */
-void j_hash_table_remove_full(JHashTable * h, jpointer key) {
+void j_hash_table_remove_full(JHashTable * h, void * key) {
     j_hash_table_remove_internal(h, key, h->key_func, h->value_func);
 }
 
-jpointer j_hash_table_find(JHashTable * h, jconstpointer key) {
+void * j_hash_table_find(JHashTable * h, const void * key) {
     JHashTableNode *node = j_hash_table_find_node(h, key);
 
     if (node) {
@@ -254,15 +254,15 @@ jpointer j_hash_table_find(JHashTable * h, jconstpointer key) {
     return NULL;
 }
 
-jboolean j_hash_table_contains(JHashTable * h, jconstpointer key) {
+boolean j_hash_table_contains(JHashTable * h, const void * key) {
     return j_hash_table_find_node(h, key) != NULL;
 }
 
 void j_hash_table_foreach(JHashTable * h, JNodeFunc node_func,
-                          jpointer data) {
-    juint i, len = j_ptr_array_get_len(h->keys);
+                          void * data) {
+    unsigned int i, len = j_ptr_array_get_len(h->keys);
     for (i = 0; i < len; i++) {
-        jpointer data = j_ptr_array_get_ptr(h->keys, i);
+        void * data = j_ptr_array_get_ptr(h->keys, i);
         JHashTableNode *node = j_hash_table_find_node(h, data);
         if (!node_func(node->key, node->value, data)) {
             break;
@@ -278,7 +278,7 @@ JPtrArray *j_hash_table_get_keys(JHashTable * h) {
 static void j_hash_table_free_internal(JHashTable * h,
                                        JKeyDestroyFunc key_func,
                                        JValueDestroyFunc value_func) {
-    juint32 i;
+    uint32_t i;
     for (i = 0; i < h->size; i++) {
         JList *list = h->buckets[i];
         if (list) {
@@ -304,12 +304,12 @@ void j_hash_table_free(JHashTable * h) {
 }
 
 
-juint j_str_hash(jconstpointer p) {
+unsigned int j_str_hash(const void * p) {
     if (p == NULL) {
         return 0;
     }
-    const jchar *s = (const jchar *) p;
-    juint hash = 0;
+    const char *s = (const char *) p;
+    unsigned int hash = 0;
     while (*s) {
         hash = (hash << 4) + *s;
         s++;
@@ -317,24 +317,24 @@ juint j_str_hash(jconstpointer p) {
     return hash;
 }
 
-jint j_str_equal(jconstpointer s1, jconstpointer s2) {
-    return j_strcmp0((const jchar *) s1, (const jchar *) s2);
+int j_str_equal(const void * s1, const void * s2) {
+    return j_strcmp0((const char *) s1, (const char *) s2);
 }
 
-juint j_int_hash(jconstpointer p) {
-    juint i = JPOINTER_TO_JUINT(p);
+unsigned int j_int_hash(const void * p) {
+    unsigned int i = JPOINTER_TO_JUINT(p);
     return i;
 }
 
-jint j_int_equal(jconstpointer p1, jconstpointer p2) {
-    return (jint) (p1 - p2);
+int j_int_equal(const void * p1, const void * p2) {
+    return (int) (p1 - p2);
 }
 
 /* direct */
-juint j_direct_hash(jconstpointer p) {
+unsigned int j_direct_hash(const void * p) {
     return JPOINTER_TO_JUINT(p);
 }
 
-jint j_direct_equal(jconstpointer p1, jconstpointer p2) {
-    return (jint) (p1 - p2);
+int j_direct_equal(const void * p1, const void * p2) {
+    return (int) (p1 - p2);
 }

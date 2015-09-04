@@ -20,11 +20,11 @@
 #include <unistd.h>
 
 
-jpointer worker_func(jpointer data) {
+void * worker_func(void * data) {
     JAsyncQueue *queue = (JAsyncQueue *) data;
     j_async_queue_ref(queue);
-    jint i = 0;
-    juint usec = 10 * 1000;
+    int i = 0;
+    unsigned int usec = 10 * 1000;
     while (i <= 6) {
         usleep(usec * i);
         j_async_queue_lock(queue);
@@ -42,14 +42,14 @@ jpointer worker_func(jpointer data) {
     return NULL;
 }
 
-jpointer consumer_func(jpointer d) {
+void * consumer_func(void * d) {
     JAsyncQueue *queue = (JAsyncQueue *) d;
     j_async_queue_ref(queue);
 
-    jchar *data = NULL;
+    char *data = NULL;
     do {
         j_free(data);
-        data = (jchar *) j_async_queue_pop(queue);
+        data = (char *) j_async_queue_pop(queue);
         j_printf("consumer: %s\n", data);
     } while (j_strcmp0(data, "end"));
     j_free(data);
@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
     JAsyncQueue *queue = j_async_queue_new_full(j_free);
     j_thread_unref(j_thread_new("worker1", worker_func, queue));
     JThread *consumer = j_thread_new("consumer1", consumer_func, queue);
-    jchar *data = NULL;
+    char *data = NULL;
     do {
         j_free(data);
-        data = (jchar *) j_async_queue_pop(queue);
+        data = (char *) j_async_queue_pop(queue);
         j_printf("main: %s\n", data);
     } while (j_strcmp0(data, "end"));
     j_free(data);

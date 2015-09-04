@@ -21,27 +21,27 @@
 #include <unistd.h>
 
 typedef struct {
-    jushort event;  /* single event */
-    jpointer user_data;
+    unsigned short event;  /* single event */
+    void * user_data;
 } JXPollData;
 
-static inline JXPollData *j_xpoll_data_new(jushort event, jpointer user_data);
-static inline void j_xpoll_datas_free(jpointer data);
+static inline JXPollData *j_xpoll_data_new(unsigned short event, void * user_data);
+static inline void j_xpoll_datas_free(void * data);
 
 struct _JXPoll {
-    jint fd;
+    int fd;
     JHashTable *datas;
 
-    juint count;
+    unsigned int count;
 
     /* 调用epoll_wait()用 */
     struct epoll_event *cached_events;
-    juint n_cached_events;
+    unsigned int n_cached_events;
 };
 
 
 JXPoll *j_xpoll_new(void) {
-    jint fd=epoll_create(128);
+    int fd=epoll_create(128);
     if(fd<0) {
         return NULL;
     }
@@ -62,7 +62,7 @@ void j_xpoll_close(JXPoll *p) {
 }
 
 
-static inline JXPollData *j_xpoll_data_new(jushort event, jpointer user_data) {
+static inline JXPollData *j_xpoll_data_new(unsigned short event, void * user_data) {
     JXPollData *data=j_malloc(sizeof(JXPollData));
     data->event=event;
     data->user_data=user_data;
@@ -70,12 +70,12 @@ static inline JXPollData *j_xpoll_data_new(jushort event, jpointer user_data) {
 }
 
 
-static inline void j_xpoll_datas_free(jpointer data) {
+static inline void j_xpoll_datas_free(void * data) {
     j_list_free_full(data, j_free);
 }
 
-static inline jboolean j_xpoll_add_internal(JXPoll *p, JList *datas, jint fd, jushort event) {
-    jushort events=event;
+static inline boolean j_xpoll_add_internal(JXPoll *p, JList *datas, int fd, unsigned short event) {
+    unsigned short events=event;
     JList *ptr=datas;
     while(ptr) {
         JXPollData *data=(JXPollData*)j_list_data(ptr);
@@ -98,7 +98,7 @@ static inline jboolean j_xpoll_add_internal(JXPoll *p, JList *datas, jint fd, ju
     return TRUE;
 }
 
-jboolean j_xpoll_add(JXPoll *p, jint fd, jushort event, jpointer user_data) {
+boolean j_xpoll_add(JXPoll *p, int fd, unsigned short event, void * user_data) {
     JList *datas=(JList*)j_hash_table_find(p->datas, JINT_TO_JPOINTER(fd));
     if(j_xpoll_add_internal(p, datas, fd, event)) {
         JXPollData *data=j_xpoll_data_new(event, user_data);
@@ -113,10 +113,10 @@ jboolean j_xpoll_add(JXPoll *p, jint fd, jushort event, jpointer user_data) {
     return FALSE;
 }
 
-static inline JList *j_xpoll_del_internal(JXPoll *p, JList *datas, jint fd, jushort event) {
+static inline JList *j_xpoll_del_internal(JXPoll *p, JList *datas, int fd, unsigned short event) {
     JList *ret=NULL;
     JList *ptr=datas;
-    jushort events=0;
+    unsigned short events=0;
     while(ptr) {
         JXPollData *data=(JXPollData*)j_list_data(ptr);
         if(data->event==event) {
@@ -142,7 +142,7 @@ static inline JList *j_xpoll_del_internal(JXPoll *p, JList *datas, jint fd, jush
     return ret;
 }
 
-jboolean j_xpoll_del(JXPoll *p, jint fd, jushort event) {
+boolean j_xpoll_del(JXPoll *p, int fd, unsigned short event) {
     JList *datas=(JList*)j_hash_table_find(p->datas, JINT_TO_JPOINTER(fd));
     JList *link=j_xpoll_del_internal(p, datas, fd, event);
     if(link==NULL) {
@@ -162,7 +162,7 @@ jboolean j_xpoll_del(JXPoll *p, jint fd, jushort event) {
 }
 
 
-jint j_xpoll_wait(JXPoll *p, JXPollEvent *events, juint maxevent, jint timeout) {
+int j_xpoll_wait(JXPoll *p, JXPollEvent *events, unsigned int maxevent, int timeout) {
     if(J_UNLIKELY(maxevent==0)) {
         return 0;
     }
@@ -175,7 +175,7 @@ jint j_xpoll_wait(JXPoll *p, JXPollEvent *events, juint maxevent, jint timeout) 
     }
 
     struct epoll_event *e = p->cached_events;
-    jint i, j, n;
+    int i, j, n;
     while ((n = epoll_wait(p->fd, e, maxevent, timeout)) < 0) {
         if (errno != EINTR) {
             return n;
@@ -183,7 +183,7 @@ jint j_xpoll_wait(JXPoll *p, JXPollEvent *events, juint maxevent, jint timeout) 
     }
 
     for (i = 0, j=0; i < n && j<maxevent; i++) {
-        jint fd = e[i].data.fd;
+        int fd = e[i].data.fd;
         JList *ptr = j_hash_table_find(p->datas,
                                        JINT_TO_JPOINTER(fd));
         while(ptr && j<maxevent) {
@@ -199,6 +199,6 @@ jint j_xpoll_wait(JXPoll *p, JXPollEvent *events, juint maxevent, jint timeout) 
     return j;
 }
 
-juint j_xpoll_event_count(JXPoll *p) {
+unsigned int j_xpoll_event_count(JXPoll *p) {
     return p->count;
 }

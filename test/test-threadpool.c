@@ -16,9 +16,9 @@
  */
 #include <jlib/jlib.h>
 
-void thread_func(jpointer data, jpointer user_data) {
+void thread_func(void * data, void * user_data) {
     JAsyncQueue *queue = (JAsyncQueue *) user_data;
-    juint time = JPOINTER_TO_JUINT(data);
+    unsigned int time = JPOINTER_TO_JUINT(data);
 
     j_async_queue_ref(queue);
     j_usleep(time * 200000);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     if (p1 == NULL || p2 == NULL) {
         return -1;
     }
-    jint i;
+    int i;
     for (i = 1; i < 6; i++) {
         if (!j_thread_pool_push(p1, JUINT_TO_JPOINTER(i)) ||
                 !j_thread_pool_push(p2, JUINT_TO_JPOINTER(7 - i)) ||
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     i = 15;
     while (i--) {
-        jpointer ptr = j_async_queue_pop(queue);
+        void * ptr = j_async_queue_pop(queue);
         j_ptr_array_append_ptr_unique(ptrs, ptr);
     }
     if (j_ptr_array_get_len(ptrs) != 6) {

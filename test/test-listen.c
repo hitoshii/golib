@@ -18,10 +18,10 @@
 
 #define LISTEN_PORT 42123
 
-static jboolean async_result = FALSE;
+static boolean async_result = FALSE;
 
-static jboolean accept_callback(JSocket * socket, JSocket * conn,
-                                jpointer user_data) {
+static boolean accept_callback(JSocket * socket, JSocket * conn,
+                               void * user_data) {
     if (conn) {
         j_socket_unref(conn);
         async_result = TRUE;
@@ -31,7 +31,7 @@ static jboolean accept_callback(JSocket * socket, JSocket * conn,
     return FALSE;
 }
 
-static jboolean timeout_callback(jpointer user_data) {
+static boolean timeout_callback(void * user_data) {
     JSocket *socket =
         j_socket_new(J_SOCKET_FAMILY_INET, J_SOCKET_TYPE_STREAM,
                      J_SOCKET_PROTOCOL_TCP);

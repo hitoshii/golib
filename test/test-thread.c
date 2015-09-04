@@ -21,9 +21,9 @@
 
 J_PRIVATE_DEFINE_STATIC(private, NULL);
 
-static jpointer thread_func1(jpointer data) {
-    static jchar *once = NULL;
-    jboolean init = FALSE;
+static void * thread_func1(void * data) {
+    static char *once = NULL;
+    boolean init = FALSE;
     if (j_once_init_enter(&once)) {
         j_once_init_leave(&once, "hello all");
         j_printf("once!\n");
@@ -38,7 +38,7 @@ static jpointer thread_func1(jpointer data) {
     return "hello";
 }
 
-static jpointer thread_func(jpointer data) {
+static void * thread_func(void * data) {
     JWakeup *wakeup = j_wakeup_new();
     JThread *thread = j_thread_new("test-thread", thread_func1,
                                    wakeup);
@@ -57,14 +57,14 @@ static jpointer thread_func(jpointer data) {
     j_wakeup_get_pollfd(wakeup, &e);
     j_xpoll_add(ep, e.fd, e.events, NULL);
     JXPollEvent event[1];
-    jint n = j_xpoll_wait(ep, event, 1, -1);
+    int n = j_xpoll_wait(ep, event, 1, -1);
     if (n != 1) {
         return NULL;
     }
     j_wakeup_acknowledge(wakeup);
     j_xpoll_close(ep);
     j_wakeup_free(wakeup);
-    printf("%s\n", (const jchar *) data);
+    printf("%s\n", (const char *) data);
     return "hello world";
 }
 
@@ -76,19 +76,19 @@ int main(int argc, char *argv[]) {
 
     j_mutex_clear(&lock);
 
-    jpointer data = j_private_get(&private);
+    void * data = j_private_get(&private);
     if (data != NULL) {
         return 1;
     }
-    j_private_set(&private, (jpointer) 1);
+    j_private_set(&private, (void *) 1);
     data = j_private_get(&private);
-    if (data != (jpointer) 1) {
+    if (data != (void *) 1) {
         return 1;
     }
 
     JThread *thread = j_thread_new("test-thread", thread_func,
                                    "My name is Jim Green");
-    jpointer retval = j_thread_join(thread);
+    void * retval = j_thread_join(thread);
     j_thread_unref(thread);
     if (j_strcmp0(retval, "hello world")) {
         return 1;

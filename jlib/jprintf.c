@@ -18,14 +18,14 @@
 #include "jmem.h"
 #include <stdarg.h>
 
-jint j_printf_string_upper_bound(const jchar * format, va_list args) {
-    jchar c;
+int j_printf_string_upper_bound(const char * format, va_list args) {
+    char c;
     return _j_vsnprintf(&c, 1, format, args) + 1;
 }
 
-jint j_printf(jchar const *format, ...) {
+int j_printf(char const *format, ...) {
     va_list args;
-    jint retval;
+    int retval;
 
     va_start(args, format);
     retval = j_vprintf(format, args);
@@ -33,9 +33,9 @@ jint j_printf(jchar const *format, ...) {
     return retval;
 }
 
-jint j_fprintf(FILE * file, jchar const *format, ...) {
+int j_fprintf(FILE * file, char const *format, ...) {
     va_list args;
-    jint retval;
+    int retval;
 
     va_start(args, format);
     retval = j_vfprintf(file, format, args);
@@ -43,9 +43,9 @@ jint j_fprintf(FILE * file, jchar const *format, ...) {
     return retval;
 }
 
-jint j_sprintf(jchar * string, jchar const *format, ...) {
+int j_sprintf(char * string, char const *format, ...) {
     va_list args;
-    jint retval;
+    int retval;
 
     va_start(args, format);
     retval = j_vsprintf(string, format, args);
@@ -53,9 +53,9 @@ jint j_sprintf(jchar * string, jchar const *format, ...) {
     return retval;
 }
 
-jint j_snprintf(jchar * string, juint size, jchar const *format, ...) {
+int j_snprintf(char * string, unsigned int size, char const *format, ...) {
     va_list args;
-    jint retval;
+    int retval;
 
     va_start(args, format);
     retval = j_vsnprintf(string, size, format, args);
@@ -63,25 +63,25 @@ jint j_snprintf(jchar * string, juint size, jchar const *format, ...) {
     return retval;
 }
 
-jint j_vprintf(jchar const *format, va_list args) {
+int j_vprintf(char const *format, va_list args) {
     return _j_vprintf(format, args);
 }
 
-jint j_vfprintf(FILE * file, jchar const *format, va_list args) {
+int j_vfprintf(FILE * file, char const *format, va_list args) {
     return _j_vfprintf(file, format, args);
 }
 
-jint j_vsnprintf(jchar * string, juint size, jchar const *format,
-                 va_list args) {
+int j_vsnprintf(char * string, unsigned int size, char const *format,
+                va_list args) {
     return _j_vsnprintf(string, size, format, args);
 }
 
-jint j_vsprintf(jchar * string, jchar const *format, va_list args) {
+int j_vsprintf(char * string, char const *format, va_list args) {
     return _j_vsprintf(string, format, args);
 }
 
-jint j_vasprintf(jchar ** string, jchar const *format, va_list args) {
-    jint len;
+int j_vasprintf(char ** string, char const *format, va_list args) {
+    int len;
 #if defined(HAVE_VASPRINTF)
     len = vasprintf(string, format, args);
     if (len < 0) {
@@ -90,7 +90,7 @@ jint j_vasprintf(jchar ** string, jchar const *format, va_list args) {
 #else
     va_list args2;
     va_copy(args2, args);
-    *string = j_new(jchar, j_printf_string_upper_bound(format, args));
+    *string = j_new(char, j_printf_string_upper_bound(format, args));
     len = _j_vsprintf(*string, format, args2);
     va_end(args2);
 #endif

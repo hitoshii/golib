@@ -24,6 +24,6 @@
  * 睡眠微秒
  * 1秒=1000000微秒
  */
-void j_usleep(julong microseconds);
+void j_usleep(unsigned long microseconds);
 
 #endif

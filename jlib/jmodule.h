@@ -34,12 +34,12 @@ typedef enum {
 
 typedef struct _JModule JModule;
 
-JModule *j_module_open(const jchar *filepath, JModuleFlags flags);
+JModule *j_module_open(const char *filepath, JModuleFlags flags);
 
-const jchar *j_module_name(JModule *mod);
+const char *j_module_name(JModule *mod);
 
 /* NULL也是一个有效的符号 */
-jboolean j_module_symbol(JModule *module, const jchar *symbol_name, jpointer *symbol);
+boolean j_module_symbol(JModule *module, const char *symbol_name, void * *symbol);
 
 void j_module_close(JModule *module);
 

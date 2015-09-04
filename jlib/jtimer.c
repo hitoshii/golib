@@ -24,7 +24,7 @@
  * 睡眠微秒
  * 1秒=1000000微秒
  */
-void j_usleep(julong microseconds) {
+void j_usleep(unsigned long microseconds) {
     struct timespec request, remaining;
     request.tv_sec = microseconds / 1000000;
     request.tv_nsec = 1000 * (microseconds % 1000000);

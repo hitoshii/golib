@@ -25,16 +25,16 @@ struct _JThread {
     JObject parent;
     pthread_t impl;
     JMutex lock;
-    jboolean joined;
+    boolean joined;
 
-    jboolean jlibs;             /* 该线程是否是jlib创建的 */
+    boolean jlibs;             /* 该线程是否是jlib创建的 */
 
     JThreadFunc func;
-    jpointer data;
-    jboolean joinable;
+    void * data;
+    boolean joinable;
 
-    jchar *name;
-    jpointer retval;
+    char *name;
+    void * retval;
 };
 
 void j_mutex_init(JMutex * mutex) {
@@ -49,7 +49,7 @@ void j_mutex_lock(JMutex * mutex) {
     pthread_mutex_lock(&mutex->impl);
 }
 
-jboolean j_mutex_trylock(JMutex * mutex) {
+boolean j_mutex_trylock(JMutex * mutex) {
     return pthread_mutex_trylock(&mutex->impl) == 0;
 }
 
@@ -69,11 +69,11 @@ void j_cond_wait(JCond * cond, JMutex * mutex) {
     pthread_cond_wait(&cond->impl, &mutex->impl);
 }
 
-jboolean j_cond_wait_until(JCond * cond, JMutex * mutex, jint64 end_time) {
+boolean j_cond_wait_until(JCond * cond, JMutex * mutex, int64_t end_time) {
     struct timespec ts;
     ts.tv_sec = end_time / 1000000;
     ts.tv_nsec = (end_time % 1000000) * 1000;
-    jint status = pthread_cond_timedwait(&cond->impl, &mutex->impl, &ts);
+    int status = pthread_cond_timedwait(&cond->impl, &mutex->impl, &ts);
     return status == 0;
 }
 
@@ -100,28 +100,28 @@ static inline pthread_key_t *j_private_get_key(JPrivate * priv) {
     return key;
 }
 
-jpointer j_private_get(JPrivate * priv) {
+void * j_private_get(JPrivate * priv) {
     pthread_key_t *key = j_private_get_key(priv);
     return pthread_getspecific(*key);
 }
 
-void j_private_set(JPrivate * priv, jpointer data) {
+void j_private_set(JPrivate * priv, void * data) {
     pthread_key_t *key = j_private_get_key(priv);
     pthread_setspecific(*key, data);
 }
 
-static void j_thread_cleanup(jpointer data);
+static void j_thread_cleanup(void * data);
 
 J_LOCK_DEFINE_STATIC(j_thread_new);
 J_PRIVATE_DEFINE_STATIC(j_thread_specific_private, j_thread_cleanup);
 
 
 #include <sys/prctl.h>
-static inline void j_thread_set_name(const jchar * name) {
+static inline void j_thread_set_name(const char * name) {
     prctl(PR_SET_NAME, name, 0, 0, 0, 0);
 }
 
-static jpointer thread_func_proxy(jpointer data) {
+static void * thread_func_proxy(void * data) {
     if (data == NULL) {
         return NULL;
     }
@@ -151,13 +151,13 @@ static void j_thread_destroy(JThread * thread) {
     }
 }
 
-static inline JThread *j_thread_new_internal(const jchar * name,
+static inline JThread *j_thread_new_internal(const char * name,
         JThreadFunc func,
-        jpointer data) {
+        void * data) {
     J_LOCK(j_thread_new);
     JThread *thread = (JThread *) j_malloc(sizeof(JThread));
     J_OBJECT_INIT(thread, j_thread_destroy);
-    jint ret =
+    int ret =
         pthread_create(&thread->impl, NULL, thread_func_proxy, thread);
     if (J_UNLIKELY(ret != 0)) {
         j_free(thread);
@@ -176,13 +176,13 @@ static inline JThread *j_thread_new_internal(const jchar * name,
     return thread;
 }
 
-JThread *j_thread_new(const jchar * name, JThreadFunc func, jpointer data) {
+JThread *j_thread_new(const char * name, JThreadFunc func, void * data) {
     JThread *thread = j_thread_new_internal(name, func, data);
     return thread;
 }
 
-JThread *j_thread_try_new(const jchar * name, JThreadFunc func,
-                          jpointer data) {
+JThread *j_thread_try_new(const char * name, JThreadFunc func,
+                          void * data) {
     JThread *thread = j_thread_new_internal(name, func, data);
     return thread;
 
@@ -199,8 +199,8 @@ static inline void j_thread_join_internal(JThread * thread) {
 
 }
 
-jpointer j_thread_join(JThread * thread) {
-    jpointer retval;
+void * j_thread_join(JThread * thread) {
+    void * retval;
 
     j_thread_join_internal(thread);
     retval = thread->retval;
@@ -209,7 +209,7 @@ jpointer j_thread_join(JThread * thread) {
     return retval;
 }
 
-static void j_thread_cleanup(jpointer data) {
+static void j_thread_cleanup(void * data) {
     j_thread_unref(data);
 }
 
@@ -230,7 +230,7 @@ void j_thread_yield() {
     sched_yield();
 }
 
-void j_thread_exit(jpointer retval) {
+void j_thread_exit(void * retval) {
     JThread *thread = j_thread_self();
     if (thread == NULL) {
         return;
@@ -245,29 +245,29 @@ J_MUTEX_DEFINE_STATIC(j_once_mutex);
 J_COND_DEFINE_STATIC(j_once_cond);
 static JSList *j_once_init_list = NULL;
 
-jboolean j_once_init_enter(volatile void *location) {
-    volatile jpointer *value_location = location;
-    jboolean need_init = FALSE;
+boolean j_once_init_enter(volatile void *location) {
+    volatile void **value_location = (volatile void**)location;
+    boolean need_init = FALSE;
     j_mutex_lock(&j_once_mutex);
     if (j_atomic_pointer_get(value_location) == NULL) {
-        if (!j_slist_find(j_once_init_list, (jpointer) value_location)) {
+        if (!j_slist_find(j_once_init_list, (void *) value_location)) {
             need_init = TRUE;
             j_once_init_list =
                 j_slist_append(j_once_init_list,
-                               (jpointer) value_location);
+                               (void *) value_location);
         } else {                /* 初始化已经在另外一个线程执行，等待该线程执行完毕 */
             do {
                 j_cond_wait(&j_once_cond, &j_once_mutex);
             } while (j_slist_find
-                     (j_once_init_list, (jpointer) value_location));
+                     (j_once_init_list, (void *) value_location));
         }
     }
     j_mutex_unlock(&j_once_mutex);
     return need_init;
 }
 
-void j_once_init_leave(volatile void *location, jpointer result) {
-    volatile jpointer *value_location = location;
+void j_once_init_leave(volatile void *location, void * result) {
+    volatile void **value_location = (volatile void**)location;
     if (j_atomic_pointer_get(value_location) != NULL || result == NULL
             || j_once_init_list == NULL) {
         return;

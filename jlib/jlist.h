@@ -23,7 +23,7 @@
 typedef struct _JList JList;
 
 struct _JList {
-    jpointer data;
+    void * data;
     JList *prev;
     JList *next;
 };
@@ -34,33 +34,33 @@ struct _JList {
 #define j_list_new()    (NULL)
 
 
-JList *j_list_alloc(jpointer data);
+JList *j_list_alloc(void * data);
 
 
 /*
  * Gets the number of elements in a JSList
  * This function iterates over the whole list to count its elements.
  */
-juint j_list_length(JList * l);
+unsigned int j_list_length(JList * l);
 
 
 /*
  * Appends a new element with data to last of the list
  */
-JList *j_list_append(JList * l, jpointer data);
+JList *j_list_append(JList * l, void * data);
 
 /*
  * Prepends a new element with data to the head of the list.
  * It's faster than j_list_append()
  */
-JList *j_list_prepend(JList * l, jpointer data);
+JList *j_list_prepend(JList * l, void * data);
 
 /*
  * 查找包含data的元素
  */
-JList *j_list_find(JList * l, jconstpointer data);
-jpointer j_list_find_custom(JList * l, JCompareFunc compare,
-                            jconstpointer user_data);
+JList *j_list_find(JList * l, const void * data);
+void * j_list_find_custom(JList * l, JCompareFunc compare,
+                          const void * user_data);
 
 /*
  * Returns the first element of the list
@@ -94,7 +94,7 @@ int j_list_compare(JList * l1, JList * l2, JCompareFunc compare);
  * If two or more elements  contain the same data, only the first one is removed.
  * If none of the elements contain the data, JList is unchanged.
  */
-JList *j_list_remove(JList * l, jpointer data);
+JList *j_list_remove(JList * l, void * data);
 JList *j_list_remove_link(JList * l, JList * link);
 
 /*
@@ -102,7 +102,7 @@ JList *j_list_remove_link(JList * l, JList * link);
  */
 JList *j_list_delete_link(JList * l, JList * link);
 
-JList *j_list_insert_before(JList * list, JList * sibling, jpointer data);
+JList *j_list_insert_before(JList * list, JList * sibling, void * data);
 
 /*
  * 将双向列表倒转
@@ -114,16 +114,16 @@ JList *j_list_reverse(JList * list);
  * 排序
  */
 JList *j_list_sort_with_data(JList * list, JCompareDataFunc compare,
-                             jpointer user_data);
+                             void * user_data);
 
 /*
  * 查找link在list中的位置
  */
-jint j_list_position(JList * list, JList * link);
+int j_list_position(JList * list, JList * link);
 /*
  * 查找data在list中的位置
  */
-jint j_list_index(JList * list, jconstpointer data);
+int j_list_index(JList * list, const void * data);
 
 
 JList *j_list_concat(JList *p1, JList *p2);

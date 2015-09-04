@@ -33,23 +33,23 @@ typedef enum {
 
 #define J_LOG_LEVEL_USER_SHIFT (6)
 
-typedef void (*JLogFunc) (const jchar * domain, JLogLevelFlag level,
-                          const jchar * message, jpointer user_data);
+typedef void (*JLogFunc) (const char * domain, JLogLevelFlag level,
+                          const char * message, void * user_data);
 
 /*
  * Sets the log handler for a domain and a set of log levels.
  */
-juint j_log_set_handler(const jchar *domain, JLogLevelFlag level,
-                        JLogFunc func, jpointer user_data);
-juint j_log_set_handler_full(const jchar *domain, JLogLevelFlag level,
-                             JLogFunc func, jpointer user_data, JDestroyNotify destroy);
+unsigned int j_log_set_handler(const char *domain, JLogLevelFlag level,
+                               JLogFunc func, void * user_data);
+unsigned int j_log_set_handler_full(const char *domain, JLogLevelFlag level,
+                                    JLogFunc func, void * user_data, JDestroyNotify destroy);
 
-void j_log_remove_handler(const jchar * domain, juint id);
+void j_log_remove_handler(const char * domain, unsigned int id);
 
 
-void j_logv(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+void j_logv(const char * domain, JLogLevelFlag flag, const char * msg,
             va_list ap) J_GNUC_PRINTF(3, 0);
-void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+void j_log(const char * domain, JLogLevelFlag flag, const char * msg,
            ...) J_GNUC_PRINTF(3, 4);
 
 #define J_LOG_DOMAIN    ("")
@@ -67,8 +67,8 @@ void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
 
 #define J_LOGAT __FILE__ ":" STRINGIFY(__LINE__)
 
-void j_return_if_fail_warning(const jchar * domain, const jchar * at,
-                              const jchar * expression);
+void j_return_if_fail_warning(const char * domain, const char * at,
+                              const char * expression);
 
 #define j_return_if_fail(expr)  J_STMT_START\
         if(J_UNLIKELY(!(expr))){\

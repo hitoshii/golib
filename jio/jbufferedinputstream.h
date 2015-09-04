@@ -27,14 +27,14 @@ JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
 #define j_buffered_input_stream_ref(s) J_OBJECT_REF(s)
 #define j_buffered_input_stream_unref(s) J_OBJECT_UNREF(s)
 
-jchar *j_buffered_input_stream_readline(JBufferedInputStream *
-                                        buffered_stream);
+char *j_buffered_input_stream_readline(JBufferedInputStream *
+                                       buffered_stream);
 void j_buffered_input_stream_push(JBufferedInputStream * stream,
-                                  const jchar * buf, jint size);
+                                  const char * buf, int size);
 void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
-                                       const jchar * buf, jint size);
+                                       const char * buf, int size);
 void j_buffered_input_stream_push_c(JBufferedInputStream * stream,
-                                    jchar c);
+                                    char c);
 
 /**
  * j_buffered_input_stream_get:
@@ -43,6 +43,6 @@ void j_buffered_input_stream_push_c(JBufferedInputStream * stream,
  * Read a byte from buffer
  * Returns: negative if EOF
  */
-jint j_buffered_input_stream_get(JBufferedInputStream *stream);
+int j_buffered_input_stream_get(JBufferedInputStream *stream);
 
 #endif

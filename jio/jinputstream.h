@@ -25,16 +25,16 @@ typedef struct _JInputStreamInterface JInputStreamInterface;
 typedef struct {
     JObject parent;
     JInputStreamInterface *iface;
-    jboolean closed;
+    boolean closed;
 } JInputStream;
 
-typedef jint(*JInputStreamRead) (JInputStream * stream, void *buffer,
-                                 juint size);
+typedef int(*JInputStreamRead) (JInputStream * stream, void *buffer,
+                                unsigned int size);
 /*
  * 读取一行，如果失败或者到文件结束，返回NULL
  * 读取成功返回读取到的一行数据，不包括换行符，需要释放返回的字符串
  */
-// typedef jchar *(*JInputStreamReadline) (JInputStream * stream);
+// typedef char *(*JInputStreamReadline) (JInputStream * stream);
 /*
  * 关闭流
  */
@@ -49,10 +49,10 @@ struct _JInputStreamInterface {
 void j_input_stream_init(JInputStream * stream,
                          JInputStreamInterface * interface);
 
-jboolean j_input_stream_is_closed(JInputStream * input_stream);
+boolean j_input_stream_is_closed(JInputStream * input_stream);
 
-jint j_input_stream_read(JInputStream * stream, void *buffer, juint size);
-// jchar *j_input_stream_readline(JInputStream * stream);
+int j_input_stream_read(JInputStream * stream, void *buffer, unsigned int size);
+// char *j_input_stream_readline(JInputStream * stream);
 void j_input_stream_close(JInputStream * stream);
 
 #endif

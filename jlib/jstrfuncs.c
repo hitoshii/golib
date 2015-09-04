@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static const juint16 ascii_table_data[256] = {
+static const uint16_t ascii_table_data[256] = {
     0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004,
     0x004, 0x104, 0x104, 0x004, 0x104, 0x104, 0x004, 0x004,
     0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004, 0x004,
@@ -42,13 +42,13 @@ static const juint16 ascii_table_data[256] = {
     /* the upper 128 are all zeroes */
 };
 
-const juint16 *const j_ascii_table = ascii_table_data;
+const uint16_t *const j_ascii_table = ascii_table_data;
 
 /*
  * Calculates the length of a string
  * If str is NULL, -1 is returned
  */
-jint j_strlen(const jchar * str) {
+int j_strlen(const char * str) {
     if (str == NULL) {
         return -1;
     }
@@ -59,7 +59,7 @@ jint j_strlen(const jchar * str) {
  * Compares two strings. like standard strcmp
  * but comparing two NULL pointers returns 0
  */
-jint j_strcmp0(const jchar * s1, const jchar * s2) {
+int j_strcmp0(const char * s1, const char * s2) {
     if (s1 == NULL && s2 == NULL) {
         return 0;
     } else if (s1 == NULL && s2 != NULL) {
@@ -70,7 +70,7 @@ jint j_strcmp0(const jchar * s1, const jchar * s2) {
     return strcmp(s1, s2);
 }
 
-jint j_strncmp0(const jchar * s1, const jchar * s2, juint count) {
+int j_strncmp0(const char * s1, const char * s2, unsigned int count) {
     if (s1 == NULL && s2 == NULL) {
         return 0;
     } else if (s1 == NULL && s2 != NULL) {
@@ -85,14 +85,14 @@ jint j_strncmp0(const jchar * s1, const jchar * s2, juint count) {
  * Duplicates a string.
  * If str is NULL, returns NULL
  */
-jchar *j_strdup(const jchar * str) {
+char *j_strdup(const char * str) {
     if (str == NULL) {
         return NULL;
     }
     return strdup(str);
 }
 
-jchar *j_strdup_vprintf(const jchar * fmt, va_list vl) {
+char *j_strdup_vprintf(const char * fmt, va_list vl) {
     char *strp = NULL;
     if (vasprintf(&strp, fmt, vl) < 0) {
         return NULL;
@@ -100,7 +100,7 @@ jchar *j_strdup_vprintf(const jchar * fmt, va_list vl) {
     return strp;
 }
 
-jchar *j_strdup_printf(const jchar * fmt, ...) {
+char *j_strdup_printf(const char * fmt, ...) {
     va_list vl;
     va_start(vl, fmt);
     char *str = j_strdup_vprintf(fmt, vl);
@@ -113,34 +113,34 @@ jchar *j_strdup_printf(const jchar * fmt, ...) {
  * Returns a newly-allocated buffer count+1 bytes long which always nul-terminated.
  * If str is less than count bytes long. the whole str is duplicated.
  */
-jchar *j_strndup(const jchar * str, juint count) {
+char *j_strndup(const char * str, unsigned int count) {
     if (str == NULL) {
         return NULL;
     }
-    jint len = j_strlen(str);
+    int len = j_strlen(str);
     if (len <= count) {
         return j_strdup(str);
     }
-    jchar *buffer = j_malloc(sizeof(jchar) * (count + 1));
+    char *buffer = j_malloc(sizeof(char) * (count + 1));
     strncpy(buffer, str, count);
     buffer[count] = '\0';
     return buffer;
 }
 
-jchar *j_strnmdup(const jchar * str, juint n, juint m) {
+char *j_strnmdup(const char * str, unsigned int n, unsigned int m) {
     if (str == NULL || n > m) {
         return NULL;
     }
     return j_strndup(str + n, m - n);
 }
 
-jchar *j_stpcpy(jchar * dest, const jchar * src) {
+char *j_stpcpy(char * dest, const char * src) {
     j_return_val_if_fail(dest != NULL && src != NULL, NULL);
 #ifndef HAVE_STPCPY
     return stpcpy(dest, src);
 #else
-    jchar *d = dest;
-    const jchar *s = src;
+    char *d = dest;
+    const char *s = src;
 
     do {
         *d++ = *s;
@@ -149,29 +149,29 @@ jchar *j_stpcpy(jchar * dest, const jchar * src) {
 #endif
 }
 
-jchar *j_strconcat(const jchar * string1, ...) {
+char *j_strconcat(const char * string1, ...) {
     j_return_val_if_fail(string1 != NULL, NULL);
 
-    jsize l = 1 + j_strlen(string1);
+    unsigned long l = 1 + j_strlen(string1);
 
     va_list args;
     va_start(args, string1);
-    jchar *s = va_arg(args, jchar *);
+    char *s = va_arg(args, char *);
     while (s) {
         l += strlen(s);
-        s = va_arg(args, jchar *);
+        s = va_arg(args, char *);
     }
     va_end(args);
 
-    jchar *concat = (jchar *) j_new(jchar, l);
-    jchar *ptr = concat;
+    char *concat = (char *) j_new(char, l);
+    char *ptr = concat;
 
     ptr = j_stpcpy(ptr, string1);
     va_start(args, string1);
-    s = va_arg(args, jchar *);
+    s = va_arg(args, char *);
     while (s) {
         ptr = j_stpcpy(ptr, s);
-        s = va_arg(args, jchar *);
+        s = va_arg(args, char *);
     }
     va_end(args);
 
@@ -184,12 +184,12 @@ jchar *j_strconcat(const jchar * string1, ...) {
  * place. Therefore, it cannot be used on statically allocated strings.
  * If str is NULL, returns NULL
  */
-jchar *j_strchomp(jchar * str) {
+char *j_strchomp(char * str) {
     if (str == NULL) {
         return NULL;
     }
-    jchar *wp = NULL;
-    jchar *ptr = str;
+    char *wp = NULL;
+    char *ptr = str;
     while (*ptr != '\0') {
         if (wp == NULL) {
             if (*ptr == ' ') {
@@ -212,12 +212,12 @@ jchar *j_strchomp(jchar * str) {
  * place. Therefore, it cannot be used on statically allocated strings.
  * If str is NULL, returns NULL
  */
-jchar *j_strchug(jchar * str) {
+char *j_strchug(char * str) {
     if (str == NULL) {
         return NULL;
     }
-    jint wp = 0;
-    jchar *ptr = str;
+    int wp = 0;
+    char *ptr = str;
     while (*ptr != '\0') {
         if (*ptr == ' ') {
             wp++;
@@ -240,14 +240,14 @@ jchar *j_strchug(jchar * str) {
 /*
  * Creates a NULL-terminated array of strings. makeing a use of va_list
  */
-jchar **j_strdupv_valist(juint count, va_list vl) {
+char **j_strdupv_valist(unsigned int count, va_list vl) {
     if (J_UNLIKELY(count == 0)) {
         return NULL;
     }
-    jchar **strv = (jchar **) j_malloc(sizeof(jchar *) * (count + 1));
-    juint i;
+    char **strv = (char **) j_malloc(sizeof(char *) * (count + 1));
+    unsigned int i;
     for (i = 0; i < count; i++) {
-        const jchar *s = va_arg(vl, jchar *);
+        const char *s = va_arg(vl, char *);
         strv[i] = j_strdup(s);
     }
     strv[count] = NULL;
@@ -258,14 +258,14 @@ jchar **j_strdupv_valist(juint count, va_list vl) {
  * Creates a NULL-terminated array of strings, making a use of va_list
  * This function doesn't duplicate the strings, just take them
  */
-jchar **j_strv_valist(juint count, va_list vl) {
+char **j_strv_valist(unsigned int count, va_list vl) {
     if (J_UNLIKELY(count == 0)) {
         return NULL;
     }
-    jchar **strv = (jchar **) j_malloc(sizeof(jchar *) * (count + 1));
-    juint i;
+    char **strv = (char **) j_malloc(sizeof(char *) * (count + 1));
+    unsigned int i;
     for (i = 0; i < count; i++) {
-        strv[i] = va_arg(vl, jchar *);
+        strv[i] = va_arg(vl, char *);
     }
     strv[count] = NULL;
     return strv;
@@ -275,10 +275,10 @@ jchar **j_strv_valist(juint count, va_list vl) {
  * Creates a NULL-terminated array of strings, like j_strdupv()
  * But this function doesn't duplicate strings, it just takes the strings
  */
-jchar **j_strv(juint count, ...) {
+char **j_strv(unsigned int count, ...) {
     va_list vl;
     va_start(vl, count);
-    jchar **strv = j_strv_valist(count, vl);
+    char **strv = j_strv_valist(count, vl);
     va_end(vl);
     return strv;
 }
@@ -286,10 +286,10 @@ jchar **j_strv(juint count, ...) {
 /*
  * Creates a NULL-terminated array of strings
  */
-jchar **j_strdupv(juint count, ...) {
+char **j_strdupv(unsigned int count, ...) {
     va_list vl;
     va_start(vl, count);
-    jchar **strv = j_strdupv_valist(count, vl);
+    char **strv = j_strdupv_valist(count, vl);
     va_end(vl);
     return strv;
 }
@@ -298,11 +298,11 @@ jchar **j_strdupv(juint count, ...) {
  * Fres a NULL-terminated array of strings.
  * If strv is NULL, do nothing
  */
-void j_strfreev(jchar ** strv) {
+void j_strfreev(char ** strv) {
     if (strv == NULL) {
         return;
     }
-    jchar **ptr = strv;
+    char **ptr = strv;
     while (*ptr != NULL) {
         j_free(*ptr);
         ptr++;
@@ -314,12 +314,12 @@ void j_strfreev(jchar ** strv) {
 /*
  * Gets the length of array of strings
  */
-jint j_strv_length(jchar ** strv) {
+int j_strv_length(char ** strv) {
     if (strv == NULL) {
         return -1;
     }
-    jint len = 0;
-    jchar **ptr = strv;
+    int len = 0;
+    char **ptr = strv;
     while (*ptr) {
         len++;
         ptr++;
@@ -331,9 +331,9 @@ jint j_strv_length(jchar ** strv) {
  * Checks whether the string str begins with prefix
  * Returns 1 if yes, otherwise 0
  */
-jint j_str_has_prefix(const jchar * str, const jchar * prefix) {
-    const jchar *p1 = str;
-    const jchar *p2 = prefix;
+int j_str_has_prefix(const char * str, const char * prefix) {
+    const char *p1 = str;
+    const char *p2 = prefix;
     while (*p1 != '\0' && *p2 != '\0') {
         if (*p1 != *p2) {
             return 0;
@@ -351,7 +351,7 @@ jint j_str_has_prefix(const jchar * str, const jchar * prefix) {
  * Checks whether the string str ends with suffix
  * Returns 1 if yes, otherwise 0
  */
-jint j_str_has_suffix(const jchar * str, const jchar * suffix) {
+int j_str_has_suffix(const char * str, const char * suffix) {
     int str_len = j_strlen(str);
     int suffix_len = j_strlen(suffix);
     if (str_len < suffix_len) {
@@ -363,7 +363,7 @@ jint j_str_has_suffix(const jchar * str, const jchar * suffix) {
 /*
  * Checks whether str can be converted to a integer
  */
-jint j_str_isint(const jchar * str) {
+int j_str_isint(const char * str) {
     if (!(*str == '-' || j_ascii_isdigit(*str))) {
         return 0;
     }
@@ -380,22 +380,22 @@ jint j_str_isint(const jchar * str) {
 /*
  * Converts a string to a 64-bit integer
  */
-jint64 j_str_toint(const jchar * str) {
-    jint sign = 0;
+int64_t j_str_toint(const char * str) {
+    int sign = 0;
     if (*str == '-') {
         sign = 1;
         str++;
     }
-    jint64 result = 0;
-    jint i, len = j_strlen(str);
+    int64_t result = 0;
+    int i, len = j_strlen(str);
     for (i = len - 1; i >= 0; i--) {
-        jchar c = str[i];
-        jint n = (c - '0');
+        char c = str[i];
+        int n = (c - '0');
         if (n < 0 || n > 9) {
             return -1;
         }
-        jint k = len - i - 1;
-        jint j = 1;
+        int k = len - i - 1;
+        int j = 1;
         while (k > 0) {
             j *= 10;
             k--;
@@ -413,12 +413,12 @@ jint64 j_str_toint(const jchar * str) {
  * This function doesn't allocate or reallocate any memory
  * It modifies str in place.
  */
-jchar *j_str_forward(jchar * str, juint count) {
+char *j_str_forward(char * str, unsigned int count) {
     if (count == 0) {
         return str;
     }
-    jchar *ptr = str;
-    juint offset = 0;
+    char *ptr = str;
+    unsigned int offset = 0;
     while (*ptr) {
         offset++;
         ptr++;
@@ -426,7 +426,7 @@ jchar *j_str_forward(jchar * str, juint count) {
             break;
         }
     }
-    juint pos = 0;
+    unsigned int pos = 0;
     while (*ptr) {
         *(str + pos) = *ptr;
         ptr++;
@@ -436,10 +436,10 @@ jchar *j_str_forward(jchar * str, juint count) {
     return str;
 }
 
-jchar *j_str_replace(jchar * str, const jchar * t1, const jchar * t2) {
-    jchar *start = str;
-    jchar *ptr = strstr(start, t1);
-    jint len = j_strlen(t1);
+char *j_str_replace(char * str, const char * t1, const char * t2) {
+    char *start = str;
+    char *ptr = strstr(start, t1);
+    int len = j_strlen(t1);
     JString *string = NULL;
     while (ptr) {
         if (string == NULL) {
@@ -462,10 +462,10 @@ jchar *j_str_replace(jchar * str, const jchar * t1, const jchar * t2) {
  * Splits str into a number of tokens not containing character c
  * The result is a NULL-terminated array of string. Use j_strfreev() to free it
  */
-jchar **j_strsplit_c(const jchar * str, jchar c, jint max) {
+char **j_strsplit_c(const char * str, char c, int max) {
     max--;
-    const jchar *ptr = str;
-    juint len = 0;
+    const char *ptr = str;
+    unsigned int len = 0;
     while (*ptr) {
         if (*ptr == c) {
             len++;
@@ -475,9 +475,9 @@ jchar **j_strsplit_c(const jchar * str, jchar c, jint max) {
     if (max >= 0 && max < len) {
         len = max;
     }
-    jchar **strv = (jchar **) j_malloc(sizeof(jchar *) * (len + 2));
-    juint pos = 0;
-    const jchar *start = str;
+    char **strv = (char **) j_malloc(sizeof(char *) * (len + 2));
+    unsigned int pos = 0;
+    const char *start = str;
     ptr = start;
     while (*ptr) {
         if (*ptr == c && len > 0) {
@@ -492,12 +492,12 @@ jchar **j_strsplit_c(const jchar * str, jchar c, jint max) {
     return strv;
 }
 
-static inline jchar *j_str_encode_utf8(const jchar * str, jboolean strict) {
+static inline char *j_str_encode_utf8(const char * str, boolean strict) {
     JString *string = j_string_new();
-    const jchar *ptr = str;
+    const char *ptr = str;
     while (*ptr) {
-        juchar c1 = *ptr++, c2, c3, c4;
-        juint point = ' ';
+        unsigned char c1 = *ptr++, c2, c3, c4;
+        unsigned int point = ' ';
         if (c1 < 0x80) {
             j_string_append_c(string, c1);
             continue;
@@ -548,7 +548,7 @@ ERROR:
     return j_string_free(string, 0);
 }
 
-jchar *j_str_encode(const jchar * str, JEncoding encoding, jboolean strict) {
+char *j_str_encode(const char * str, JEncoding encoding, boolean strict) {
     if (encoding == J_ENCODING_UTF8) {
         return j_str_encode_utf8(str, strict);
     }

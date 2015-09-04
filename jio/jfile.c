@@ -27,7 +27,7 @@ static void j_file_free(JFile * file) {
 }
 
 /* 该函数不会失败，除非内存分配出错 */
-JFile *j_file_new(const jchar * path) {
+JFile *j_file_new(const char * path) {
     JFile *file = j_malloc(sizeof(JFile));
     file->path = j_strdup(path);
     J_OBJECT_INIT(file, j_file_free);
@@ -35,16 +35,16 @@ JFile *j_file_new(const jchar * path) {
     return file;
 }
 
-jint j_file_open_fd(JFile * f, jint mode) {
+int j_file_open_fd(JFile * f, int mode) {
     return open(f->path, mode);
 }
 
 /* 获取目录，new的时候指定的目录 */
-const jchar *j_file_get_path(JFile * f) {
+const char *j_file_get_path(JFile * f) {
     return f->path;
 }
 
-jchar *j_file_map(JFile * f, jint prot, jint flags, juint * len) {
+char *j_file_map(JFile * f, int prot, int flags, unsigned int * len) {
     int fd = j_file_open_fd(f, O_RDWR);
     if (fd < 0) {
         return NULL;
@@ -59,9 +59,9 @@ jchar *j_file_map(JFile * f, jint prot, jint flags, juint * len) {
     }
     void *addr = mmap(NULL, *len, prot, flags, fd, 0);
     close(fd);
-    return (jchar *) addr;
+    return (char *) addr;
 }
 
-void j_file_unmap(jchar * addr, juint len) {
+void j_file_unmap(char * addr, unsigned int len) {
     munmap(addr, len);
 }

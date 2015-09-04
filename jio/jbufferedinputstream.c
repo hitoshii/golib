@@ -22,17 +22,17 @@ struct _JBufferedInputStream {
     JInputStream parent;
     JInputStream *base_stream;
     // JString *buffer;
-    juint8 *buffer;
-    juint buffer_len;
-    juint buffer_total;
-    juint buffer_start;
-    jboolean eof;
+    uint8_t *buffer;
+    unsigned int buffer_len;
+    unsigned int buffer_total;
+    unsigned int buffer_start;
+    boolean eof;
 };
 #define DEFAULT_BUFFER_SIZE (1024)
 
 
-static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
-        void *buffer, juint size);
+static int j_buffered_input_stream_read(JBufferedInputStream * stream,
+                                        void *buffer, unsigned int size);
 static void j_buffered_input_stream_close(JBufferedInputStream *
         buffered_stream);
 
@@ -53,36 +53,36 @@ JBufferedInputStream *j_buffered_input_stream_new(JInputStream *
     J_OBJECT_REF(input_stream);
     buffered_stream->base_stream = input_stream;
     buffered_stream->eof = FALSE;
-    buffered_stream->buffer=(juint8*)j_malloc(sizeof(juint8)*DEFAULT_BUFFER_SIZE);
+    buffered_stream->buffer=(uint8_t*)j_malloc(sizeof(uint8_t)*DEFAULT_BUFFER_SIZE);
     buffered_stream->buffer_len=0;
     buffered_stream->buffer_start=0;
     buffered_stream->buffer_total=DEFAULT_BUFFER_SIZE;
     return buffered_stream;
 }
 
-static jboolean j_buffered_input_stream_read_buffer(JBufferedInputStream *
+static boolean j_buffered_input_stream_read_buffer(JBufferedInputStream *
         stream) {
     if(stream->buffer_start>0) {
         memmove(stream->buffer, stream->buffer+stream->buffer_start, stream->buffer_start);
         stream->buffer_start=0;
     }
-    juint8 buf[4096];
-    jint n = j_input_stream_read(stream->base_stream, buf, sizeof(buf));
+    uint8_t buf[4096];
+    int n = j_input_stream_read(stream->base_stream, buf, sizeof(buf));
     if (n <= 0) {
         stream->eof = TRUE;
         return FALSE;
     }
     while(stream->buffer_len+n>=stream->buffer_total) {
         stream->buffer_total<<=1;
-        stream->buffer=(juint8*)j_realloc(stream->buffer, stream->buffer_total);
+        stream->buffer=(uint8_t*)j_realloc(stream->buffer, stream->buffer_total);
     }
     memcpy(stream->buffer+stream->buffer_start+stream->buffer_len, buf, n);
     stream->buffer_len+=n;
     return TRUE;
 }
 
-static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
-        void *buffer, juint size) {
+static int j_buffered_input_stream_read(JBufferedInputStream * stream,
+                                        void *buffer, unsigned int size) {
     if (J_UNLIKELY(j_input_stream_is_closed((JInputStream *) stream))) {
         return -1;
     }
@@ -98,10 +98,10 @@ static jint j_buffered_input_stream_read(JBufferedInputStream * stream,
     return size;
 }
 
-juint8 *j_buffered_input_stream_find_newline(JBufferedInputStream *stream) {
-    jint i, len=stream->buffer_start+stream->buffer_len;
+uint8_t *j_buffered_input_stream_find_newline(JBufferedInputStream *stream) {
+    int i, len=stream->buffer_start+stream->buffer_len;
     for (i = stream->buffer_start; i < len; i++) {
-        juint8 c=stream->buffer[i];
+        uint8_t c=stream->buffer[i];
         if(c=='\n') {
             return stream->buffer+i;
         }
@@ -109,18 +109,18 @@ juint8 *j_buffered_input_stream_find_newline(JBufferedInputStream *stream) {
     return NULL;
 }
 
-jchar *j_buffered_input_stream_readline(JBufferedInputStream *
-                                        stream) {
+char *j_buffered_input_stream_readline(JBufferedInputStream *
+                                       stream) {
     if (J_UNLIKELY
             (j_input_stream_is_closed((JInputStream *) stream))) {
         return NULL;
     }
 
-    juint8 *newline = j_buffered_input_stream_find_newline(stream);
-    jchar *ret;
+    uint8_t *newline = j_buffered_input_stream_find_newline(stream);
+    char *ret;
     if (newline != NULL) {
-        juint len=newline - stream->buffer - stream->buffer_start;
-        ret = j_strndup((jchar*)(stream->buffer+stream->buffer_start), len);
+        unsigned int len=newline - stream->buffer - stream->buffer_start;
+        ret = j_strndup((char*)(stream->buffer+stream->buffer_start), len);
         len+=1; /* 去除换行符号 */
         stream->buffer_start+=len;
         stream->buffer_len-=len;
@@ -135,13 +135,13 @@ jchar *j_buffered_input_stream_readline(JBufferedInputStream *
         return NULL;
     }
 
-    ret = j_strndup((jchar*)(stream->buffer+stream->buffer_start), stream->buffer_len);
+    ret = j_strndup((char*)(stream->buffer+stream->buffer_start), stream->buffer_len);
     stream->buffer_start+=stream->buffer_len;
     stream->buffer_len=0;
     return ret;
 }
 
-jint j_buffered_input_stream_get(JBufferedInputStream *stream) {
+int j_buffered_input_stream_get(JBufferedInputStream *stream) {
     if (J_UNLIKELY
             (j_input_stream_is_closed((JInputStream *) stream))) {
         return -1;
@@ -152,7 +152,7 @@ jint j_buffered_input_stream_get(JBufferedInputStream *stream) {
     if(stream->buffer_len<=0) {
         return -1;
     }
-    jint c=*(stream->buffer+stream->buffer_start);
+    int c=*(stream->buffer+stream->buffer_start);
     stream->buffer_start++;
     stream->buffer_len--;
     return c;
@@ -166,7 +166,7 @@ static void j_buffered_input_stream_close(JBufferedInputStream *
 }
 
 void j_buffered_input_stream_push(JBufferedInputStream * stream,
-                                  const jchar * buf, jint size) {
+                                  const char * buf, int size) {
     if (J_UNLIKELY
             (j_input_stream_is_closed((JInputStream *) stream) || size == 0)) {
         return;
@@ -188,11 +188,11 @@ void j_buffered_input_stream_push(JBufferedInputStream * stream,
 }
 
 void j_buffered_input_stream_push_line(JBufferedInputStream * stream,
-                                       const jchar * buf, jint size) {
+                                       const char * buf, int size) {
     j_buffered_input_stream_push_c(stream, '\n');
     j_buffered_input_stream_push(stream, buf, size);
 }
 
-void j_buffered_input_stream_push_c(JBufferedInputStream * stream, jchar c) {
+void j_buffered_input_stream_push_c(JBufferedInputStream * stream, char c) {
     j_buffered_input_stream_push(stream, &c, 1);
 }

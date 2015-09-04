@@ -20,34 +20,34 @@
 #include "jtypes.h"
 
 typedef struct {
-    jchar *data;
-    juint len;
+    char *data;
+    unsigned int len;
 
     /* private */
-    juint total;
+    unsigned int total;
 } JString;
 
 #define j_string_data(s)    (s)->data
 #define j_string_len(s)     (s)->len
 
 JString *j_string_new();
-JString *j_string_new_with_length(jint length);
-void j_string_append(JString * string, const jchar * str);
-void j_string_append_len(JString * string, const jchar * str, juint len);
-void j_string_append_c(JString * string, jchar c);
-void j_string_append_printf(JString * string, const jchar * fmt, ...);
+JString *j_string_new_with_length(int length);
+void j_string_append(JString * string, const char * str);
+void j_string_append_len(JString * string, const char * str, unsigned int len);
+void j_string_append_c(JString * string, char c);
+void j_string_append_printf(JString * string, const char * fmt, ...);
 
-void j_string_preppend(JString * string, const jchar * str);
-void j_string_preppend_len(JString * string, const jchar * str, juint len);
-void j_string_preppend_c(JString * string, jchar c);
-void j_string_preppend_printf(JString * string, const jchar * fmt, ...);
+void j_string_preppend(JString * string, const char * str);
+void j_string_preppend_len(JString * string, const char * str, unsigned int len);
+void j_string_preppend_c(JString * string, char c);
+void j_string_preppend_printf(JString * string, const char * fmt, ...);
 
-jchar *j_string_free(JString * string, jboolean free_segment);
+char *j_string_free(JString * string, boolean free_segment);
 
 /*
  * 从位置pos开始删除len个字节
  * pos表示要移除的起始位置，len为移除的长度，-1表示移除后面所有
  */
-void j_string_erase(JString * string, juint pos, jint len);
+void j_string_erase(JString * string, unsigned int pos, int len);
 
 #endif

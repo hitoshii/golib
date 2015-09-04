@@ -24,18 +24,18 @@ void j_input_stream_init(JInputStream * stream,
     stream->closed = FALSE;
 }
 
-jboolean j_input_stream_is_closed(JInputStream * input_stream) {
+boolean j_input_stream_is_closed(JInputStream * input_stream) {
     return input_stream->closed;
 }
 
-jint j_input_stream_read(JInputStream * stream, void *buffer, juint size) {
+int j_input_stream_read(JInputStream * stream, void *buffer, unsigned int size) {
     if (stream->iface->read) {
         return stream->iface->read(stream, buffer, size);
     }
     return -1;
 }
 
-// jchar *j_input_stream_readline(JInputStream * stream)
+// char *j_input_stream_readline(JInputStream * stream)
 // {
 //     if (stream->iface->readline) {
 //         return stream->iface->readline(stream);

@@ -22,28 +22,28 @@ int main (int argc, char *argv[]) {
     if(mod==NULL) {
         return 1;
     }
-    jpointer ptr;
+    void * ptr;
     int (*sum)(int, int);
     if(!j_module_symbol(mod, "name", &ptr)) {
         return 2;
     }
-    if(j_strcmp0(*((const jchar **)ptr),"nice")) {
+    if(j_strcmp0(*((const char **)ptr),"nice")) {
         return 3;
     }
     if(!j_module_symbol(mod, "id", &ptr)) {
         return 4;
     }
-    if(*((jint*)ptr)!=123) {
+    if(*((int*)ptr)!=123) {
         return 5;
     }
     if(!j_module_symbol(mod, "scale", &ptr)) {
         return 6;
     }
-    if(!j_module_symbol(mod, "sum", (jpointer*)&sum)) {
+    if(!j_module_symbol(mod, "sum", (void **)&sum)) {
         return 7;
     }
     j_module_close(mod);
-    if(*((jfloat*)ptr)!=0.5) {
+    if(*((float*)ptr)!=0.5) {
         return 8;
     }
     if((*sum)(1,4)!=5) {

@@ -26,13 +26,13 @@
 
 
 struct _JWakeup {
-    jint fds[2];
+    int fds[2];
 };
 
 JWakeup *j_wakeup_new(void) {
     JWakeup *wakeup = (JWakeup *) j_malloc(sizeof(JWakeup));
 #if defined(HAVE_EVENTFD)
-    jint fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+    int fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
     if (fd >= 0) {
         wakeup->fds[0] = fd;
         wakeup->fds[1] = -1;
@@ -50,7 +50,7 @@ JWakeup *j_wakeup_new(void) {
     return wakeup;
 }
 
-jint j_wakeup_get_pollfd(JWakeup * wakeup, JXPollEvent * e) {
+int j_wakeup_get_pollfd(JWakeup * wakeup, JXPollEvent * e) {
     if (e) {
         e->fd = wakeup->fds[0];
         e->events = J_XPOLL_IN;
@@ -65,15 +65,15 @@ void j_wakeup_acknowledge(JWakeup * wakeup) {
 }
 
 void j_wakeup_signal(JWakeup * wakeup) {
-    jint res;
+    int res;
     if (wakeup->fds[1] == -1) {
         /* eventfd */
-        juint64 one = 1;
+        uint64_t one = 1;
         do {
             res = write(wakeup->fds[0], &one, sizeof(one));
         } while (J_UNLIKELY(res == -1 && errno == EINTR));
     } else {
-        juint8 one = 1;
+        uint8_t one = 1;
         do {
             res = write(wakeup->fds[1], &one, sizeof(one));
         } while (J_UNLIKELY(res == -1 && errno == EINTR));

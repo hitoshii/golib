@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 
-jboolean node(void *key, void *value, void *data) {
+boolean node(void *key, void *value, void *data) {
     printf("%s:%s\n", (char *) key, (char *) value);
     return TRUE;
 }

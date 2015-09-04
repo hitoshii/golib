@@ -22,15 +22,15 @@
 #include "jtypes.h"
 
 
-jpointer j_malloc(juint size) J_GNUC_MALLOC;
-jpointer j_malloc0(juint size) J_GNUC_MALLOC;
-jpointer j_realloc(jpointer mem, juint size);
-void j_free(jpointer ptr);
+void * j_malloc(unsigned int size) J_GNUC_MALLOC;
+void * j_malloc0(unsigned int size) J_GNUC_MALLOC;
+void * j_realloc(void * mem, unsigned int size);
+void j_free(void * ptr);
 
 /*
  * 复制一份内存
  */
-jpointer j_memdup(jconstpointer data, juint len);
+void * j_memdup(const void * data, unsigned int len);
 
 
 #define j_new(structure, n) j_malloc(sizeof(structure) * n)

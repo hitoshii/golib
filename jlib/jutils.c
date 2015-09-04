@@ -23,7 +23,7 @@
 #include <sys/resource.h>
 
 /* 使当前进程成为守护进程 */
-jboolean j_daemonize(void) {
+boolean j_daemonize(void) {
     umask(0);
 
     struct rlimit rl;
@@ -58,7 +58,7 @@ jboolean j_daemonize(void) {
         return FALSE;
     }
 
-    jint i;
+    int i;
     for (i = 0; i < rl.rlim_max; i++) {
         close(i);
     }
@@ -73,7 +73,7 @@ jboolean j_daemonize(void) {
     return TRUE;
 }
 
-static inline jboolean lockfile(jint fd) {
+static inline boolean lockfile(int fd) {
     struct flock fl;
     fl.l_type = F_WRLCK;
     fl.l_start = 0;
@@ -85,9 +85,9 @@ static inline jboolean lockfile(jint fd) {
 /*
  * 锁定某个文件，如果成功返回文件描述符号，否则返回-1
  */
-jint j_lockfile(const jchar * path) {
-    jint fd = open(path, O_RDWR | O_CREAT,
-                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+int j_lockfile(const char * path) {
+    int fd = open(path, O_RDWR | O_CREAT,
+                  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
         return -1;
     }

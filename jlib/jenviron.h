@@ -19,9 +19,9 @@
 
 #include "jtypes.h"
 
-const jchar *j_getenv(const jchar * variable);
-jboolean j_setenv(const jchar * variable, const jchar * value,
-                  jboolean overwrite);
+const char *j_getenv(const char * variable);
+boolean j_setenv(const char * variable, const char * value,
+                 boolean overwrite);
 
 
 #endif

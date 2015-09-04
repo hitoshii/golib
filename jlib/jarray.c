@@ -21,9 +21,9 @@
 
 
 typedef struct {
-    juint8 *data;
-    juint len;
-    juint total;                /* */
+    uint8_t *data;
+    unsigned int len;
+    unsigned int total;                /* */
 } JRealByteArray;
 
 #define JByteArrayDefaultSize (1024)
@@ -35,7 +35,7 @@ static inline void j_byte_array_extend(JRealByteArray * ba) {
 }
 
 static inline void j_byte_array_may_extend(JRealByteArray * real,
-        juint len) {
+        unsigned int len) {
     while (real->total < len + real->len) {
         j_byte_array_extend(real);
     }
@@ -46,7 +46,7 @@ JByteArray *j_byte_array_new(void) {
     return j_byte_array_sized_new(JByteArrayDefaultSize);
 }
 
-JByteArray *j_byte_array_sized_new(juint size) {
+JByteArray *j_byte_array_sized_new(unsigned int size) {
     if (J_UNLIKELY(size == 0)) {
         size = JByteArrayDefaultSize;
     }
@@ -54,11 +54,11 @@ JByteArray *j_byte_array_sized_new(juint size) {
         (JRealByteArray *) j_malloc(sizeof(JRealByteArray));
     real->total = size;
     real->len = 0;
-    real->data = j_malloc(sizeof(juint8) * real->total);
+    real->data = j_malloc(sizeof(uint8_t) * real->total);
     return (JByteArray *) real;
 }
 
-void j_byte_array_append(JByteArray * ba, const juint8 * data, juint len) {
+void j_byte_array_append(JByteArray * ba, const uint8_t * data, unsigned int len) {
     if (J_UNLIKELY(len == 0)) {
         return;
     }
@@ -70,7 +70,7 @@ void j_byte_array_append(JByteArray * ba, const juint8 * data, juint len) {
     ba->len += len;
 }
 
-void j_byte_array_preppend(JByteArray * ba, const juint8 * data, juint len) {
+void j_byte_array_preppend(JByteArray * ba, const uint8_t * data, unsigned int len) {
     if (J_UNLIKELY(len == 0)) {
         return;
     }
@@ -86,8 +86,8 @@ void j_byte_array_clear(JByteArray * ba) {
     ba->len = 0;
 }
 
-juint8 *j_byte_array_free(JByteArray * ba, jboolean f) {
-    juint8 *data = j_byte_array_get_data(ba);
+uint8_t *j_byte_array_free(JByteArray * ba, boolean f) {
+    uint8_t *data = j_byte_array_get_data(ba);
     j_free(ba);
     if (f) {
         j_free(data);
@@ -99,21 +99,21 @@ juint8 *j_byte_array_free(JByteArray * ba, jboolean f) {
 
 
 typedef struct {
-    jpointer *data;
-    juint len;
-    juint total;
+    void * *data;
+    unsigned int len;
+    unsigned int total;
     JDestroyNotify free_func;
 } JRealPtrArray;
 
 #define JPtrArrayDefaultSize (32)
 
 static inline void j_real_ptr_array_may_extend(JRealPtrArray * real,
-        juint len) {
+        unsigned int len) {
     while (J_UNLIKELY(real->total < real->len + len)) {
         real->total <<= 1;
-        real->data = (jpointer *) j_realloc(real->data,
-                                            sizeof(jpointer) *
-                                            real->total);
+        real->data = (void * *) j_realloc(real->data,
+                                          sizeof(void *) *
+                                          real->total);
     }
 }
 
@@ -121,7 +121,7 @@ JPtrArray *j_ptr_array_new(void) {
     return j_ptr_array_new_full(JPtrArrayDefaultSize, NULL);
 }
 
-JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy) {
+JPtrArray *j_ptr_array_new_full(unsigned int size, JDestroyNotify destroy) {
     if (J_UNLIKELY(size == 0)) {
         size = JPtrArrayDefaultSize;
     }
@@ -130,7 +130,7 @@ JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy) {
     real->total = size;
     real->free_func = destroy;
     real->len = 0;
-    real->data = (jpointer *) j_malloc(sizeof(jpointer) * real->total);
+    real->data = (void * *) j_malloc(sizeof(void *) * real->total);
     return (JPtrArray *) real;
 }
 
@@ -139,11 +139,11 @@ void j_ptr_array_set_free(JPtrArray * pa, JDestroyNotify destroy) {
     real->free_func = destroy;
 }
 
-void j_ptr_array_set_size(JPtrArray * pa, juint size) {
+void j_ptr_array_set_size(JPtrArray * pa, unsigned int size) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (size > real->len) {
         j_real_ptr_array_may_extend(real, (size - real->len));
-        jint i;
+        int i;
         for (i = real->len; i < size; i++) {
             real->data[i] = NULL;
         }
@@ -153,9 +153,9 @@ void j_ptr_array_set_size(JPtrArray * pa, juint size) {
     real->len = size;
 }
 
-void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length) {
+void j_ptr_array_remove_range(JPtrArray * pa, unsigned int index, unsigned int length) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
-    juint n;
+    unsigned int n;
     if (real == NULL || index >= real->len || index + length > real->len) {
         return;
     }
@@ -167,7 +167,7 @@ void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length) {
     if (index + length != real->len) {
         memmove(&real->data[index],
                 &real->data[index + length],
-                (real->len - (index + length) * sizeof(jpointer)));
+                (real->len - (index + length) * sizeof(void *)));
     }
     real->len -= length;
 }
@@ -175,7 +175,7 @@ void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length) {
 /*
  * Returns the position of the new-added pointer
  */
-juint j_ptr_array_append_ptr(JPtrArray * pa, jpointer ptr) {
+unsigned int j_ptr_array_append_ptr(JPtrArray * pa, void * ptr) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     j_real_ptr_array_may_extend(real, 1);
     real->data[real->len++] = ptr;
@@ -186,26 +186,26 @@ void j_ptr_array_append(JPtrArray * pa, ...) {
     /* Ends with NULL */
     va_list ap;
     va_start(ap, pa);
-    jpointer *ptr = va_arg(ap, jpointer);
+    void * *ptr = va_arg(ap, void *);
     while (ptr) {
         j_ptr_array_append_ptr(pa, ptr);
-        ptr = va_arg(ap, jpointer);
+        ptr = va_arg(ap, void *);
     }
     va_end(ap);
 }
 
-jpointer j_ptr_array_get(JPtrArray * pa, juint index) {
+void * j_ptr_array_get(JPtrArray * pa, unsigned int index) {
     if (J_UNLIKELY(index > pa->len)) {
         return NULL;
     }
     return pa->data[index];
 }
 
-jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
-                          jpointer user_data) {
-    jint i;
+void * j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
+                        void * user_data) {
+    int i;
     for (i = 0; i < pa->len; i++) {
-        jpointer data = pa->data[i];
+        void * data = pa->data[i];
         if (compare(data, user_data) == 0) {
             return data;
         }
@@ -213,11 +213,11 @@ jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
     return NULL;
 }
 
-jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
-                            jpointer user_data) {
-    jint i;
+int j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
+                           void * user_data) {
+    int i;
     for (i = 0; i < pa->len; i++) {
-        jpointer data = pa->data[i];
+        void * data = pa->data[i];
         if (compare(data, user_data) == 0) {
             return i;
         }
@@ -225,7 +225,7 @@ jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
     return -1;
 }
 
-void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index) {
+void j_ptr_array_insert(JPtrArray * pa, void * ptr, unsigned int index) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (index >= real->len) {
         j_ptr_array_append_ptr(pa, ptr);
@@ -233,13 +233,13 @@ void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index) {
     }
     j_real_ptr_array_may_extend(real, 1);
     memmove(real->data + index + 1,
-            real->data + index, (real->len - index) * sizeof(jpointer));
+            real->data + index, (real->len - index) * sizeof(void *));
     real->len++;
     real->data[index] = ptr;
 }
 
-jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr) {
-    juint i;
+boolean j_ptr_array_remove(JPtrArray * pa, void * ptr) {
+    unsigned int i;
     for (i = 0; i < pa->len; i++) {
         if (pa->data[i] == ptr) {
             return j_ptr_array_remove_index(pa, i);
@@ -248,7 +248,7 @@ jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr) {
     return FALSE;
 }
 
-jboolean j_ptr_array_remove_index(JPtrArray * pa, juint index) {
+boolean j_ptr_array_remove_index(JPtrArray * pa, unsigned int index) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (index >= real->len) {
         return FALSE;
@@ -258,13 +258,13 @@ jboolean j_ptr_array_remove_index(JPtrArray * pa, juint index) {
     }
     if (J_LIKELY(index != real->len - 1)) {
         memmove(real->data + index, real->data + index + 1,
-                sizeof(jpointer) * (real->len - index - 1));
+                sizeof(void *) * (real->len - index - 1));
     }
     real->len--;
     return TRUE;
 }
 
-jboolean j_ptr_array_remove_index_fast(JPtrArray * pa, juint index) {
+boolean j_ptr_array_remove_index_fast(JPtrArray * pa, unsigned int index) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     if (index >= real->len) {
         return FALSE;
@@ -279,10 +279,10 @@ jboolean j_ptr_array_remove_index_fast(JPtrArray * pa, juint index) {
     return TRUE;
 }
 
-void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr) {
+void j_ptr_array_free(JPtrArray * pa, boolean free_ptr) {
     JRealPtrArray *real = (JRealPtrArray *) pa;
     JDestroyNotify free_func = real->free_func;
-    juint i;
+    unsigned int i;
     for (i = 0; i < real->len; i++) {
         if (free_ptr && free_func) {
             free_func(real->data[i]);
@@ -293,9 +293,9 @@ void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr) {
 }
 
 /* 判断数组中是否包含元素data */
-jboolean j_ptr_array_contains(JPtrArray * array, jpointer data) {
+boolean j_ptr_array_contains(JPtrArray * array, void * data) {
     JRealPtrArray *real = (JRealPtrArray *) array;
-    jint i;
+    int i;
     for (i = 0; i < real->len; i++) {
         if (real->data[i] == data) {
             return TRUE;
@@ -305,7 +305,7 @@ jboolean j_ptr_array_contains(JPtrArray * array, jpointer data) {
 }
 
 /* 插入指针，保证不重复 */
-void j_ptr_array_append_ptr_unique(JPtrArray * array, jpointer data) {
+void j_ptr_array_append_ptr_unique(JPtrArray * array, void * data) {
     if (j_ptr_array_contains(array, data)) {
         return;
     }

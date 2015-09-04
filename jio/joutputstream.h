@@ -26,11 +26,11 @@ typedef struct _JOutputStreamInterface JOutputStreamInterface;
 typedef struct {
     JObject parent;
     JOutputStreamInterface *iface;
-    jboolean closed;
+    boolean closed;
 } JOutputStream;
 
-typedef jint(*JOutputStreamWrite) (JOutputStream * stream,
-                                   const jchar * buf, jint len);
+typedef int(*JOutputStreamWrite) (JOutputStream * stream,
+                                  const char * buf, int len);
 typedef void (*JOutputStreamClose) (JOutputStream * stream);
 
 struct _JOutputStreamInterface {
@@ -41,8 +41,8 @@ struct _JOutputStreamInterface {
 void j_output_stream_init(JOutputStream * stream,
                           JOutputStreamInterface * interface);
 
-jint j_output_stream_write(JOutputStream * stream, const jchar * buf,
-                           jint len);
+int j_output_stream_write(JOutputStream * stream, const char * buf,
+                          int len);
 void j_output_stream_close(JOutputStream * stream);
 
 #endif

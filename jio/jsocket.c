@@ -31,34 +31,34 @@ struct _JSocket {
     JSocketFamily family;
     JSocketType type;
     JSocketProtocol protocol;
-    jint fd;
+    int fd;
 
-    jint listen_backlog;
-    juint timeout;
+    int listen_backlog;
+    unsigned int timeout;
 
-    juint blocking:1;
-    juint keepalive:1;
-    juint closed:1;
-    juint connected:1;
-    juint listening:1;
-    juint timed_out:1;
-    juint connect_pending:1;
+    unsigned int blocking:1;
+    unsigned int keepalive:1;
+    unsigned int closed:1;
+    unsigned int connected:1;
+    unsigned int listening:1;
+    unsigned int timed_out:1;
+    unsigned int connect_pending:1;
 
-    jchar *local_address;
-    jchar *remote_address;
+    char *local_address;
+    char *remote_address;
 
     struct {
         JSocketAddress addr;
         struct sockaddr *native;
-        jint native_len;
-        juint64 last_used;
+        int native_len;
+        uint64_t last_used;
     } recv_addr_cache[RECV_ADDR_CACHE_SIZE];
 };
 
 #define j_socket_check_timeout(socket, val) if(socket->timed_out){socket->timed_out=FALSE;return val;}
 
 /* 根据文件描述符设置套接字信息 */
-static inline jboolean j_socket_detail_from_fd(JSocket * socket);
+static inline boolean j_socket_detail_from_fd(JSocket * socket);
 
 JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol) {
@@ -74,7 +74,7 @@ JSocket *j_socket_new(JSocketFamily family, JSocketType type,
     return (JSocket *) j_memdup(&socket, sizeof(socket));
 }
 
-JSocket *j_socket_new_from_fd(jint fd) {
+JSocket *j_socket_new_from_fd(int fd) {
     if (fd < 0) {
         return NULL;
     }
@@ -99,9 +99,9 @@ void j_socket_close(JSocket * socket) {
 }
 
 /* 根据文件描述符设置套接字信息 */
-static inline jboolean j_socket_detail_from_fd(JSocket * socket) {
+static inline boolean j_socket_detail_from_fd(JSocket * socket) {
     J_OBJECT_INIT(socket, j_socket_close);
-    jint value;
+    int value;
     if (!j_socket_get_option(socket, SOL_SOCKET, SO_TYPE, &value)) {
         return FALSE;
     }
@@ -117,9 +117,9 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket) {
     }
 
     struct sockaddr_storage address;
-    juint addrlen = sizeof(address);
-    jint fd = socket->fd;
-    jint family;
+    unsigned int addrlen = sizeof(address);
+    int fd = socket->fd;
+    int family;
 
     if (getsockname(fd, (struct sockaddr *) &address, &addrlen) != 0) {
         return FALSE;
@@ -182,7 +182,7 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket) {
         socket->listening = FALSE;
     }
 
-    jint flags = fcntl(socket->fd, F_GETFL, 0);
+    int flags = fcntl(socket->fd, F_GETFL, 0);
     if (flags >= 0 && flags & O_NONBLOCK) {
         socket->blocking = TRUE;
     }
@@ -191,19 +191,19 @@ static inline jboolean j_socket_detail_from_fd(JSocket * socket) {
 }
 
 /* 绑定一个地址 */
-jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
-                       jboolean reuse) {
+boolean j_socket_bind(JSocket * socket, JSocketAddress * address,
+                      boolean reuse) {
     j_return_val_if_fail(socket->closed == FALSE, FALSE);
 
     struct sockaddr_storage addr;
     if (!j_socket_address_to_native(address, &addr, sizeof(addr))) {
         return FALSE;
     }
-    jboolean so_reuseaddr = ! !reuse;
+    boolean so_reuseaddr = ! !reuse;
     j_socket_set_option(socket, SOL_SOCKET, SO_REUSEADDR, so_reuseaddr);
 #ifdef SO_REUSEPORT
-    jboolean so_reuseport = reuse
-                            && socket->type == J_SOCKET_TYPE_DATAGRAM;
+    boolean so_reuseport = reuse
+                           && socket->type == J_SOCKET_TYPE_DATAGRAM;
     j_socket_set_option(socket, SOL_SOCKET, SO_REUSEPORT, so_reuseport);
 #endif
 
@@ -216,7 +216,7 @@ jboolean j_socket_bind(JSocket * socket, JSocketAddress * address,
 }
 
 /* 讲套接字设置为被动监听状态 */
-jboolean j_socket_listen(JSocket * socket, jint listen_backlog) {
+boolean j_socket_listen(JSocket * socket, int listen_backlog) {
     j_return_val_if_fail(socket->closed == FALSE, FALSE);
 
     if (listen(socket->fd, listen_backlog) < 0) {
@@ -228,7 +228,7 @@ jboolean j_socket_listen(JSocket * socket, jint listen_backlog) {
 }
 
 /* 连接目标地址，对于面向连接的套接字，这会执行连接。对于无连接的套接字，设置默认的目标地址 */
-jboolean j_socket_connect(JSocket * socket, JSocketAddress * address) {
+boolean j_socket_connect(JSocket * socket, JSocketAddress * address) {
     j_return_val_if_fail(socket->closed == FALSE, FALSE);
 
     struct sockaddr_storage addr;
@@ -242,7 +242,7 @@ jboolean j_socket_connect(JSocket * socket, JSocketAddress * address) {
         if (errno == EINPROGRESS) {
             if (socket->blocking) {
                 if (j_socket_condition_wait(socket, J_POLL_OUT)) {
-                    jint err;
+                    int err;
                     if (j_socket_check_connect_result(socket, &err)
                             && !err) {
                         break;
@@ -264,7 +264,7 @@ JSocket *j_socket_accept(JSocket * socket) {
     j_return_val_if_fail(socket->closed == FALSE, NULL);
     j_socket_check_timeout(socket, NULL);
 
-    jint fd;
+    int fd;
     while ((fd = j_accept(socket->fd, NULL, 0)) < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             if (socket->blocking) {
@@ -277,7 +277,7 @@ JSocket *j_socket_accept(JSocket * socket) {
         return NULL;
     }
 
-    jint flags = fcntl(fd, F_GETFD, 0);
+    int flags = fcntl(fd, F_GETFD, 0);
     if (flags >= 0 && (flags & FD_CLOEXEC) == 0) {
         fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
     }
@@ -298,15 +298,15 @@ JSocket *j_socket_accept(JSocket * socket) {
 #endif
 
 /* 发送数据 */
-jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
-                                 jint size, jboolean blocking) {
+int j_socket_send_with_blocking(JSocket * socket, const char * buffer,
+                                int size, boolean blocking) {
     j_return_val_if_fail(socket->closed == FALSE, -1);
     j_socket_check_timeout(socket, -1);
 
     if (size < 0) {
         size = j_strlen(buffer);
     }
-    jint ret;
+    int ret;
     while ((ret =
                 j_send(socket->fd, buffer, size,
                        J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
@@ -323,13 +323,13 @@ jint j_socket_send_with_blocking(JSocket * socket, const jchar * buffer,
     return ret;
 }
 
-jint j_socket_send(JSocket * socket, const jchar * buffer, jint size) {
+int j_socket_send(JSocket * socket, const char * buffer, int size) {
     return j_socket_send_with_blocking(socket, buffer, size,
                                        socket->blocking);
 }
 
-jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
-                      const jchar * buffer, jint size) {
+int j_socket_send_to(JSocket * socket, JSocketAddress * address,
+                     const char * buffer, int size) {
     if (address == NULL) {
         return j_socket_send(socket, buffer, size);
     }
@@ -343,7 +343,7 @@ jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
     struct sockaddr_storage addr;
     socklen_t addrlen = j_socket_address_get_native_size(address);
     j_socket_address_to_native(address, &addr, sizeof(addr));
-    jint ret;
+    int ret;
     while ((ret =
                 j_sendto(socket->fd, buffer, size,
                          J_SOCKET_DEFAULT_SEND_FLAGS,
@@ -362,17 +362,17 @@ jint j_socket_send_to(JSocket * socket, JSocketAddress * address,
 }
 
 /* 读取数据 */
-jint j_socket_receive(JSocket * socket, jchar * buffer, juint size) {
+int j_socket_receive(JSocket * socket, char * buffer, unsigned int size) {
     return j_socket_receive_with_blocking(socket, buffer, size,
                                           socket->blocking);
 }
 
-jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
-                                    juint size, jboolean blocking) {
+int j_socket_receive_with_blocking(JSocket * socket, char * buffer,
+                                   unsigned int size, boolean blocking) {
     j_return_val_if_fail(socket->closed == FALSE, -1);
     j_socket_check_timeout(socket, -1);
 
-    jint ret;
+    int ret;
     while ((ret = j_recv(socket->fd, buffer, size, 0)) < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             if (blocking) {
@@ -387,8 +387,8 @@ jint j_socket_receive_with_blocking(JSocket * socket, jchar * buffer,
     return ret;
 }
 
-jint j_socket_receive_from(JSocket * socket, JSocketAddress * address,
-                           jchar * buffer, juint size) {
+int j_socket_receive_from(JSocket * socket, JSocketAddress * address,
+                          char * buffer, unsigned int size) {
     if (address == NULL) {
         return j_socket_receive(socket, buffer, size);
     }
@@ -398,7 +398,7 @@ jint j_socket_receive_from(JSocket * socket, JSocketAddress * address,
     struct sockaddr_storage addr;
     socklen_t addrlen;
 
-    jint ret;
+    int ret;
     while (TRUE) {
         if ((ret =
                     j_recvfrom(socket->fd, buffer, size, 0,
@@ -420,15 +420,15 @@ jint j_socket_receive_from(JSocket * socket, JSocketAddress * address,
 }
 
 /* 等待条件condition满足返回TRUE */
-jboolean j_socket_condition_wait(JSocket * socket,
-                                 JPollCondition condition) {
+boolean j_socket_condition_wait(JSocket * socket,
+                                JPollCondition condition) {
     return j_socket_condition_timed_wait(socket, condition, -1);
 }
 
 /* 超时单位，微秒 */
-jboolean j_socket_condition_timed_wait(JSocket * socket,
-                                       JPollCondition condition,
-                                       jint64 timeout) {
+boolean j_socket_condition_timed_wait(JSocket * socket,
+                                      JPollCondition condition,
+                                      int64_t timeout) {
     j_return_val_if_fail(socket->closed == FALSE, FALSE);
 
     if (socket->timeout
@@ -438,11 +438,11 @@ jboolean j_socket_condition_timed_wait(JSocket * socket,
         timeout /= 1000;
     }
 
-    jint start_time = j_get_monotonic_time();
+    int start_time = j_get_monotonic_time();
 
-    jint result;
+    int result;
     while (TRUE) {
-        jshort revents;
+        short revents;
         result = j_poll_simple(socket->fd, condition, timeout, &revents);
         if (result != -1 || errno != EINTR) {
             break;
@@ -457,11 +457,11 @@ jboolean j_socket_condition_timed_wait(JSocket * socket,
     return result > 0;
 }
 
-jboolean j_socket_check_connect_result(JSocket * socket, jint * err) {
+boolean j_socket_check_connect_result(JSocket * socket, int * err) {
     j_return_val_if_fail(socket->closed == FALSE, FALSE);
     j_socket_check_timeout(socket, FALSE);
 
-    jint value;
+    int value;
     if (!j_socket_get_option(socket, SOL_SOCKET, SO_ERROR, &value)) {
         *err = 1;
         return FALSE;
@@ -474,14 +474,14 @@ jboolean j_socket_check_connect_result(JSocket * socket, jint * err) {
     return TRUE;
 }
 
-jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking) {
-    jint flags = fcntl(socket->fd, F_GETFL, 0);
+boolean j_socket_set_blocking(JSocket * socket, boolean blocking) {
+    int flags = fcntl(socket->fd, F_GETFL, 0);
     if (flags < 0) {
         return FALSE;
     }
 
     socket->blocking = ! !blocking;
-    jint ret;
+    int ret;
     if (socket->blocking) {
         flags &= O_NONBLOCK;
     } else {
@@ -490,11 +490,11 @@ jboolean j_socket_set_blocking(JSocket * socket, jboolean blocking) {
     return fcntl(socket->fd, F_SETFL, flags) == 0;
 }
 
-jboolean j_socket_get_blocking(JSocket * socket) {
+boolean j_socket_get_blocking(JSocket * socket) {
     return socket->blocking;
 }
 
-jboolean j_socket_set_keepalive(JSocket * socket, jboolean keepalive) {
+boolean j_socket_set_keepalive(JSocket * socket, boolean keepalive) {
     if (!j_socket_set_option(socket, SOL_SOCKET, SO_KEEPALIVE, keepalive)) {
         return FALSE;
     }
@@ -502,7 +502,7 @@ jboolean j_socket_set_keepalive(JSocket * socket, jboolean keepalive) {
     return TRUE;
 }
 
-jboolean j_socket_get_keepalive(JSocket * socket) {
+boolean j_socket_get_keepalive(JSocket * socket) {
     return socket->keepalive;
 }
 
@@ -512,10 +512,10 @@ jboolean j_socket_get_keepalive(JSocket * socket) {
  * @optname 选项名字，如SO_BROADCAST
  * @value 返回选项值的指针
  */
-jboolean j_socket_get_option(JSocket * socket, jint level, jint optname,
-                             jint * value) {
+boolean j_socket_get_option(JSocket * socket, int level, int optname,
+                            int * value) {
     *value = 0;
-    juint size = sizeof(jint);
+    unsigned int size = sizeof(int);
     if (getsockopt(socket->fd, level, optname, value, &size) != 0) {
         return FALSE;
     }
@@ -526,30 +526,30 @@ jboolean j_socket_get_option(JSocket * socket, jint level, jint optname,
      * 高地址 ff990000 低地址  此时，如果调用*((short*)value)取到的是0000，因为value指向起始地址，也就是低地址
      * 因此要将高位右移到低位，0000ff99，此时调用*((short*)value)取到ff99，大端解释为0x99ff
      */
-    if (size != sizeof(jint)) {
-        *value = *value >> (8 * (sizeof(jint) - size));
+    if (size != sizeof(int)) {
+        *value = *value >> (8 * (sizeof(int) - size));
     }
 #endif
     return TRUE;
 }
 
-jboolean j_socket_set_option(JSocket * socket, jint level, jint optname,
-                             jint value) {
+boolean j_socket_set_option(JSocket * socket, int level, int optname,
+                            int value) {
     return setsockopt(socket->fd, level, optname, &value,
-                      sizeof(jint)) == 0;
+                      sizeof(int)) == 0;
 }
 
-jboolean j_socket_is_closed(JSocket * socket) {
+boolean j_socket_is_closed(JSocket * socket) {
     return socket->closed;
 }
 
-jboolean j_socket_is_connected(JSocket * socket) {
+boolean j_socket_is_connected(JSocket * socket) {
     return socket->connected;
 }
 
 /* 获取套接字的本地地址，明确绑定的或者连接完成自动生成的 */
-jboolean j_socket_get_local_address(JSocket * socket,
-                                    JSocketAddress * address) {
+boolean j_socket_get_local_address(JSocket * socket,
+                                   JSocketAddress * address) {
     struct sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
     if (getsockname(socket->fd, (struct sockaddr *) &addr, &addrlen) < 0) {
@@ -559,10 +559,10 @@ jboolean j_socket_get_local_address(JSocket * socket,
 }
 
 /* 获取套接字的远程地址，只对已经连接的套接字有效 */
-jboolean j_socket_get_remote_address(JSocket * socket,
-                                     JSocketAddress * address) {
+boolean j_socket_get_remote_address(JSocket * socket,
+                                    JSocketAddress * address) {
     if (socket->connect_pending) {
-        jint err;
+        int err;
         if (!j_socket_check_connect_result(socket, &err)) {
             return FALSE;
         }
@@ -581,23 +581,23 @@ jboolean j_socket_get_remote_address(JSocket * socket,
 typedef struct {
     JSource source;
     JSocket *socket;
-    jboolean listening;
-    jshort event;
-    jchar *buffer;
-    juint size;
+    boolean listening;
+    short event;
+    char *buffer;
+    unsigned int size;
 } JSocketSource;
 
-static jboolean j_socket_source_dispatch(JSource * source,
-        JSourceFunc callback,
-        jpointer user_data) {
+static boolean j_socket_source_dispatch(JSource * source,
+                                        JSourceFunc callback,
+                                        void * user_data) {
     JSocketSource *src = (JSocketSource *) source;
     if (src->event & J_XPOLL_OUT) {
-        jint ret = j_socket_send_with_blocking(src->socket, src->buffer,
-                                               src->size, FALSE);
+        int ret = j_socket_send_with_blocking(src->socket, src->buffer,
+                                              src->size, FALSE);
         ((JSocketSendCallback) callback) (src->socket, ret, user_data);
     } else if (src->event & J_XPOLL_IN) {
         if (!src->listening) {
-            jint ret =
+            int ret =
                 j_socket_receive_with_blocking(src->socket, src->buffer,
                                                src->size, FALSE);
             return ((JSocketRecvCallback) callback) (src->socket,
@@ -625,7 +625,7 @@ JSourceFuncs j_socket_source_funcs = {
     j_socket_source_finalize
 };
 
-static JSocketSource *j_socket_source_new(JSocket * socket, jshort event) {
+static JSocketSource *j_socket_source_new(JSocket * socket, short event) {
     JSocketSource *src =
         (JSocketSource *) j_source_new(&j_socket_source_funcs,
                                        sizeof(JSocketSource));
@@ -636,8 +636,8 @@ static JSocketSource *j_socket_source_new(JSocket * socket, jshort event) {
     return src;
 }
 
-void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
-                         JSocketSendCallback callback, jpointer user_data) {
+void j_socket_send_async(JSocket * socket, const char * buffer, int size,
+                         JSocketSendCallback callback, void * user_data) {
     j_return_if_fail(socket->closed == FALSE);
     if (size < 0) {
         size = j_strlen(buffer);
@@ -652,19 +652,19 @@ void j_socket_send_async(JSocket * socket, const jchar * buffer, jint size,
 }
 
 void j_socket_receive_async(JSocket * socket, JSocketRecvCallback callback,
-                            jpointer user_data) {
+                            void * user_data) {
     j_socket_receive_with_length_async(socket, 4096, callback, user_data);
 }
 
 /* 尽可能读取长度为length的数据 */
-void j_socket_receive_with_length_async(JSocket * socket, juint length,
+void j_socket_receive_with_length_async(JSocket * socket, unsigned int length,
                                         JSocketRecvCallback callback,
-                                        jpointer user_data) {
+                                        void * user_data) {
     j_return_if_fail(socket->closed == FALSE);
     JSocketSource *src =
         (JSocketSource *) j_socket_source_new(socket, J_XPOLL_IN);
     src->size = length;
-    src->buffer = j_malloc(sizeof(jchar) * src->size);
+    src->buffer = j_malloc(sizeof(char) * src->size);
     j_source_set_callback((JSource *) src, (JSourceFunc) callback,
                           user_data, NULL);
     j_source_attach((JSource *) src, NULL);
@@ -673,7 +673,7 @@ void j_socket_receive_with_length_async(JSocket * socket, juint length,
 
 void j_socket_accept_async(JSocket * socket,
                            JSocketAcceptCallback callback,
-                           jpointer user_data) {
+                           void * user_data) {
     j_return_if_fail(socket->closed == FALSE);
     JSocketSource *src =
         (JSocketSource *) j_socket_source_new(socket, J_XPOLL_IN);
@@ -685,7 +685,7 @@ void j_socket_accept_async(JSocket * socket,
 }
 
 
-const jchar *j_socket_get_remote_address_string(JSocket *socket) {
+const char *j_socket_get_remote_address_string(JSocket *socket) {
     if(socket->remote_address==NULL) {
         JSocketAddress address;
         if(j_socket_get_local_address(socket, &address)) {
@@ -694,7 +694,7 @@ const jchar *j_socket_get_remote_address_string(JSocket *socket) {
     }
     return socket->remote_address;
 }
-const jchar *j_socket_get_local_address_string(JSocket *socket) {
+const char *j_socket_get_local_address_string(JSocket *socket) {
     if(socket->local_address==NULL) {
         JSocketAddress address;
         if(j_socket_get_local_address(socket, &address)) {

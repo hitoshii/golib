@@ -20,76 +20,76 @@
 #include "jtypes.h"
 
 typedef struct {
-    juint8 *data;
-    juint len;
+    uint8_t *data;
+    unsigned int len;
 } JByteArray;
 #define j_byte_array_get_data(ba)   ((ba)->data)
 #define j_byte_array_get_len(ba)    ((ba)->len)
 
 
 JByteArray *j_byte_array_new(void);
-JByteArray *j_byte_array_sized_new(juint size);
+JByteArray *j_byte_array_sized_new(unsigned int size);
 
-void j_byte_array_append(JByteArray * ba, const juint8 * data, juint len);
-void j_byte_array_preppend(JByteArray * ba, const juint8 * data,
-                           juint len);
+void j_byte_array_append(JByteArray * ba, const uint8_t * data, unsigned int len);
+void j_byte_array_preppend(JByteArray * ba, const uint8_t * data,
+                           unsigned int len);
 
-juint8 *j_byte_array_free(JByteArray * ba, jboolean f);
+uint8_t *j_byte_array_free(JByteArray * ba, boolean f);
 
 void j_byte_array_clear(JByteArray * ba);
 
 
 typedef struct {
-    jpointer *data;
-    juint len;
+    void * *data;
+    unsigned int len;
 } JPtrArray;
 #define j_ptr_array_get_data(pa)    ((pa)->data)
 #define j_ptr_array_get_len(pa)     ((pa)->len)
 
 JPtrArray *j_ptr_array_new(void);
-JPtrArray *j_ptr_array_new_full(juint size, JDestroyNotify destroy);
+JPtrArray *j_ptr_array_new_full(unsigned int size, JDestroyNotify destroy);
 
-void j_ptr_array_set_size(JPtrArray * pa, juint size);
-void j_ptr_array_remove_range(JPtrArray * pa, juint index, juint length);
+void j_ptr_array_set_size(JPtrArray * pa, unsigned int size);
+void j_ptr_array_remove_range(JPtrArray * pa, unsigned int index, unsigned int length);
 
 void j_ptr_array_set_free(JPtrArray * pa, JDestroyNotify destroy);
 
 /*
  * Returns the position of the new-added pointer
  */
-juint j_ptr_array_append_ptr(JPtrArray * pa, jpointer ptr);
+unsigned int j_ptr_array_append_ptr(JPtrArray * pa, void * ptr);
 void j_ptr_array_append(JPtrArray * pa, ...);   /* Ends with NULL */
-void j_ptr_array_insert(JPtrArray * pa, jpointer ptr, juint index);
+void j_ptr_array_insert(JPtrArray * pa, void * ptr, unsigned int index);
 
 #define j_ptr_array_get_ptr(a, i)  ((a)->data[i])
-jpointer j_ptr_array_get(JPtrArray * pa, juint index);
-jpointer j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
-                          jpointer user_data);
-jint j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
-                            jpointer user_data);
+void * j_ptr_array_get(JPtrArray * pa, unsigned int index);
+void * j_ptr_array_find(JPtrArray * pa, JCompareFunc compare,
+                        void * user_data);
+int j_ptr_array_find_index(JPtrArray * pa, JCompareFunc compare,
+                           void * user_data);
 
 /* 判断数组中是否包含元素data */
-jboolean j_ptr_array_contains(JPtrArray * array, jpointer data);
+boolean j_ptr_array_contains(JPtrArray * array, void * data);
 /* 插入指针，保证不重复 */
-void j_ptr_array_append_ptr_unique(JPtrArray * array, jpointer data);
+void j_ptr_array_append_ptr_unique(JPtrArray * array, void * data);
 
 /*
  * Removes the first occurrence of the given pointer from the pointer array.
  * The following elements are moved down one place.
  * If array has a non-NULL GDestroyNotify function it is called for the removed element.
  */
-jboolean j_ptr_array_remove(JPtrArray * pa, jpointer ptr);
+boolean j_ptr_array_remove(JPtrArray * pa, void * ptr);
 
 /*
  * Removes the pointer at the given index from the pointer array.
  * The following elements are moved down one place.
  * If array has a non-NULL GDestroyNotify function it is called for the removed element.
  */
-jboolean j_ptr_array_remove_index(JPtrArray * pa, juint index);
+boolean j_ptr_array_remove_index(JPtrArray * pa, unsigned int index);
 
-jboolean j_ptr_array_remove_index_fast(JPtrArray * pa, juint index);
+boolean j_ptr_array_remove_index_fast(JPtrArray * pa, unsigned int index);
 
 
-void j_ptr_array_free(JPtrArray * pa, jboolean free_ptr);
+void j_ptr_array_free(JPtrArray * pa, boolean free_ptr);
 
 #endif

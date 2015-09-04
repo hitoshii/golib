@@ -23,8 +23,8 @@ void j_output_stream_init(JOutputStream * stream,
     stream->closed = FALSE;
 }
 
-jint j_output_stream_write(JOutputStream * stream, const jchar * buf,
-                           jint len) {
+int j_output_stream_write(JOutputStream * stream, const char * buf,
+                          int len) {
     if (stream->iface->write) {
         return stream->iface->write(stream, buf, len);
     }

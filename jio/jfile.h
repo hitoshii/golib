@@ -24,17 +24,17 @@
 
 typedef struct {
     JObject parent;
-    jchar *path;
+    char *path;
 } JFile;
 
 /* 该函数不会失败，除非内存分配出错 */
-JFile *j_file_new(const jchar * path);
+JFile *j_file_new(const char * path);
 
 /* 打开文件描述符号 */
-jint j_file_open_fd(JFile * f, jint mode);
+int j_file_open_fd(JFile * f, int mode);
 
 /* 获取目录，new的时候指定的目录 */
-const jchar *j_file_get_path(JFile * f);
+const char *j_file_get_path(JFile * f);
 
 
 /*
@@ -43,7 +43,7 @@ const jchar *j_file_get_path(JFile * f);
  * @param flags MAP_SHARED MAP_PRIVATE
  * @param len len不能为NULL，如果*len为0，则映射整个文件，并返回文件长度，否则映射指定长度
  */
-jchar *j_file_map(JFile * f, jint prot, jint flags, juint * len);
-void j_file_unmap(jchar * addr, juint len);
+char *j_file_map(JFile * f, int prot, int flags, unsigned int * len);
+void j_file_unmap(char * addr, unsigned int len);
 
 #endif

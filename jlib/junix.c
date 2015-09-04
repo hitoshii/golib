@@ -21,9 +21,9 @@
 #include <stdarg.h>
 
 /* 系统调用socket(int,int,int)的包裹函数 */
-jint j_socket(jint family, jint type, jint protocol) {
+int j_socket(int family, int type, int protocol) {
     /* 设置*_CLOEXEC标志后，通过exec*函数执行的程序中不能使用该套接字 */
-    jint fd;
+    int fd;
 #ifdef SOCK_CLOEXEC
     fd = socket(family, type | SOCK_CLOEXEC, protocol);
     if (fd >= 0) {              /* 成功 */
@@ -35,7 +35,7 @@ jint j_socket(jint family, jint type, jint protocol) {
     if (fd < 0) {
         return -1;
     }
-    jint flags = fcntl(fd, F_GETFD, 0);
+    int flags = fcntl(fd, F_GETFD, 0);
     if (flags != -1 && (flags & FD_CLOEXEC) == 0) {
         flags |= FD_CLOEXEC;
         fcntl(fd, F_SETFD, flags);
@@ -43,8 +43,8 @@ jint j_socket(jint family, jint type, jint protocol) {
     return fd;
 }
 
-jint j_accept(jint sockfd, struct sockaddr * addr, socklen_t * addrlen) {
-    jint ret;
+int j_accept(int sockfd, struct sockaddr * addr, socklen_t * addrlen) {
+    int ret;
     while ((ret = accept(sockfd, addr, addrlen)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -54,9 +54,9 @@ jint j_accept(jint sockfd, struct sockaddr * addr, socklen_t * addrlen) {
     return ret;
 }
 
-jint j_connect(jint sockfd, const struct sockaddr * addr,
-               socklen_t addrlen) {
-    jint ret;
+int j_connect(int sockfd, const struct sockaddr * addr,
+              socklen_t addrlen) {
+    int ret;
     while ((ret = connect(sockfd, addr, addrlen)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -66,8 +66,8 @@ jint j_connect(jint sockfd, const struct sockaddr * addr,
     return ret;
 }
 
-jint j_send(jint sockfd, const void *buf, size_t len, int flags) {
-    jint ret;
+int j_send(int sockfd, const void *buf, size_t len, int flags) {
+    int ret;
     while ((ret = send(sockfd, buf, len, flags)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -78,10 +78,10 @@ jint j_send(jint sockfd, const void *buf, size_t len, int flags) {
     return ret;
 }
 
-jint j_sendto(jint sockfd, const void *buf, size_t len,
-              int flags, const struct sockaddr * dest_addr,
-              socklen_t addrlen) {
-    jint ret;
+int j_sendto(int sockfd, const void *buf, size_t len,
+             int flags, const struct sockaddr * dest_addr,
+             socklen_t addrlen) {
+    int ret;
     while ((ret = sendto(sockfd, buf, len, flags, dest_addr, addrlen)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -92,8 +92,8 @@ jint j_sendto(jint sockfd, const void *buf, size_t len,
     return ret;
 }
 
-jint j_recv(int sockfd, void *buf, size_t len, int flags) {
-    jint ret;
+int j_recv(int sockfd, void *buf, size_t len, int flags) {
+    int ret;
     while ((ret = recv(sockfd, buf, len, flags)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -104,9 +104,9 @@ jint j_recv(int sockfd, void *buf, size_t len, int flags) {
     return ret;
 }
 
-jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
-                struct sockaddr * src_addr, socklen_t * addrlen) {
-    jint ret;
+int j_recvfrom(int sockfd, void *buf, size_t len, int flags,
+               struct sockaddr * src_addr, socklen_t * addrlen) {
+    int ret;
     while ((ret =
                 recvfrom(sockfd, buf, len, flags, src_addr, addrlen)) < 0) {
         if (errno == EINTR) {
@@ -117,8 +117,8 @@ jint j_recvfrom(int sockfd, void *buf, size_t len, int flags,
     return ret;
 }
 
-jint j_read(jint fd, void *buf, juint size) {
-    jint ret;
+int j_read(int fd, void *buf, unsigned int size) {
+    int ret;
     while ((ret = read(fd, buf, size)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -128,8 +128,8 @@ jint j_read(jint fd, void *buf, juint size) {
     return ret;
 }
 
-jint j_write(jint fd, const void *buf, juint count) {
-    jint ret;
+int j_write(int fd, const void *buf, unsigned int count) {
+    int ret;
     while ((ret = write(fd, buf, count)) < 0) {
         if (errno == EINTR) {
             continue;
@@ -139,7 +139,7 @@ jint j_write(jint fd, const void *buf, juint count) {
     return ret;
 }
 
-pid_t j_wait(jint *stat_loc) {
+pid_t j_wait(int *stat_loc) {
     pid_t ret;
     while((ret=wait(stat_loc))<0) {
         if(errno==EINTR) {
@@ -150,12 +150,12 @@ pid_t j_wait(jint *stat_loc) {
     return ret;
 }
 
-jint j_open(const jchar *path, jint oflag, ...) {
-    jint mode=0, fd;
+int j_open(const char *path, int oflag, ...) {
+    int mode=0, fd;
     if(oflag & O_CREAT) {
         va_list ap;
         va_start(ap, oflag);
-        mode=va_arg(ap, jint);
+        mode=va_arg(ap, int);
         va_end(ap);
     }
     while((fd=open(path, oflag, mode))<0) {

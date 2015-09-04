@@ -32,25 +32,25 @@
 #define _j_vsnprintf vsnprintf
 
 
-jint j_printf_string_upper_bound(const jchar * format,
-                                 va_list args) J_GNUC_PRINTF(1, 0);
+int j_printf_string_upper_bound(const char * format,
+                                va_list args) J_GNUC_PRINTF(1, 0);
 
 
-jint j_printf(jchar const *format, ...) J_GNUC_PRINTF(1, 2);
-jint j_fprintf(FILE * file, jchar const *format, ...) J_GNUC_PRINTF(2, 3);
-jint j_sprintf(jchar * string, jchar const *format, ...) J_GNUC_PRINTF(2,
+int j_printf(char const *format, ...) J_GNUC_PRINTF(1, 2);
+int j_fprintf(FILE * file, char const *format, ...) J_GNUC_PRINTF(2, 3);
+int j_sprintf(char * string, char const *format, ...) J_GNUC_PRINTF(2,
         3);
-jint j_snprintf(jchar * string, juint size, jchar const *format,
-                ...) J_GNUC_PRINTF(3, 4);
-jint j_vprintf(jchar const *format, va_list args) J_GNUC_PRINTF(1, 0);
-jint j_vfprintf(FILE * file, jchar const *format,
+int j_snprintf(char * string, unsigned int size, char const *format,
+               ...) J_GNUC_PRINTF(3, 4);
+int j_vprintf(char const *format, va_list args) J_GNUC_PRINTF(1, 0);
+int j_vfprintf(FILE * file, char const *format,
+               va_list args) J_GNUC_PRINTF(2, 0);
+int j_vsprintf(char * string, char const *format,
+               va_list args) J_GNUC_PRINTF(2, 0);
+int j_vsnprintf(char * string, unsigned int size, char const *format,
+                va_list args) J_GNUC_PRINTF(3, 0);
+int j_vasprintf(char ** string, char const *format,
                 va_list args) J_GNUC_PRINTF(2, 0);
-jint j_vsprintf(jchar * string, jchar const *format,
-                va_list args) J_GNUC_PRINTF(2, 0);
-jint j_vsnprintf(jchar * string, juint size, jchar const *format,
-                 va_list args) J_GNUC_PRINTF(3, 0);
-jint j_vasprintf(jchar ** string, jchar const *format,
-                 va_list args) J_GNUC_PRINTF(2, 0);
 
 
 #endif

@@ -18,7 +18,7 @@
 #include "jmem.h"
 
 
-JSList *j_slist_alloc(jpointer data) {
+JSList *j_slist_alloc(void * data) {
     JSList *l = (JSList *) j_malloc(sizeof(JSList));
     l->data = data;
     l->next = NULL;
@@ -35,7 +35,7 @@ JSList *j_slist_last(JSList * l) {
     return l;
 }
 
-JSList *j_slist_append(JSList * l, jpointer data) {
+JSList *j_slist_append(JSList * l, void * data) {
     JSList *last = j_slist_last(l);
     if (last == NULL) {
         return j_slist_alloc(data);
@@ -44,13 +44,13 @@ JSList *j_slist_append(JSList * l, jpointer data) {
     return l;
 }
 
-JSList *j_slist_preppend(JSList * l, jpointer data) {
+JSList *j_slist_preppend(JSList * l, void * data) {
     JSList *h = j_slist_alloc(data);
     h->next = l;
     return h;
 }
 
-JSList *j_slist_remove(JSList * l, jconstpointer data) {
+JSList *j_slist_remove(JSList * l, const void * data) {
     if (J_UNLIKELY(l == NULL)) {
         return NULL;
     }
@@ -74,8 +74,8 @@ JSList *j_slist_remove(JSList * l, jconstpointer data) {
     return l;
 }
 
-juint j_slist_length(JSList * l) {
-    juint len = 0;
+unsigned int j_slist_length(JSList * l) {
+    unsigned int len = 0;
     while (l) {
         len++;
         l = j_slist_next(l);
@@ -83,7 +83,7 @@ juint j_slist_length(JSList * l) {
     return len;
 }
 
-JSList *j_slist_find(JSList * l, jpointer data) {
+JSList *j_slist_find(JSList * l, void * data) {
     while (l) {
         if (j_slist_data(l) == data) {
             return l;
@@ -94,7 +94,7 @@ JSList *j_slist_find(JSList * l, jpointer data) {
 }
 
 JSList *j_slist_find_custom(JSList * l, JCompareFunc compare,
-                            jconstpointer user_data) {
+                            const void * user_data) {
     while (l) {
         if (compare(j_slist_data(l), user_data) == 0) {
             return l;
@@ -104,8 +104,8 @@ JSList *j_slist_find_custom(JSList * l, JCompareFunc compare,
     return NULL;
 }
 
-jpointer j_slist_find_data_custom(JSList * l, JCompareFunc compare,
-                                  jconstpointer user_data) {
+void * j_slist_find_data_custom(JSList * l, JCompareFunc compare,
+                                const void * user_data) {
     l = j_slist_find_custom(l, compare, user_data);
     if (l) {
         return j_slist_data(l);

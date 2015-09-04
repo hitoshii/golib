@@ -20,51 +20,51 @@
 #include <stdint.h>
 #include "jmacros.h"
 
-typedef char jchar;
-typedef short jshort;
-typedef long jlong;
-typedef int jint;
-typedef jint jboolean;
+// typedef char char;
+// typedef short short;
+// typedef long long;
+// typedef int int;
+typedef int boolean;
 
-typedef unsigned char juchar;
-typedef unsigned short jushort;
-typedef unsigned long julong;
-typedef unsigned int juint;
+// typedef unsigned char unsigned char;
+// typedef unsigned short unsigned short;
+// typedef unsigned long unsigned long;
+// typedef unsigned int unsigned int;
 
-typedef float jfloat;
-typedef double jdouble;
+// typedef float float;
+// typedef double double;
 
-typedef int8_t jint8;
-typedef int16_t jint16;
-typedef int32_t jint32;
-typedef int64_t jint64;
+// typedef int8_t int8_t;
+// typedef int16_t int16_t;
+// typedef int32_t int32_t;
+// typedef int64_t int64_t;
 
-typedef uint8_t juint8;
-typedef uint16_t juint16;
-typedef uint32_t juint32;
-typedef uint64_t juint64;
+// typedef uint8_t uint8_t;
+// typedef uint16_t uint16_t;
+// typedef uint32_t uint32_t;
+// typedef uint64_t uint64_t;
 
-typedef signed long jssize;
-typedef unsigned long jsize;
+// typedef signed long signed long;
+// typedef unsigned long unsigned long;
 
-typedef void *jpointer;
-typedef const void *jconstpointer;
+// typedef void *void *;
+// typedef const void *const void *;
 
-#define J_MININT8   ((jint8) 0x80)
-#define J_MAXINT8   ((jint8) 0x7F)
-#define J_MAXUINT8  ((juint8) 0xFF)
+#define J_MININT8   ((int8_t) 0x80)
+#define J_MAXINT8   ((int8_t) 0x7F)
+#define J_MAXUINT8  ((uint8_t) 0xFF)
 
-#define J_MININT16  ((jint16) 0x8000)
-#define J_MAXINT16  ((jint16) 0x7FFF)
-#define J_MAXUINT16 ((juint16) 0xFFFF)
+#define J_MININT16  ((int16_t) 0x8000)
+#define J_MAXINT16  ((int16_t) 0x7FFF)
+#define J_MAXUINT16 ((uint16_t) 0xFFFF)
 
-#define J_MININT32  ((jint32) 0x80000000)
-#define J_MAXINT32  ((jint32) 0x7FFFFFFF)
-#define J_MAXUINT32 ((juint32) 0xFFFFFFFF)
+#define J_MININT32  ((int32_t) 0x80000000)
+#define J_MAXINT32  ((int32_t) 0x7FFFFFFF)
+#define J_MAXUINT32 ((uint32_t) 0xFFFFFFFF)
 
-#define J_MININT64  ((jint64) 0x8000000000000000)
-#define J_MAXINT64  ((jint64) 0x7FFFFFFFFFFFFFFF)
-#define J_MAXUINT64 ((juint64) 0xFFFFFFFFFFFFFFFFU)
+#define J_MININT64  ((int64_t) 0x8000000000000000)
+#define J_MAXINT64  ((int64_t) 0x7FFFFFFFFFFFFFFF)
+#define J_MAXUINT64 ((uint64_t) 0xFFFFFFFFFFFFFFFFU)
 
 /*
  * Constant
@@ -83,10 +83,10 @@ typedef const void *jconstpointer;
 /*
  * Functions
  */
-typedef void (*JDestroyNotify) (jpointer data);
-typedef jint(*JCompareFunc) (jconstpointer data, jconstpointer user_data);
-typedef jint(*JCompareDataFunc) (jconstpointer a, jconstpointer b,
-                                 jconstpointer user_data);
-typedef void (*JFunc) (jpointer data, jpointer user_data);
+typedef void (*JDestroyNotify) (void * data);
+typedef int(*JCompareFunc) (const void * data, const void * user_data);
+typedef int(*JCompareDataFunc) (const void * a, const void * b,
+                                const void * user_data);
+typedef void (*JFunc) (void * data, void * user_data);
 
 #endif

@@ -22,18 +22,18 @@
 
 struct _JModule {
     void *handle;
-    jchar *path;
+    char *path;
 };
 
-static inline JModule *j_module_alloc(jchar *path, void *handle) {
+static inline JModule *j_module_alloc(char *path, void *handle) {
     JModule *mod=(JModule*)j_malloc(sizeof(JModule));
     mod->handle=handle;
     mod->path=path;
     return mod;
 }
 
-JModule *j_module_open(const jchar *filepath, JModuleFlags flags) {
-    jchar *path;
+JModule *j_module_open(const char *filepath, JModuleFlags flags) {
+    char *path;
     void *handle=NULL;
     if(j_file_test(filepath, J_FILE_TEST_IS_REGULAR)) {
         handle=dlopen(filepath, flags);
@@ -55,11 +55,11 @@ JModule *j_module_open(const jchar *filepath, JModuleFlags flags) {
     return j_module_alloc(path, handle);
 }
 
-const jchar *j_module_name(JModule *mod) {
+const char *j_module_name(JModule *mod) {
     return mod->path;
 }
 
-jboolean j_module_symbol(JModule *module, const jchar *symbol_name, jpointer *symbol) {
+boolean j_module_symbol(JModule *module, const char *symbol_name, void * *symbol) {
     dlerror();
     *symbol=dlsym(module->handle, symbol_name);
     if(dlerror()!=NULL) {

@@ -19,38 +19,38 @@
 #include <stdlib.h>
 
 
-jpointer j_malloc(juint size) {
+void * j_malloc(unsigned int size) {
     if (J_UNLIKELY(size == 0)) {
         return NULL;
     }
-    jpointer ptr = malloc(size);
+    void * ptr = malloc(size);
     return ptr;
 }
 
-jpointer j_malloc0(juint size) {
+void * j_malloc0(unsigned int size) {
     if (J_UNLIKELY(size == 0)) {
         return NULL;
     }
-    jpointer ptr = calloc(1, size);
+    void * ptr = calloc(1, size);
     return ptr;
 }
 
-jpointer j_realloc(jpointer mem, juint size) {
+void * j_realloc(void * mem, unsigned int size) {
     if (J_UNLIKELY(size == 0)) {
         j_free(mem);
         return NULL;
     }
-    jpointer ptr = realloc(mem, size);
+    void * ptr = realloc(mem, size);
     return ptr;
 }
 
-void j_free(jpointer ptr) {
+void j_free(void * ptr) {
     if (J_LIKELY(ptr)) {
         free(ptr);
     }
 }
 
-jpointer j_memdup(jconstpointer data, juint len) {
+void * j_memdup(const void * data, unsigned int len) {
     void *d = j_malloc(len);
     memcpy(d, data, len);
     return d;

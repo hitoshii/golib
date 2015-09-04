@@ -26,7 +26,7 @@
 /*
  * Checks to see if the path is absolute
  */
-jboolean j_path_is_absolute(const jchar * path) {
+boolean j_path_is_absolute(const char * path) {
     return j_is_path_separator(path[0]);
 }
 
@@ -35,7 +35,7 @@ jboolean j_path_is_absolute(const jchar * path) {
  * i.e. after the "/" in UNIX or "C:\" under Windows.
  * If file_name is not an absolute path it returns path it self.
  */
-const jchar *j_path_skip_root(const jchar * path) {
+const char *j_path_skip_root(const char * path) {
     if (!j_path_is_absolute(path)) {
         return path;
     }
@@ -47,8 +47,8 @@ const jchar *j_path_skip_root(const jchar * path) {
  * and extra '/' characters in the null-terminated string
  * named by path to produce a canonicalized  absolute  pathname
  */
-jchar *j_path_realpath(const jchar * path) {
-    jchar *real = realpath(path, NULL);
+char *j_path_realpath(const char * path) {
+    char *real = realpath(path, NULL);
     return real;
 }
 
@@ -57,15 +57,15 @@ jchar *j_path_realpath(const jchar * path) {
  * Returns a newly allocated string containing
  * the last component of the filename
  */
-jchar *j_path_basename(const jchar * path) {
-    jchar *slash = strrchr(path, J_PATH_SEPARATOR);
+char *j_path_basename(const char * path) {
+    char *slash = strrchr(path, J_PATH_SEPARATOR);
     if (slash == NULL) {        /* slash not found */
         return j_strdup(path);
     }
     if (*(slash + 1)) {
         return j_strdup(slash + 1);
     }
-    jchar *ptr = slash - 1;
+    char *ptr = slash - 1;
     while (ptr != path) {
         if (j_is_path_separator(*ptr)) {
             break;
@@ -78,9 +78,9 @@ jchar *j_path_basename(const jchar * path) {
     return j_strndup(ptr, slash - ptr);
 }
 
-jchar *j_path_dirname(const jchar *path) {
-    jchar *base;
-    juint len;
+char *j_path_dirname(const char *path) {
+    char *base;
+    unsigned int len;
 
     base = strrchr(path, J_PATH_SEPARATOR);
     if(!base) {
@@ -90,8 +90,8 @@ jchar *j_path_dirname(const jchar *path) {
         base--;
     }
 
-    len = (juint)1+base-path;
-    base = j_malloc(sizeof(jchar)*(len+1));
+    len = (unsigned int)1+base-path;
+    base = j_malloc(sizeof(char)*(len+1));
     memmove(base, path,len);
     base[len]=0;
     return base;
@@ -102,15 +102,15 @@ jchar *j_path_dirname(const jchar *path) {
  * used by shell (see glob(3)). No tilde expansion or parameter substitution
  * is done
  */
-jchar **j_path_glob(const jchar * pattern) {
+char **j_path_glob(const char * pattern) {
     glob_t globs;
-    jint ret = glob(pattern, 0, NULL, &globs);
+    int ret = glob(pattern, 0, NULL, &globs);
     if (ret != 0) {
         return NULL;
     }
-    jchar **strv =
-        (jchar **) j_malloc(sizeof(jchar *) * (globs.gl_pathc + 1));
-    jint i;
+    char **strv =
+        (char **) j_malloc(sizeof(char *) * (globs.gl_pathc + 1));
+    int i;
     for (i = 0; i < globs.gl_pathc; i++) {
         strv[i] = j_strdup(globs.gl_pathv[i]);
     }
@@ -123,7 +123,7 @@ jchar **j_path_glob(const jchar * pattern) {
 /*
  * Joins two path, p2 must be relative
  */
-jchar *j_path_join(const jchar * p1, const jchar * p2) {
+char *j_path_join(const char * p1, const char * p2) {
     if (j_path_is_absolute(p2)) {
         return NULL;
     }
@@ -133,8 +133,8 @@ jchar *j_path_join(const jchar * p1, const jchar * p2) {
     return j_strdup_printf("%s%c%s", p1,J_PATH_SEPARATOR, p2);
 }
 
-jint j_mkdir_with_parents(const jchar *pathname, int mode) {
-    jchar *fn, *p;
+int j_mkdir_with_parents(const char *pathname, int mode) {
+    char *fn, *p;
 
     if(pathname==NULL||*pathname=='\0') {
         errno=EINVAL;
@@ -144,7 +144,7 @@ jint j_mkdir_with_parents(const jchar *pathname, int mode) {
     fn=j_strdup(pathname);
 
     if(j_path_is_absolute(fn)) {
-        p=(jchar*) j_path_skip_root(fn);
+        p=(char*) j_path_skip_root(fn);
     } else {
         p=fn;
     }
@@ -179,12 +179,12 @@ jint j_mkdir_with_parents(const jchar *pathname, int mode) {
 }
 
 
-jboolean j_file_test(const jchar *path, JFileTest test) {
+boolean j_file_test(const char *path, JFileTest test) {
     struct stat buf;
     if(lstat(path, &buf)) {
         return FALSE;
     }
-    jboolean ret=TRUE;
+    boolean ret=TRUE;
     if(test&J_FILE_TEST_IS_SYMLINK) {
         ret=ret&&S_ISLNK(buf.st_mode);
     }

@@ -22,7 +22,7 @@
 /*
  * 转化为一个struct sockaddr结构
  */
-juint j_socket_address_get_native_size(JSocketAddress * addr) {
+unsigned int j_socket_address_get_native_size(JSocketAddress * addr) {
     if (j_socket_address_is_unix(addr)) {
         return sizeof(struct sockaddr_un);
     } else if (j_socket_address_is_inet(addr)) {
@@ -33,8 +33,8 @@ juint j_socket_address_get_native_size(JSocketAddress * addr) {
     return 0;
 }
 
-jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
-                                    juint len) {
+boolean j_socket_address_to_native(JSocketAddress * addr, void * dest,
+                                   unsigned int len) {
     if (len < j_socket_address_get_native_size(addr)) {
         return FALSE;
     }
@@ -43,7 +43,7 @@ jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
         return FALSE;
     } else if (j_socket_address_is_inet(addr)) {
         JInetAddress *iaddr = &addr->addr.inet.address;
-        jushort port = addr->addr.inet.port;
+        unsigned short port = addr->addr.inet.port;
         struct sockaddr_in *addr4 = (struct sockaddr_in *) dest;
         memcpy(&addr4->sin_addr.s_addr, j_inet_address_to_bytes(iaddr),
                sizeof(addr4->sin_addr.s_addr));
@@ -52,7 +52,7 @@ jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
         return TRUE;
     } else if (j_socket_address_is_inet6(addr)) {
         JInetAddress *iaddr = &addr->addr.inet.address;
-        jushort port = addr->addr.inet.port;
+        unsigned short port = addr->addr.inet.port;
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) dest;
         memcpy(&addr6->sin6_addr.s6_addr, j_inet_address_to_bytes(iaddr),
                sizeof(addr6->sin6_addr.s6_addr));
@@ -64,25 +64,25 @@ jboolean j_socket_address_to_native(JSocketAddress * addr, jpointer dest,
 }
 
 JSocketAddress *j_inet_socket_address_new(JInetAddress * iaddr,
-        juint16 port) {
+        uint16_t port) {
     JSocketAddress *addr = j_malloc(sizeof(JSocketAddress));
     j_inet_socket_address_init(addr, iaddr, port);
     return addr;
 }
 
 void j_inet_socket_address_init(JSocketAddress * saddr,
-                                JInetAddress * iaddr, juint16 port) {
+                                JInetAddress * iaddr, uint16_t port) {
     saddr->family = j_inet_address_get_family(iaddr);
     memcpy(&saddr->addr.inet.address, iaddr,
            sizeof(saddr->addr.inet.address));
     saddr->addr.inet.port = htons(port);
 }
 
-jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
-        jpointer native, juint size) {
-    j_return_val_if_fail(size >= sizeof(jshort), FALSE);
+boolean j_socket_address_init_from_native(JSocketAddress * saddr,
+        void * native, unsigned int size) {
+    j_return_val_if_fail(size >= sizeof(short), FALSE);
 
-    jshort family = ((struct sockaddr *) native)->sa_family;
+    short family = ((struct sockaddr *) native)->sa_family;
     if (family == AF_INET) {
         struct sockaddr_in *addr = (struct sockaddr_in *) native;
         if (size < sizeof(*addr)) {
@@ -90,7 +90,7 @@ jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
         }
         JInetAddress iaddr;
         j_inet_address_init_from_bytes(&iaddr, J_SOCKET_FAMILY_INET,
-                                       (juint8 *) & (addr->sin_addr));
+                                       (uint8_t *) & (addr->sin_addr));
         j_inet_socket_address_init(saddr, &iaddr, ntohs(addr->sin_port));
     } else if (family == AF_INET6) {
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) native;
@@ -105,11 +105,11 @@ jboolean j_socket_address_init_from_native(JSocketAddress * saddr,
             memcpy(&(sin_addr.sin_addr.s_addr),
                    addr6->sin6_addr.s6_addr + 12, 4);
             j_inet_address_init_from_bytes(&iaddr, J_SOCKET_FAMILY_INET,
-                                           (juint8 *) &
+                                           (uint8_t *) &
                                            (sin_addr.sin_addr));
         } else {
             j_inet_address_init_from_bytes(&iaddr, J_SOCKET_FAMILY_INET6,
-                                           (juint8 *) &
+                                           (uint8_t *) &
                                            (addr6->sin6_addr));
         }
         j_inet_socket_address_init(saddr, &iaddr, ntohs(addr6->sin6_port));
@@ -126,8 +126,8 @@ void j_socket_address_init_copy(JSocketAddress * saddr,
     memcpy(saddr, addr, sizeof(JSocketAddress));
 }
 
-JSocketAddress *j_socket_address_new_from_native(jpointer native,
-        juint size) {
+JSocketAddress *j_socket_address_new_from_native(void * native,
+        unsigned int size) {
     JSocketAddress addr;
     if (j_socket_address_init_from_native(&addr, native, size)) {
         return (JSocketAddress *) j_memdup(&addr, sizeof(addr));
@@ -136,8 +136,8 @@ JSocketAddress *j_socket_address_new_from_native(jpointer native,
 }
 
 /* 创建一个网络地址  */
-JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
-        address, juint port) {
+JSocketAddress *j_inet_socket_address_new_from_string(const char *
+        address, unsigned int port) {
     JSocketAddress addr;
     if (j_inet_socket_address_init_from_string(&addr, address, port)) {
         return (JSocketAddress *) j_memdup(&addr, sizeof(addr));
@@ -145,9 +145,9 @@ JSocketAddress *j_inet_socket_address_new_from_string(const jchar *
     return NULL;
 }
 
-jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
-        const jchar * address,
-        juint port) {
+boolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
+        const char * address,
+        unsigned int port) {
     if (strchr(address, ':')) {
         /* 可能是IPv6地址 */
         static struct addrinfo *hints, hints_struct;
@@ -159,7 +159,7 @@ jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
             hints_struct.ai_flags = AI_NUMERICHOST;
             j_once_init_leave(&hints, &hints_struct);
         }
-        jint status = getaddrinfo(address, NULL, hints, &res);
+        int status = getaddrinfo(address, NULL, hints, &res);
         if (status != 0) {
             return FALSE;
         }
@@ -185,7 +185,7 @@ jboolean j_inet_socket_address_init_from_string(JSocketAddress * saddr,
 }
 
 /* 获取地址和端口号 */
-jushort j_inet_socket_address_get_port(JSocketAddress * addr) {
+unsigned short j_inet_socket_address_get_port(JSocketAddress * addr) {
     if (j_socket_address_is_unix(addr)) {
         return 0;
     }
@@ -200,7 +200,7 @@ JInetAddress *j_inet_socket_address_get_address(JSocketAddress * addr) {
 }
 
 /* 生成地址的字符串形式，如127.0.0.1:1234 */
-jchar *j_inet_socket_address_to_string(JSocketAddress * addr) {
+char *j_inet_socket_address_to_string(JSocketAddress * addr) {
     if (j_socket_address_is_unix(addr)) {
         return NULL;
     } else {
@@ -252,7 +252,7 @@ void j_inet_address_init_loopback(JInetAddress * addr,
 }
 
 JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
-        const juint8 * bytes) {
+        const uint8_t * bytes) {
     j_return_val_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family), NULL);
     JInetAddress *addr = (JInetAddress *) j_malloc(sizeof(JInetAddress));
     j_inet_address_init_from_bytes(addr, family, bytes);
@@ -261,7 +261,7 @@ JInetAddress *j_inet_address_new_from_bytes(JSocketFamily family,
 
 void j_inet_address_init_from_bytes(JInetAddress * addr,
                                     JSocketFamily family,
-                                    const juint8 * bytes) {
+                                    const uint8_t * bytes) {
     j_return_if_fail(J_INET_ADDRESS_FAMILY_IS_VALID(family));
     addr->family = family;
     if (j_inet_address_is_inet(addr)) {
@@ -271,31 +271,31 @@ void j_inet_address_init_from_bytes(JInetAddress * addr,
     }
 }
 
-JInetAddress *j_inet_address_new_from_string(const jchar * string) {
+JInetAddress *j_inet_address_new_from_string(const char * string) {
     struct in_addr addr4;
     struct in6_addr addr6;
 
     if (inet_pton(AF_INET, string, &addr4) > 0) {
         return j_inet_address_new_from_bytes(J_SOCKET_FAMILY_INET,
-                                             (juint8 *) & addr4);
+                                             (uint8_t *) & addr4);
     } else if (inet_pton(AF_INET6, string, &addr6) > 0) {
         return j_inet_address_new_from_bytes(J_SOCKET_FAMILY_INET6,
-                                             (juint8 *) & addr6);
+                                             (uint8_t *) & addr6);
     }
     return NULL;
 }
 
-jboolean j_inet_address_init_from_string(JInetAddress * addr,
-        const jchar * string) {
+boolean j_inet_address_init_from_string(JInetAddress * addr,
+                                        const char * string) {
     struct in_addr addr4;
     struct in6_addr addr6;
 
     if (inet_pton(AF_INET, string, &addr4) > 0) {
         j_inet_address_init_from_bytes(addr, J_SOCKET_FAMILY_INET,
-                                       (juint8 *) & addr4);
+                                       (uint8_t *) & addr4);
     } else if (inet_pton(AF_INET6, string, &addr6) > 0) {
         j_inet_address_init_from_bytes(addr, J_SOCKET_FAMILY_INET6,
-                                       (juint8 *) & addr6);
+                                       (uint8_t *) & addr6);
     } else {
         return FALSE;
     }
@@ -306,12 +306,12 @@ JSocketFamily j_inet_address_get_family(JInetAddress * addr) {
     return addr->family;
 }
 
-const juint8 *j_inet_address_to_bytes(JInetAddress * addr) {
-    return (juint8 *) & addr->addr;
+const uint8_t *j_inet_address_to_bytes(JInetAddress * addr) {
+    return (uint8_t *) & addr->addr;
 }
 
-jchar *j_inet_address_to_string(JInetAddress * addr) {
-    jchar buffer[INET6_ADDRSTRLEN];
+char *j_inet_address_to_string(JInetAddress * addr) {
+    char buffer[INET6_ADDRSTRLEN];
     if (j_inet_address_is_inet(addr)) {
         inet_ntop(AF_INET, &addr->addr.ipv4, buffer, sizeof(buffer));
     } else {
@@ -320,9 +320,9 @@ jchar *j_inet_address_to_string(JInetAddress * addr) {
     return j_strdup(buffer);
 }
 
-jchar *j_inet_address_to_string_with_port(JInetAddress * addr,
-        jushort port) {
-    jchar buffer[INET6_ADDRSTRLEN];
+char *j_inet_address_to_string_with_port(JInetAddress * addr,
+        unsigned short port) {
+    char buffer[INET6_ADDRSTRLEN];
     if (j_inet_address_is_inet(addr)) {
         inet_ntop(AF_INET, &addr->addr.ipv4, buffer, sizeof(buffer));
     } else {
@@ -331,14 +331,14 @@ jchar *j_inet_address_to_string_with_port(JInetAddress * addr,
     return j_strdup_printf("%s:%u", buffer, port);
 }
 
-juint j_inet_address_get_native_size(JInetAddress * addr) {
+unsigned int j_inet_address_get_native_size(JInetAddress * addr) {
     if (j_inet_address_is_inet(addr)) {
         return sizeof(addr->addr.ipv4);
     }
     return sizeof(addr->addr.ipv6);
 }
 
-jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another) {
+boolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another) {
     if (addr->family != another->family) {
         return FALSE;
     }
@@ -347,25 +347,25 @@ jboolean j_inet_address_equal(JInetAddress * addr, JInetAddress * another) {
                   j_inet_address_get_native_size(addr)) == 0;
 }
 
-jboolean j_inet_address_is_any(JInetAddress * addr) {
+boolean j_inet_address_is_any(JInetAddress * addr) {
     if (j_inet_address_is_inet(addr)) {
         return ntohl(addr->addr.ipv4.s_addr) == INADDR_ANY;
     }
     return IN6_IS_ADDR_UNSPECIFIED(&addr->addr.ipv6);
 }
 
-jboolean j_inet_address_is_loopback(JInetAddress * addr) {
+boolean j_inet_address_is_loopback(JInetAddress * addr) {
     if (j_inet_address_is_inet(addr)) {
-        juint32 addr4 = ntohl(addr->addr.ipv4.s_addr);
+        uint32_t addr4 = ntohl(addr->addr.ipv4.s_addr);
         /* 127.0.0.0/8 */
         return (addr4 & 0xff000000) == 0x7f000000;
     }
     return IN6_IS_ADDR_LOOPBACK(&addr->addr.ipv6);
 }
 
-jboolean j_inet_address_is_multicast(JInetAddress * addr) {
+boolean j_inet_address_is_multicast(JInetAddress * addr) {
     if (j_inet_address_is_inet(addr)) {
-        juint32 addr4 = ntohl(addr->addr.ipv4.s_addr);
+        uint32_t addr4 = ntohl(addr->addr.ipv4.s_addr);
         return IN_MULTICAST(addr4);
     }
     return IN6_IS_ADDR_MULTICAST(&addr->addr.ipv6);

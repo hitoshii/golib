@@ -18,13 +18,13 @@
 #include <stdio.h>
 
 
-static jboolean idle(jpointer data) {
-    static jint i = 0;
+static boolean idle(void * data) {
+    static int i = 0;
     j_printf("idle - %d\n", i++);
     return TRUE;
 }
 
-static jboolean timeout(jpointer data) {
+static boolean timeout(void * data) {
     j_main_loop_quit((JMainLoop *) data);
     return FALSE;
 }

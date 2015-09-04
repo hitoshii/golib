@@ -20,11 +20,11 @@
 #include "jioenum.h"
 #include <jlib/jlib.h>
 
-jint j_poll(struct pollfd *fds, juint nfds, jint timeout);
+int j_poll(struct pollfd *fds, unsigned int nfds, int timeout);
 
 /* poll单个文件描述符 */
-jint j_poll_simple(jint fd, jshort conditions, jint timeout,
-                   jshort * revents);
+int j_poll_simple(int fd, short conditions, int timeout,
+                  short * revents);
 
 
 #endif

@@ -25,8 +25,8 @@ struct _JFileOutputStream {
     int fd;
 };
 
-static jint j_file_output_stream_write(JFileOutputStream * stream,
-                                       const jchar * buf, jint len);
+static int j_file_output_stream_write(JFileOutputStream * stream,
+                                      const char * buf, int len);
 static void j_file_output_stream_close(JFileOutputStream * stream);
 
 JOutputStreamInterface j_file_output_stream_interface = {
@@ -35,7 +35,7 @@ JOutputStreamInterface j_file_output_stream_interface = {
 };
 
 JFileOutputStream *j_file_write(JFile * f) {
-    jint fd = j_file_open_fd(f, O_WRONLY);
+    int fd = j_file_open_fd(f, O_WRONLY);
     if (fd < 0) {
         return NULL;
     }
@@ -46,8 +46,8 @@ JFileOutputStream *j_file_write(JFile * f) {
     return stream;
 }
 
-static jint j_file_output_stream_write(JFileOutputStream * stream,
-                                       const jchar * buf, jint len) {
+static int j_file_output_stream_write(JFileOutputStream * stream,
+                                      const char * buf, int len) {
     if (len < 0) {
         len = strlen(buf);
     }

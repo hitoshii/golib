@@ -18,15 +18,15 @@
 #include <stdlib.h>
 
 
-const jchar *j_getenv(const jchar * variable) {
+const char *j_getenv(const char * variable) {
     if (J_UNLIKELY(variable == NULL)) {
         return NULL;
     }
     return getenv(variable);
 }
 
-jboolean j_setenv(const jchar * variable, const jchar * value,
-                  jboolean overwrite) {
+boolean j_setenv(const char * variable, const char * value,
+                 boolean overwrite) {
     if (J_UNLIKELY(variable == NULL || value == NULL)) {
         return FALSE;
     }

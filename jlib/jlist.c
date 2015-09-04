@@ -25,8 +25,8 @@
 /*
  * Returns the length of JList
  */
-juint j_list_length(JList * l) {
-    juint len = 0;
+unsigned int j_list_length(JList * l) {
+    unsigned int len = 0;
     while (l) {
         len++;
         l = j_list_next(l);
@@ -35,7 +35,7 @@ juint j_list_length(JList * l) {
 }
 
 
-JList *j_list_append(JList * l, jpointer data) {
+JList *j_list_append(JList * l, void * data) {
     JList *new = j_list_alloc(data);
     if (l == NULL) {
         return new;
@@ -46,7 +46,7 @@ JList *j_list_append(JList * l, jpointer data) {
     return l;
 }
 
-JList *j_list_prepend(JList * l, jpointer data) {
+JList *j_list_prepend(JList * l, void * data) {
     JList *new = j_list_alloc(data);
     if (l == NULL) {
         return new;
@@ -77,7 +77,7 @@ JList *j_list_last(JList * l) {
     return l;
 }
 
-JList *j_list_find(JList * l, jconstpointer data) {
+JList *j_list_find(JList * l, const void * data) {
     JList *ptr = l;
     while (ptr) {
         if (data == j_list_data(ptr)) {
@@ -88,8 +88,8 @@ JList *j_list_find(JList * l, jconstpointer data) {
     return NULL;
 }
 
-jpointer j_list_find_custom(JList * l, JCompareFunc compare,
-                            jconstpointer user_data) {
+void * j_list_find_custom(JList * l, JCompareFunc compare,
+                          const void * user_data) {
     JList *ptr = l;
     while (ptr) {
         const void *data = j_list_data(ptr);
@@ -105,7 +105,7 @@ jpointer j_list_find_custom(JList * l, JCompareFunc compare,
 }
 
 
-JList *j_list_alloc(jpointer data) {
+JList *j_list_alloc(void * data) {
     JList *l = (JList *) j_malloc(sizeof(JList));
     l->data = data;
     l->prev = NULL;
@@ -156,7 +156,7 @@ int j_list_compare(JList * l1, JList * l2, JCompareFunc compare) {
  * If two or more elements  contain the same data, only the first one is removed.
  * If none of the elements contain the data, JList is unchanged.
  */
-JList *j_list_remove(JList * l, jpointer data) {
+JList *j_list_remove(JList * l, void * data) {
     if (l == NULL) {
         return l;
     }
@@ -247,12 +247,12 @@ JList *j_list_reverse(JList * list) {
 
 static inline JList *j_list_sort_merge(JList * l1, JList * l2,
                                        JCompareDataFunc compare,
-                                       jpointer user_data) {
+                                       void * user_data) {
     JList list;
     JList *l = &list, *lprev = NULL;
 
     while (l1 && l2) {
-        jint cmp = compare(j_list_data(l1), j_list_data(l2), user_data);
+        int cmp = compare(j_list_data(l1), j_list_data(l2), user_data);
         if (cmp <= 0) {
             l->next = l1;
             l1 = j_list_next(l1);
@@ -272,7 +272,7 @@ static inline JList *j_list_sort_merge(JList * l1, JList * l2,
 
 static inline JList *j_list_sort_real(JList * list,
                                       JCompareDataFunc compare,
-                                      jpointer user_data) {
+                                      void * user_data) {
     j_return_val_if_fail(list != NULL && list->next != NULL, list);
 
     JList *l1 = list;
@@ -293,15 +293,15 @@ static inline JList *j_list_sort_real(JList * list,
 }
 
 JList *j_list_sort_with_data(JList * list, JCompareDataFunc compare,
-                             jpointer user_data) {
+                             void * user_data) {
     return j_list_sort_real(list, compare, user_data);
 }
 
 /*
  * 查找link在list中的位置
  */
-jint j_list_position(JList * list, JList * link) {
-    jint pos = 0;
+int j_list_position(JList * list, JList * link) {
+    int pos = 0;
     while (list) {
         if (list == link) {
             return pos;
@@ -312,8 +312,8 @@ jint j_list_position(JList * list, JList * link) {
     return -1;
 }
 
-jint j_list_index(JList * list, jconstpointer data) {
-    jint pos = 0;
+int j_list_index(JList * list, const void * data) {
+    int pos = 0;
     while (list) {
         if (j_list_data(list) == data) {
             return pos;
@@ -324,7 +324,7 @@ jint j_list_index(JList * list, jconstpointer data) {
     return -1;
 }
 
-JList *j_list_insert_before(JList * list, JList * sibling, jpointer data) {
+JList *j_list_insert_before(JList * list, JList * sibling, void * data) {
     if (list == NULL) {
         list = j_list_alloc(data);
         j_return_val_if_fail(sibling == NULL, list);

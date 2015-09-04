@@ -21,12 +21,12 @@
 
 /* 使当前进程成为守护进程
  */
-jboolean j_daemonize(void);
+boolean j_daemonize(void);
 
 /*
  * 锁定某个文件，如果成功返回文件描述符号，否则返回-1
  */
-jint j_lockfile(const jchar * path);
+int j_lockfile(const char * path);
 
 
 #endif

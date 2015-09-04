@@ -22,8 +22,8 @@
 #include "jtypes.h"
 
 /* 获取系统调用的错误码 */
-jint j_errno(void);
-jboolean j_strerror(jint errnum, jchar * buf, juint buflen);
+int j_errno(void);
+boolean j_strerror(int errnum, char * buf, unsigned int buflen);
 
 
 #endif

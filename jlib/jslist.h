@@ -27,7 +27,7 @@ typedef struct _JSList JSList;
 
 
 struct _JSList {
-    jpointer data;
+    void * data;
     JSList *next;
 };
 
@@ -35,31 +35,31 @@ struct _JSList {
 #define j_slist_next(l) ((l)->next)
 #define j_slist_data(l) ((l)->data)
 
-JSList *j_slist_alloc(jpointer data);
+JSList *j_slist_alloc(void * data);
 
 JSList *j_slist_last(JSList * l);
-JSList *j_slist_append(JSList * l, jpointer data);
-JSList *j_slist_preppend(JSList * l, jpointer data);
+JSList *j_slist_append(JSList * l, void * data);
+JSList *j_slist_preppend(JSList * l, void * data);
 
-JSList *j_slist_remove(JSList * l, jconstpointer data);
+JSList *j_slist_remove(JSList * l, const void * data);
 
 void j_slist_free(JSList * l);
 void j_slist_free_full(JSList * l, JDestroyNotify destroy);
 
 void j_slist_free1(JSList * l, JDestroyNotify destroy);
 
-JSList *j_slist_find(JSList * l, jpointer data);
+JSList *j_slist_find(JSList * l, void * data);
 JSList *j_slist_find_custom(JSList * l, JCompareFunc compare,
-                            jconstpointer user_data);
-jpointer j_slist_find_data_custom(JSList * l, JCompareFunc compare,
-                                  jconstpointer user_data);
+                            const void * user_data);
+void * j_slist_find_data_custom(JSList * l, JCompareFunc compare,
+                                const void * user_data);
 
 
 /*
  * Gets the number of elements in a JSList
  * This function iterates over the whole list to count its elements.
  */
-juint j_slist_length(JSList * l);
+unsigned int j_slist_length(JSList * l);
 
 /*
  * Removes the node link_ from the list and frees it.

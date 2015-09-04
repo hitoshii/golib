@@ -23,9 +23,9 @@
 typedef struct _JConfLoader JConfLoader;
 
 typedef struct {
-    jchar *filename;            /* 文件名 */
-    juint line;                 /* 行号  */
-    jint errcode;               /* 错误码，没有错误为0 */
+    char *filename;            /* 文件名 */
+    unsigned int line;                 /* 行号  */
+    int errcode;               /* 错误码，没有错误为0 */
 } JConfLoaderInfo;
 #define j_conf_loader_info_get_filename(info)   (info)->filename
 #define j_conf_loader_info_get_line(info)   (info)->line
@@ -51,12 +51,12 @@ JConfLoader *j_conf_loader_new(void);
 #define j_conf_loader_ref(l) J_OBJECT_REF(l)
 #define j_conf_loader_unref(l)  J_OBJECT_UNREF(l)
 
-void j_conf_loader_allow_unknown_variable(JConfLoader *loader, jboolean allow);
-jboolean j_conf_loader_loads(JConfLoader * loader, const jchar * path);
+void j_conf_loader_allow_unknown_variable(JConfLoader *loader, boolean allow);
+boolean j_conf_loader_loads(JConfLoader * loader, const char * path);
 
-jint j_conf_loader_get_errcode(JConfLoader * loader);
-jint j_conf_loader_get_line(JConfLoader * loader);
-const jchar *j_conf_loader_get_path(JConfLoader * loader);
+int j_conf_loader_get_errcode(JConfLoader * loader);
+int j_conf_loader_get_line(JConfLoader * loader);
+const char *j_conf_loader_get_path(JConfLoader * loader);
 
 /* 需要释放  */
 char *j_conf_loader_build_error_message(JConfLoader *loader);
@@ -71,15 +71,15 @@ JConfRoot *j_conf_loader_get_root(JConfLoader * loader);
  *
  * Assigns a integer value to a variable.
  */
-void j_conf_loader_put_integer(JConfLoader * loader, const jchar * name,
-                               jint64 integer);
-void j_conf_loader_put_string(JConfLoader * loader, const jchar * name,
-                              const jchar * string);
-void j_conf_loader_put_float(JConfLoader * loader, const jchar * name,
-                             jdouble floating);
-void j_conf_loader_put_bool(JConfLoader * loader, const jchar * name,
-                            jboolean b);
-void j_conf_loader_put_null(JConfLoader * loader, const jchar * name);
+void j_conf_loader_put_integer(JConfLoader * loader, const char * name,
+                               int64_t integer);
+void j_conf_loader_put_string(JConfLoader * loader, const char * name,
+                              const char * string);
+void j_conf_loader_put_float(JConfLoader * loader, const char * name,
+                             double floating);
+void j_conf_loader_put_bool(JConfLoader * loader, const char * name,
+                            boolean b);
+void j_conf_loader_put_null(JConfLoader * loader, const char * name);
 
 /**
  * j_conf_loader_get:
@@ -90,6 +90,6 @@ void j_conf_loader_put_null(JConfLoader * loader, const jchar * name);
  *
  * Returns: a JConfNode or NULL
  */
-JConfNode *j_conf_loader_get(JConfLoader * loader, const jchar * name);
+JConfNode *j_conf_loader_get(JConfLoader * loader, const char * name);
 
 #endif

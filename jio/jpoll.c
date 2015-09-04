@@ -16,17 +16,17 @@
  */
 #include "jpoll.h"
 
-jint j_poll(struct pollfd *fds, juint nfds, jint timeout) {
+int j_poll(struct pollfd *fds, unsigned int nfds, int timeout) {
     return poll(fds, nfds, timeout);
 }
 
 /* poll单个文件描述符 */
-jint j_poll_simple(jint fd, jshort conditions, jint timeout,
-                   jshort * revents) {
+int j_poll_simple(int fd, short conditions, int timeout,
+                  short * revents) {
     struct pollfd fds;
     fds.fd = fd;
     fds.events = conditions;
-    jint ret = j_poll(&fds, 1, timeout);
+    int ret = j_poll(&fds, 1, timeout);
     if (ret >= 0) {
         *revents = fds.revents;
     }

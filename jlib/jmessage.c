@@ -25,16 +25,16 @@
 #include <stdlib.h>
 
 typedef struct {
-    juint id;
+    unsigned int id;
     JLogLevelFlag level;
     JLogFunc func;
-    jpointer data;
+    void * data;
     JDestroyNotify destroy; /* 用于释放data */
 } JLogHandler;
 
 
 typedef struct {
-    jchar *name;
+    char *name;
     JList *handlers;
 } JLogDomain;
 
@@ -43,8 +43,8 @@ J_MUTEX_DEFINE_STATIC(log_lock);
 
 static inline void j_log_free(void);
 
-static inline JLogHandler *j_log_handler_new(JLogLevelFlag level, JLogFunc func, jpointer data, JDestroyNotify destroy) {
-    static juint static_id=0;
+static inline JLogHandler *j_log_handler_new(JLogLevelFlag level, JLogFunc func, void * data, JDestroyNotify destroy) {
+    static unsigned int static_id=0;
     if(J_UNLIKELY(static_id==0)) {
         atexit(j_log_free);
     }
@@ -64,7 +64,7 @@ static void j_log_handler_free(JLogHandler *handler) {
     j_free(handler);
 }
 
-static inline JLogDomain *j_log_domain_new(const jchar *name) {
+static inline JLogDomain *j_log_domain_new(const char *name) {
     JLogDomain *domain=j_malloc(sizeof(JLogDomain));
     domain->name=j_strdup(name);
     domain->handlers=NULL;
@@ -84,7 +84,7 @@ static inline void j_log_free(void) {
     j_mutex_unlock(&log_lock);
 }
 
-static inline JLogDomain *j_log_get_domain(const jchar *name) {
+static inline JLogDomain *j_log_get_domain(const char *name) {
     JList *ptr=log_domains;
     while(ptr) {
         JLogDomain *domain=(JLogDomain*)j_list_data(ptr);
@@ -98,13 +98,13 @@ static inline JLogDomain *j_log_get_domain(const jchar *name) {
     return domain;
 }
 
-juint j_log_set_handler(const jchar *domain, JLogLevelFlag level,
-                        JLogFunc func, jpointer user_data) {
+unsigned int j_log_set_handler(const char *domain, JLogLevelFlag level,
+                               JLogFunc func, void * user_data) {
     return j_log_set_handler_full(domain, level, func, user_data, NULL);
 }
 
-juint j_log_set_handler_full(const jchar *log_domain, JLogLevelFlag level, JLogFunc func,
-                             jpointer user_data, JDestroyNotify destroy) {
+unsigned int j_log_set_handler_full(const char *log_domain, JLogLevelFlag level, JLogFunc func,
+                                    void * user_data, JDestroyNotify destroy) {
     j_return_val_if_fail(func!=NULL, 0);
     j_mutex_lock(&log_lock);
     JLogDomain *domain=j_log_get_domain(log_domain);
@@ -115,7 +115,7 @@ juint j_log_set_handler_full(const jchar *log_domain, JLogLevelFlag level, JLogF
 }
 
 
-static inline JLogHandler *j_log_find_handler(const jchar * name, JLogLevelFlag level) {
+static inline JLogHandler *j_log_find_handler(const char * name, JLogLevelFlag level) {
     JList *ptr=log_domains;
     while(ptr) {
         JLogDomain *domain=(JLogDomain*)j_list_data(ptr);
@@ -138,7 +138,7 @@ static inline JLogHandler *j_log_find_handler(const jchar * name, JLogLevelFlag 
 }
 
 
-void j_log_remove_handler(const jchar * name, juint id) {
+void j_log_remove_handler(const char * name, unsigned int id) {
     j_mutex_lock(&log_lock);
     JList *ptr=log_domains;
     while(ptr) {
@@ -161,7 +161,7 @@ void j_log_remove_handler(const jchar * name, juint id) {
     j_mutex_unlock(&log_lock);
 }
 
-void j_logv(const jchar * domain, JLogLevelFlag level, const jchar * fmt,
+void j_logv(const char * domain, JLogLevelFlag level, const char * fmt,
             va_list ap) {
     j_mutex_lock(&log_lock);
     JLogHandler *handler = j_log_find_handler(domain, level);
@@ -169,13 +169,13 @@ void j_logv(const jchar * domain, JLogLevelFlag level, const jchar * fmt,
         j_mutex_unlock(&log_lock);
         return;
     }
-    jchar *buf=j_strdup_vprintf(fmt, ap);
+    char *buf=j_strdup_vprintf(fmt, ap);
     handler->func(domain, level, buf, handler->data);
     j_free(buf);
     j_mutex_unlock(&log_lock);
 }
 
-void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
+void j_log(const char * domain, JLogLevelFlag flag, const char * msg,
            ...) {
     va_list ap;
     va_start(ap, msg);
@@ -184,8 +184,8 @@ void j_log(const jchar * domain, JLogLevelFlag flag, const jchar * msg,
 }
 
 
-void j_return_if_fail_warning(const jchar * domain, const jchar * at,
-                              const jchar * expression) {
+void j_return_if_fail_warning(const char * domain, const char * at,
+                              const char * expression) {
     j_log(domain, J_LOG_LEVEL_WARNING, "%s: assertion '%s' failed",
           at, expression);
 }

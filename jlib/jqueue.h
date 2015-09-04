@@ -23,7 +23,7 @@
 typedef struct {
     JList *head;
     JList *tail;
-    juint length;
+    unsigned int length;
 } JQueue;
 
 #define J_QUEUE_INIT    {NULL, NULL, 0}
@@ -35,24 +35,24 @@ void j_queue_free_full(JQueue * queue, JDestroyNotify destroy);
 void j_queue_init(JQueue * queue);
 void j_queue_clear(JQueue * queue);
 void j_queue_clear_full(JQueue * queue, JDestroyNotify destroy);
-jboolean j_queue_is_empty(JQueue * queue);
-juint j_queue_get_length(JQueue * queue);
+boolean j_queue_is_empty(JQueue * queue);
+unsigned int j_queue_get_length(JQueue * queue);
 void j_queue_reverse(JQueue * queue);
 JQueue *j_queue_copy(JQueue * queue);
-void j_queue_foreach(JQueue * queue, JFunc func, jpointer user_data);
-JList *j_queue_find(JQueue * queue, jconstpointer data);
+void j_queue_foreach(JQueue * queue, JFunc func, void * user_data);
+JList *j_queue_find(JQueue * queue, const void * data);
 JList *j_queue_find_custom(JQueue * queue, JCompareFunc compare,
-                           jconstpointer user_data);
+                           const void * user_data);
 void j_queue_sort(JQueue * queue, JCompareDataFunc compare,
-                  jpointer user_data);
-void j_queue_push_head(JQueue * queue, jpointer data);
-void j_queue_push_nth(JQueue * queue, jpointer data, jint n);
+                  void * user_data);
+void j_queue_push_head(JQueue * queue, void * data);
+void j_queue_push_nth(JQueue * queue, void * data, int n);
 void j_queue_push_head_link(JQueue * queue, JList * link);
-void j_queue_push_tail(JQueue * queue, jpointer data);
+void j_queue_push_tail(JQueue * queue, void * data);
 void j_queue_push_tail_link(JQueue * queue, JList * link);
-void j_queue_push_nth_link(JQueue * queue, jint n, JList * link);
-jpointer j_queue_pop_head(JQueue * queue);
-jpointer j_queue_pop_head_link(JQueue * queue);
+void j_queue_push_nth_link(JQueue * queue, int n, JList * link);
+void * j_queue_pop_head(JQueue * queue);
+void * j_queue_pop_head_link(JQueue * queue);
 /*
  * 返回队列的第一个元素
  */
@@ -61,23 +61,23 @@ JList *j_queue_peek_head_link(JQueue * queue);
  * 返回队列的最后一个元素
  */
 JList *j_queue_peek_tail_link(JQueue * queue);
-jpointer j_queue_pop_tail(JQueue * queue);
-jpointer j_queue_pop_nth(JQueue * queue, juint n);
+void * j_queue_pop_tail(JQueue * queue);
+void * j_queue_pop_nth(JQueue * queue, unsigned int n);
 JList *j_queue_pop_tail_link(JQueue * queue);
-JList *j_queue_pop_nth_link(JQueue * queue, juint n);
-JList *j_queue_peek_nth_link(JQueue * queue, juint n);
-jint j_queue_link_index(JQueue * queue, JList * link);
+JList *j_queue_pop_nth_link(JQueue * queue, unsigned int n);
+JList *j_queue_peek_nth_link(JQueue * queue, unsigned int n);
+int j_queue_link_index(JQueue * queue, JList * link);
 void j_queue_unlink(JQueue * queue, JList * link);
 void j_queue_delete_link(JQueue * queue, JList * link);
-jpointer j_queue_peek_head(JQueue * queue);
-jpointer j_queue_peek_tail(JQueue * queue);
-jpointer j_queue_peek_nth(JQueue * queue, juint n);
-jint j_queue_index(JQueue * queue, jconstpointer data);
-jboolean j_queue_remove(JQueue * queue, jconstpointer data);
-juint j_queue_remove_all(JQueue * queue, jconstpointer data);
-void j_queue_insert_before(JQueue * queue, JList * sibling, jpointer data);
-void j_queue_insert_after(JQueue * queue, JList * sibling, jpointer data);
-void j_queue_insert_sorted(JQueue * queue, jpointer data,
-                           JCompareDataFunc compare, jpointer user_data);
+void * j_queue_peek_head(JQueue * queue);
+void * j_queue_peek_tail(JQueue * queue);
+void * j_queue_peek_nth(JQueue * queue, unsigned int n);
+int j_queue_index(JQueue * queue, const void * data);
+boolean j_queue_remove(JQueue * queue, const void * data);
+unsigned int j_queue_remove_all(JQueue * queue, const void * data);
+void j_queue_insert_before(JQueue * queue, JList * sibling, void * data);
+void j_queue_insert_after(JQueue * queue, JList * sibling, void * data);
+void j_queue_insert_sorted(JQueue * queue, void * data,
+                           JCompareDataFunc compare, void * user_data);
 
 #endif

@@ -19,8 +19,8 @@
 
 static pthread_mutex_t j_atomic_lock = PTHREAD_MUTEX_INITIALIZER;
 
-jint j_atomic_int_get(const volatile jint * atomic) {
-    jint value;
+int j_atomic_int_get(const volatile int * atomic) {
+    int value;
 
     pthread_mutex_lock(&j_atomic_lock);
     value = *atomic;
@@ -29,20 +29,20 @@ jint j_atomic_int_get(const volatile jint * atomic) {
     return value;
 }
 
-void j_atomic_int_set(volatile jint * atomic, jint value) {
+void j_atomic_int_set(volatile int * atomic, int value) {
     pthread_mutex_lock(&j_atomic_lock);
     *atomic = value;
     pthread_mutex_unlock(&j_atomic_lock);
 }
 
-void j_atomic_int_inc(volatile jint * atomic) {
+void j_atomic_int_inc(volatile int * atomic) {
     pthread_mutex_lock(&j_atomic_lock);
     (*atomic)++;
     pthread_mutex_unlock(&j_atomic_lock);
 }
 
-jboolean j_atomic_int_dec_and_test(volatile jint * atomic) {
-    jboolean is_zero;
+boolean j_atomic_int_dec_and_test(volatile int * atomic) {
+    boolean is_zero;
 
     pthread_mutex_lock(&j_atomic_lock);
     is_zero = --(*atomic) == 0;
@@ -51,9 +51,9 @@ jboolean j_atomic_int_dec_and_test(volatile jint * atomic) {
     return is_zero;
 }
 
-jboolean j_atomic_int_compare_and_exchange(volatile jint * atomic,
-        jint oldval, jint newval) {
-    jboolean success;
+boolean j_atomic_int_compare_and_exchange(volatile int * atomic,
+        int oldval, int newval) {
+    boolean success;
 
     pthread_mutex_lock(&j_atomic_lock);
 
@@ -66,8 +66,8 @@ jboolean j_atomic_int_compare_and_exchange(volatile jint * atomic,
     return success;
 }
 
-jint j_atomic_int_add(volatile jint * atomic, jint val) {
-    jint oldval;
+int j_atomic_int_add(volatile int * atomic, int val) {
+    int oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *atomic;
@@ -77,8 +77,8 @@ jint j_atomic_int_add(volatile jint * atomic, jint val) {
     return oldval;
 }
 
-juint j_atomic_int_and(volatile juint * atomic, juint val) {
-    juint oldval;
+unsigned int j_atomic_int_and(volatile unsigned int * atomic, unsigned int val) {
+    unsigned int oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *atomic;
@@ -88,8 +88,8 @@ juint j_atomic_int_and(volatile juint * atomic, juint val) {
     return oldval;
 }
 
-juint j_atomic_int_or(volatile juint * atomic, juint val) {
-    juint oldval;
+unsigned int j_atomic_int_or(volatile unsigned int * atomic, unsigned int val) {
+    unsigned int oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *atomic;
@@ -99,8 +99,8 @@ juint j_atomic_int_or(volatile juint * atomic, juint val) {
     return oldval;
 }
 
-juint j_atomic_int_xor(volatile juint * atomic, juint val) {
-    juint oldval;
+unsigned int j_atomic_int_xor(volatile unsigned int * atomic, unsigned int val) {
+    unsigned int oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *atomic;
@@ -111,30 +111,30 @@ juint j_atomic_int_xor(volatile juint * atomic, juint val) {
 }
 
 
-jpointer j_atomic_pointer_get(const volatile void *atomic) {
-    const volatile jpointer *ptr = atomic;
-    jpointer value;
+void * j_atomic_pointer_get(const volatile void *atomic) {
+    const volatile void **ptr = (const volatile void **)atomic;
+    void * value;
 
     pthread_mutex_lock(&j_atomic_lock);
-    value = *ptr;
+    value = (void*)(*ptr);
     pthread_mutex_unlock(&j_atomic_lock);
 
     return value;
 }
 
-void j_atomic_pointer_set(volatile void *atomic, jpointer newval) {
-    volatile jpointer *ptr = atomic;
+void j_atomic_pointer_set(volatile void *atomic, void * newval) {
+    volatile void **ptr = (volatile void**)atomic;
 
     pthread_mutex_lock(&j_atomic_lock);
     *ptr = newval;
     pthread_mutex_unlock(&j_atomic_lock);
 }
 
-jboolean j_atomic_pointer_compare_and_exchange(volatile void *atomic,
-        jpointer oldval,
-        jpointer newval) {
-    volatile jpointer *ptr = atomic;
-    jboolean success;
+boolean j_atomic_pointer_compare_and_exchange(volatile void *atomic,
+        void * oldval,
+        void * newval) {
+    volatile void **ptr = (volatile void**)atomic;
+    boolean success;
 
     pthread_mutex_lock(&j_atomic_lock);
 
@@ -147,9 +147,9 @@ jboolean j_atomic_pointer_compare_and_exchange(volatile void *atomic,
     return success;
 }
 
-jssize j_atomic_pointer_add(volatile void *atomic, jssize val) {
-    volatile jssize *ptr = atomic;
-    jssize oldval;
+signed long j_atomic_pointer_add(volatile void *atomic, signed long val) {
+    volatile signed long *ptr = atomic;
+    signed long oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *ptr;
@@ -159,9 +159,9 @@ jssize j_atomic_pointer_add(volatile void *atomic, jssize val) {
     return oldval;
 }
 
-jsize j_atomic_pointer_and(volatile void *atomic, jsize val) {
-    volatile jsize *ptr = atomic;
-    jsize oldval;
+unsigned long j_atomic_pointer_and(volatile void *atomic, unsigned long val) {
+    volatile unsigned long *ptr = atomic;
+    unsigned long oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *ptr;
@@ -171,9 +171,9 @@ jsize j_atomic_pointer_and(volatile void *atomic, jsize val) {
     return oldval;
 }
 
-jsize j_atomic_pointer_or(volatile void *atomic, jsize val) {
-    volatile jsize *ptr = atomic;
-    jsize oldval;
+unsigned long j_atomic_pointer_or(volatile void *atomic, unsigned long val) {
+    volatile unsigned long *ptr = atomic;
+    unsigned long oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *ptr;
@@ -183,9 +183,9 @@ jsize j_atomic_pointer_or(volatile void *atomic, jsize val) {
     return oldval;
 }
 
-jsize j_atomic_pointer_xor(volatile void *atomic, jsize val) {
-    volatile jsize *ptr = atomic;
-    jsize oldval;
+unsigned long j_atomic_pointer_xor(volatile void *atomic, unsigned long val) {
+    volatile unsigned long *ptr = atomic;
+    unsigned long oldval;
 
     pthread_mutex_lock(&j_atomic_lock);
     oldval = *ptr;
