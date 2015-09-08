@@ -20,8 +20,8 @@
 #include "joutputstream.h"
 #include "jfile.h"
 
-typedef struct _JFileOutputStream JFileOutputStream;
+typedef struct _JUnixOutputStream JUnixOutputStream;
 
-JFileOutputStream *j_file_write(JFile * file);
+JUnixOutputStream *j_unix_output_stream_open_path(const char * path);
 
 #endif

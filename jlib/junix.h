@@ -19,6 +19,7 @@
 
 #include "jtypes.h"
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -44,5 +45,8 @@ pid_t j_wait(int *stat_loc);
 
 
 int j_open(const char *path, int oflag, ...);
+
+/* 创建无名管道 */
+boolean j_pipe(int *pipefd);
 
 #endif

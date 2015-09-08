@@ -24,8 +24,8 @@
 #include "jinputstream.h"
 #include "joutputstream.h"
 #include "jbufferedinputstream.h"
-#include "jfileinputstream.h"
-#include "jfileoutputstream.h"
+#include "junixinputstream.h"
+#include "junixoutputstream.h"
 #include "jsocket.h"
 
 

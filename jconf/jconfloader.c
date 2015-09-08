@@ -520,7 +520,7 @@ static inline boolean j_conf_loader_loads_from_path(JConfLoader * loader,
         boolean is_root) {
     loader->top = j_conf_loader_info_new(path);
     j_stack_push(loader->info, loader->top);
-    JFileInputStream *input_stream = j_file_input_stream_open(path);
+    JUnixInputStream *input_stream = j_unix_input_stream_open_path(path);
     if (input_stream == NULL) {
         loader->top->errcode=J_CONF_LOADER_ERR_INVALID_FILE;
         return FALSE;

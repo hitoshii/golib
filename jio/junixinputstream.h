@@ -20,12 +20,10 @@
 #include "jinputstream.h"
 #include "jfile.h"
 
-typedef struct _JFileInputStream JFileInputStream;
+typedef struct _JUnixInputStream JUnixInputStream;
 
-/* 打开文件读，失败返回NULL */
-JFileInputStream *j_file_read(JFile * f);
-
-JFileInputStream *j_file_input_stream_open(const char * path);
+JUnixInputStream *j_file_input_stream_new_from_fd(int fd);
+JUnixInputStream *j_unix_input_stream_open_path(const char * path);
 
 #define j_file_input_stream_ref(s) J_OBJECT_REF(s)
 #define j_file_input_stream_unref(s) J_OBJECT_UNREF(s)

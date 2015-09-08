@@ -24,7 +24,7 @@ int main(int argc, char const *argv[]) {
     if (f == NULL) {
         return 1;
     }
-    JFileInputStream *input = j_file_read(f);
+    JUnixInputStream *input = j_unix_input_stream_open_path(j_file_get_path(f));
     if (input == NULL) {
         return 2;
     }
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[]) {
     }
     j_object_unref((JObject *) input);
 
-    input = j_file_read(f);
+    input = j_unix_input_stream_open_path(j_file_get_path(f));
     JBufferedInputStream *buffered_stream =
         j_buffered_input_stream_new((JInputStream *) input);
     j_file_input_stream_unref(input);

@@ -20,7 +20,7 @@
 int main(int argc, char const *argv[]) {
     JFile *f = j_file_new("/dev/null");
 
-    JOutputStream *output = (JOutputStream *) j_file_write(f);
+    JOutputStream *output = (JOutputStream *) j_unix_output_stream_open_path(j_file_get_path(f));
     if (output == NULL) {
         return 1;
     }

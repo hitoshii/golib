@@ -14,43 +14,34 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-#include "jfileinputstream.h"
+#include "junixinputstream.h"
 #include <jlib/jlib.h>
 #include <fcntl.h>
 #include <string.h>
 
-struct _JFileInputStream {
+struct _JUnixInputStream {
     JInputStream parent;
     int fd;
 };
 
-static int j_file_input_stream_read(JFileInputStream * stream,
+static int j_unix_input_stream_read(JUnixInputStream * stream,
                                     void *buffer, unsigned int size);
-static void j_file_input_stream_close(JFileInputStream * stream);
+static void j_unix_input_stream_close(JUnixInputStream * stream);
 
 static JInputStreamInterface j_file_input_stream_interface = {
-    (JInputStreamRead) j_file_input_stream_read,
-    (JInputStreamClose) j_file_input_stream_close
+    (JInputStreamRead) j_unix_input_stream_read,
+    (JInputStreamClose) j_unix_input_stream_close
 };
 
-static inline JFileInputStream *j_file_input_stream_new_from_fd(int fd) {
-    JFileInputStream *stream = j_malloc(sizeof(JFileInputStream));
+JUnixInputStream *j_file_input_stream_new_from_fd(int fd) {
+    JUnixInputStream *stream = j_malloc(sizeof(JUnixInputStream));
     stream->fd = fd;
     j_input_stream_init((JInputStream *) stream,
                         &j_file_input_stream_interface);
     return stream;
 }
 
-/* 打开文件读，失败返回NULL */
-JFileInputStream *j_file_read(JFile * f) {
-    int fd = j_file_open_fd(f, O_RDONLY);
-    if (fd < 0) {
-        return NULL;
-    }
-    return j_file_input_stream_new_from_fd(fd);
-}
-
-JFileInputStream *j_file_input_stream_open(const char * path) {
+JUnixInputStream *j_unix_input_stream_open_path(const char * path) {
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
         return NULL;
@@ -58,11 +49,11 @@ JFileInputStream *j_file_input_stream_open(const char * path) {
     return j_file_input_stream_new_from_fd(fd);
 }
 
-static void j_file_input_stream_close(JFileInputStream * stream) {
+static void j_unix_input_stream_close(JUnixInputStream * stream) {
     close(stream->fd);
 }
 
-static int j_file_input_stream_read(JFileInputStream * stream,
+static int j_unix_input_stream_read(JUnixInputStream * stream,
                                     void *buffer, unsigned int size) {
     return j_read(stream->fd, buffer, size);
 }

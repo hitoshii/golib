@@ -166,3 +166,8 @@ int j_open(const char *path, int oflag, ...) {
     }
     return fd;
 }
+
+/* 创建无名管道 */
+boolean j_pipe(int *pipefd) {
+    return pipe(pipefd)==0;
+}

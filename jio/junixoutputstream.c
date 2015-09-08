@@ -14,39 +14,39 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-#include "jfileoutputstream.h"
+#include "junixoutputstream.h"
 #include <jlib/jlib.h>
 #include <fcntl.h>
 #include <string.h>
 
 
-struct _JFileOutputStream {
+struct _JUnixOutputStream {
     JOutputStream parent;
     int fd;
 };
 
-static int j_file_output_stream_write(JFileOutputStream * stream,
+static int j_unix_output_stream_write(JUnixOutputStream * stream,
                                       const char * buf, int len);
-static void j_file_output_stream_close(JFileOutputStream * stream);
+static void j_unix_output_stream_close(JUnixOutputStream * stream);
 
 JOutputStreamInterface j_file_output_stream_interface = {
-    (JOutputStreamWrite) j_file_output_stream_write,
-    (JOutputStreamClose) j_file_output_stream_close
+    (JOutputStreamWrite) j_unix_output_stream_write,
+    (JOutputStreamClose) j_unix_output_stream_close
 };
 
-JFileOutputStream *j_file_write(JFile * f) {
-    int fd = j_file_open_fd(f, O_WRONLY);
+JUnixOutputStream *j_unix_output_stream_open_path(const char * f) {
+    int fd = j_open(f, O_WRONLY);
     if (fd < 0) {
         return NULL;
     }
-    JFileOutputStream *stream = j_malloc(sizeof(JFileOutputStream));
+    JUnixOutputStream *stream = j_malloc(sizeof(JUnixOutputStream));
     j_output_stream_init((JOutputStream *) stream,
                          &j_file_output_stream_interface);
     stream->fd = fd;
     return stream;
 }
 
-static int j_file_output_stream_write(JFileOutputStream * stream,
+static int j_unix_output_stream_write(JUnixOutputStream * stream,
                                       const char * buf, int len) {
     if (len < 0) {
         len = strlen(buf);
@@ -54,6 +54,6 @@ static int j_file_output_stream_write(JFileOutputStream * stream,
     return j_write(stream->fd, buf, len);
 }
 
-static void j_file_output_stream_close(JFileOutputStream * stream) {
+static void j_unix_output_stream_close(JUnixOutputStream * stream) {
     close(stream->fd);
 }
