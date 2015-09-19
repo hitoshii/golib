@@ -1304,6 +1304,16 @@ void j_main_loop_quit(JMainLoop * loop) {
     J_MAIN_CONTEXT_UNLOCK(loop->context);
 }
 
+/*
+ * 将循环状态设置为不运行，到下次迭代将退出
+ * 可以在信号处理函数中调用
+ */
+void j_main_loop_quit_notify(JMainLoop *loop) {
+    j_return_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0);
+    loop->is_running = FALSE;
+}
+
+
 static JMainLoop *default_main_loop = NULL;
 J_MUTEX_DEFINE_STATIC(default_main_loop_mutex);
 
@@ -1320,12 +1330,19 @@ void j_main_quit(void) {
     j_mutex_lock(&default_main_loop_mutex);
     if (default_main_loop) {
         j_main_loop_quit(default_main_loop);
-        j_main_loop_unref(default_main_loop);
-        default_main_loop = NULL;
+        // j_main_loop_unref(default_main_loop);
+        // default_main_loop = NULL;
     }
     j_mutex_unlock(&default_main_loop_mutex);
 }
 
+void j_main_quit_notify(void) {
+    j_mutex_lock(&default_main_loop_mutex);
+    if (default_main_loop) {
+        j_main_loop_quit_notify(default_main_loop);
+    }
+    j_mutex_unlock(&default_main_loop_mutex);
+}
 
 /***************************** TIMEOUT ****************************/
 

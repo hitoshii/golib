@@ -2,3 +2,7 @@ autom4te.cache
 *~
 .deps
 cscope.*
+*.la
+*.o
+*.lo
+.libs

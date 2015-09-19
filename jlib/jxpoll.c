@@ -176,10 +176,9 @@ int j_xpoll_wait(JXPoll *p, JXPollEvent *events, unsigned int maxevent, int time
 
     struct epoll_event *e = p->cached_events;
     int i, j, n;
-    while ((n = epoll_wait(p->fd, e, maxevent, timeout)) < 0) {
-        if (errno != EINTR) {
-            return n;
-        }
+    n = epoll_wait(p->fd, e, maxevent, timeout);
+    if (n<=0) {
+        return n;
     }
 
     for (i = 0, j=0; i < n && j<maxevent; i++) {

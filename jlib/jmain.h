@@ -215,9 +215,15 @@ void j_main_loop_run(JMainLoop * loop);
  * Stops loop from running
  */
 void j_main_loop_quit(JMainLoop * loop);
+/*
+ * 将循环状态设置为不运行，到下次迭代将退出
+ * 可以在信号处理函数中调用
+ */
+void j_main_loop_quit_notify(JMainLoop *loop);
 
 void j_main(void);
 void j_main_quit(void);
+void j_main_quit_notify(void);
 
 
 /*
