@@ -216,6 +216,11 @@ void j_main_loop_run(JMainLoop * loop);
  */
 void j_main_loop_quit(JMainLoop * loop);
 /*
+ * 试图获取JMainContext的锁，如果成功，相当于调用了j_main_quit()
+ * 否则只是将loop->is_running设置为FALSE
+ */
+void j_main_loop_try_quit(JMainLoop *loop);
+/*
  * 将循环状态设置为不运行，到下次迭代将退出
  * 可以在信号处理函数中调用
  */
@@ -224,6 +229,7 @@ void j_main_loop_quit_notify(JMainLoop *loop);
 void j_main(void);
 void j_main_quit(void);
 void j_main_quit_notify(void);
+void j_main_try_quit(void);
 
 
 /*

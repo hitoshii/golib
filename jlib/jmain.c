@@ -83,6 +83,7 @@ struct _JMainContext {
 
 #define J_MAIN_CONTEXT_LOCK(ctx)    j_mutex_lock(&(ctx)->mutex)
 #define J_MAIN_CONTEXT_UNLOCK(ctx)  j_mutex_unlock(&(ctx)->mutex)
+#define J_MAIN_CONTEXT_TRYLOCK(ctx) j_mutex_trylock(&(ctx)->mutex)
 
 #define J_MAIN_CONTEXT_CHECK(ctx)   J_STMT_START\
                                     if(ctx==NULL){ \
@@ -1305,12 +1306,19 @@ void j_main_loop_quit(JMainLoop * loop) {
 }
 
 /*
- * 将循环状态设置为不运行，到下次迭代将退出
- * 可以在信号处理函数中调用
+ * 试图获取JMainContext的锁，如果成功，相当于调用了j_main_quit()
+ * 否则只是将loop->is_running设置为FALSE
  */
-void j_main_loop_quit_notify(JMainLoop *loop) {
+void j_main_loop_try_quit(JMainLoop *loop) {
     j_return_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0);
+
+    JMainContext *ctx=loop->context;
     loop->is_running = FALSE;
+    if(J_MAIN_CONTEXT_TRYLOCK(ctx)) {
+        j_wakeup_signal(loop->context->wakeup);
+        j_cond_broadcast(&loop->context->cond);
+        J_MAIN_CONTEXT_UNLOCK(loop->context);
+    }
 }
 
 
@@ -1330,16 +1338,18 @@ void j_main_quit(void) {
     j_mutex_lock(&default_main_loop_mutex);
     if (default_main_loop) {
         j_main_loop_quit(default_main_loop);
-        // j_main_loop_unref(default_main_loop);
-        // default_main_loop = NULL;
     }
     j_mutex_unlock(&default_main_loop_mutex);
 }
 
-void j_main_quit_notify(void) {
+/*
+ * 试图获取JMainContext的锁，如果成功，相当于调用了j_main_quit()
+ * 否则只是将loop->is_running设置为FALSE
+ */
+void j_main_try_quit(void) {
     j_mutex_lock(&default_main_loop_mutex);
     if (default_main_loop) {
-        j_main_loop_quit_notify(default_main_loop);
+        j_main_loop_try_quit(default_main_loop);
     }
     j_mutex_unlock(&default_main_loop_mutex);
 }
