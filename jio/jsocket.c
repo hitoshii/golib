@@ -307,9 +307,8 @@ int j_socket_send_with_blocking(JSocket * socket, const char * buffer,
         size = j_strlen(buffer);
     }
     int ret;
-    while ((ret =
-                j_send(socket->fd, buffer, size,
-                       J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
+    while ((ret = j_send(socket->fd, buffer, size,
+                         J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             if (blocking) {
                 if (!j_socket_condition_wait(socket, J_POLL_OUT)) {
@@ -344,10 +343,9 @@ int j_socket_send_to(JSocket * socket, JSocketAddress * address,
     socklen_t addrlen = j_socket_address_get_native_size(address);
     j_socket_address_to_native(address, &addr, sizeof(addr));
     int ret;
-    while ((ret =
-                j_sendto(socket->fd, buffer, size,
-                         J_SOCKET_DEFAULT_SEND_FLAGS,
-                         (struct sockaddr *) &addr, addrlen)) < 0) {
+    while ((ret = j_sendto(socket->fd, buffer, size,
+                           J_SOCKET_DEFAULT_SEND_FLAGS,
+                           (struct sockaddr *) &addr, addrlen)) < 0) {
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             if (socket->blocking) {
                 if (!j_socket_condition_wait(socket, J_POLL_OUT)) {

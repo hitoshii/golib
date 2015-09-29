@@ -26,11 +26,6 @@
 boolean j_daemonize(void) {
     umask(0);
 
-    struct rlimit rl;
-    if (getrlimit(RLIMIT_NOFILE, &rl) < 0 || rl.rlim_max == RLIM_INFINITY) {
-        rl.rlim_max = 1024;
-    }
-
     pid_t pid;
     if ((pid = fork()) < 0) {
         return FALSE;
@@ -59,7 +54,7 @@ boolean j_daemonize(void) {
     }
 
     int i;
-    for (i = 0; i < rl.rlim_max; i++) {
+    for (i = 0; i < 3; i++) {
         close(i);
     }
 
