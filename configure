@@ -12068,7 +12068,7 @@ jconf_ADD='-L$(top_builddir)/jconf -ljconf'
 
 
 #This line defines where Makefiles are stored for projects and sources
-ac_config_files="$ac_config_files Makefile jlib/jlib-0.1.pc jlib/Makefile jio/jio-0.1.pc jio/Makefile jconf/Makefile jconf/jconf-0.1.pc test/Makefile"
+ac_config_files="$ac_config_files Makefile jlib/jlib-0.1.pc jlib/Makefile jio/jio-0.1.pc jio/Makefile jconf/Makefile jconf/jconf-0.1.pc jmod/Makefile jmod/jmod-0.1.pc test/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -13097,6 +13097,8 @@ do
     "jio/Makefile") CONFIG_FILES="$CONFIG_FILES jio/Makefile" ;;
     "jconf/Makefile") CONFIG_FILES="$CONFIG_FILES jconf/Makefile" ;;
     "jconf/jconf-0.1.pc") CONFIG_FILES="$CONFIG_FILES jconf/jconf-0.1.pc" ;;
+    "jmod/Makefile") CONFIG_FILES="$CONFIG_FILES jmod/Makefile" ;;
+    "jmod/jmod-0.1.pc") CONFIG_FILES="$CONFIG_FILES jmod/jmod-0.1.pc" ;;
     "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

@@ -45,5 +45,7 @@ jio/jio-0.1.pc
 jio/Makefile
 jconf/Makefile
 jconf/jconf-0.1.pc
+jmod/Makefile
+jmod/jmod-0.1.pc
 test/Makefile
 ])
