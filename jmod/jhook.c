@@ -15,3 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 #include "jhook.h"
+#include <jlib/jlib.h>
+
+static JList *client_accept_hooks = NULL;
+
+
+JList *get_client_accept_hooks(void) {
+    return client_accept_hooks;
+}
+
+void register_client_accept(ClientAccept accept) {
+    if(accept==NULL) {
+        return;
+    }
+    client_accept_hooks = j_list_append(client_accept_hooks, accept);
+}

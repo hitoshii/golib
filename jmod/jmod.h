@@ -18,7 +18,7 @@
 #define __JMOD_H__
 
 #include "jhook.h"
-
+#include <jlib/jlib.h>
 
 typedef struct {
     const char *name;
@@ -29,6 +29,8 @@ typedef struct {
 #define JACQUES_MODULE_NAME  "__jacques_module__"
 #define JACQUES_MODULE(object) JacModule *__jacques_module__ = &object
 
+
+JList *get_jacques_modules(void);
 
 /* 从模块中读取模块结构 */
 JacModule *jacques_loads_module(const char *filename);

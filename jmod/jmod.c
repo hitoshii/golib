@@ -15,25 +15,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 #include "jmod.h"
-#include <jlib/jlib.h>
 
+
+static JList *jacques_modules = NULL;
+
+JList *get_jacques_modules(void) {
+    return jacques_modules;
+}
+
+static inline void register_module(JacModule *mod) {
+    if(mod==NULL) {
+        return;
+    }
+    jacques_modules = j_list_append(jacques_modules, mod);
+    register_client_accept(mod->hooks->accept);
+}
 
 
 /* 从模块中读取模块结构 */
 JacModule *jacques_loads_module(const char *filename) {
     JModule *mod = j_module_open(filename, J_MODULE_NODELETE|J_MODULE_LAZY);
     if(mod==NULL) {
-        printf("2\n");
         return NULL;
     }
     void *ptr=NULL;
     JacModule *result = NULL;
     if(!j_module_symbol(mod, JACQUES_MODULE_NAME, &ptr)||ptr==NULL) {
-        printf("1\n");
         goto OUT;
     }
     result = (JacModule*)*((JacModule**)ptr);
 OUT:
     j_module_close(mod);
+    register_module(result);
     return result;
 }

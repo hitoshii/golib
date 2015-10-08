@@ -26,5 +26,11 @@ int main (int argc, char *argv[]) {
     if(j_strcmp0(mod->name, "name")) {
         return -2;
     }
+    if(j_list_length(get_jacques_modules())!=1) {
+        return -3;
+    }
+    if(j_list_length(get_client_accept_hooks())!=0) {
+        return -4;
+    }
     return 0;
 }

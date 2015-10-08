@@ -18,6 +18,7 @@
 #define __JMOD_HOOK_H__
 
 #include <jio/jio.h>
+#include <jlib/jlib.h>
 
 
 typedef void (*ClientAccept)(JSocket *socket);
@@ -26,6 +27,10 @@ typedef void (*ClientAccept)(JSocket *socket);
 typedef struct {
     ClientAccept accept;
 } JacHook;
+
+
+JList *get_client_accept_hooks(void);
+void register_client_accept(ClientAccept accept);
 
 
 #endif
