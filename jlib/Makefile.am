@@ -39,7 +39,8 @@ libjlib_la_SOURCES = \
     junix.c \
     jobject.c \
     jmodule.c \
-    jxpoll.c
+    jxpoll.c \
+    jmodule.c
 
 libjlib_la_LDFLAGS = -pthread -ldl
 

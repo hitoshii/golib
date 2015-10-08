@@ -14,7 +14,8 @@ lib_LTLIBRARIES = libjmod.la
 
 
 libjmod_la_SOURCES = \
-    jhook.c
+    jhook.c \
+    jmod.c
 
 libjmod_la_CFLAGS = $(jlib_INCLUDE)
 

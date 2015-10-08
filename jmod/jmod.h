@@ -20,4 +20,17 @@
 #include "jhook.h"
 
 
+typedef struct {
+    const char *name;
+    JHookStruct *hooks;
+} JacModule;
+
+
+#define JACQUES_MODULE_NAME  "__jacques_module__"
+#define JACUQES_MODULE(object) JacModule* JACQUES_MODULE_NAME = &object
+
+
+/* 从模块中读取模块结构 */
+JacModule *jacques_loads_module(const char *filename);
+
 #endif

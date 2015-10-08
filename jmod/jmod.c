@@ -14,18 +14,24 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-#ifndef __JMOD_HOOK_H__
-#define __JMOD_HOOK_H__
-
-#include <jio/jio.h>
+#include "jmod.h"
+#include <jlib/jlib.h>
 
 
-typedef void (*ClientAccept)(JSocket *socket);
 
-
-typedef struct {
-    ClientAccept accept;
-} JHookStruct;
-
-
-#endif
+/* 从模块中读取模块结构 */
+JacModule *jacques_loads_module(const char *filename) {
+    JModule *mod = j_module_open(filename, J_MODULE_NODELETE|J_MODULE_LAZY);
+    if(mod==NULL) {
+        return NULL;
+    }
+    void *ptr=NULL;
+    JacModule *result = NULL;
+    if(!j_module_symbol(mod, JACQUES_MODULE_NAME, &ptr)||ptr==NULL) {
+        goto OUT;
+    }
+    result = (JacModule*)*((JacModule**)ptr);
+OUT:
+    j_module_close(mod);
+    return result;
+}
