@@ -17,6 +17,14 @@
 #ifndef __JMOD_HOOK_H__
 #define __JMOD_HOOK_H__
 
+#include <jio/jio.h>
+
+typedef boolean (*ClientAccept)(JSocket *socket);
+
+
+typedef struct {
+    ClientAccept accept;
+} JHookStruct;
 
 
 #endif

@@ -17,7 +17,7 @@
 #ifndef __JMOD_H__
 #define __JMOD_H__
 
-#include "jmod.h"
+#include "jhook.h"
 
 
 #endif
