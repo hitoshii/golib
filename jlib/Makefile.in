@@ -139,7 +139,7 @@ am_libjlib_la_OBJECTS = jlist.lo jmem.lo jstrfuncs.lo jstring.lo \
 	jthread.lo jslist.lo jwakeup.lo jmain.lo jmessage.lo \
 	jprintf.lo jenviron.lo jthreadpool.lo jerror.lo jqueue.lo \
 	jasyncqueue.lo jtimer.lo jutils.lo junix.lo jobject.lo \
-	jmodule.lo jxpoll.lo jmodule.lo
+	jmodule.lo jxpoll.lo
 libjlib_la_OBJECTS = $(am_libjlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -369,8 +369,7 @@ libjlib_la_SOURCES = \
     junix.c \
     jobject.c \
     jmodule.c \
-    jxpoll.c \
-    jmodule.c
+    jxpoll.c
 
 libjlib_la_LDFLAGS = -pthread -ldl
 libjlib_la_LIBADD = 
