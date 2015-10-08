@@ -49,3 +49,12 @@ OUT:
     register_module(result);
     return result;
 }
+
+
+void jacques_loads_modules(JList *filenames) {
+    JList *ptr=filenames;
+    while(ptr) {
+        jacques_loads_module((const char*)j_list_data(ptr));
+        ptr=j_list_next(ptr);
+    }
+}
