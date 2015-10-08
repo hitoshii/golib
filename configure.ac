@@ -35,6 +35,9 @@ AC_SUBST(jio_ADD)
 jconf_ADD='-L$(top_builddir)/jconf -ljconf'
 AC_SUBST(jconf_ADD)
 
+jmod_ADD='-L$(top_builddir)/jmod -ljmod'
+AC_SUBST(jmod_ADD)
+
 
 #This line defines where Makefiles are stored for projects and sources
 AC_OUTPUT([

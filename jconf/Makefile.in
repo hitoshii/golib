@@ -309,6 +309,7 @@ jio_ADD = @jio_ADD@
 jlib_ADD = @jlib_ADD@
 jlib_INCLUDE = @jlib_INCLUDE@
 jlib_includedir = @jlib_includedir@
+jmod_ADD = @jmod_ADD@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@

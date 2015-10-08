@@ -15,14 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#include <jlib/jlib.h>
+#include <jmod/jmod.h>
 
-const char *name="nice";
+JacHook hooks= {
+    NULL
+};
 
-int id=123;
 
-float scale=0.5;
+JacModule mod = {
+    "name",
+    &hooks
+};
 
-int sum(int a, int b) {
-    return a+b;
-}
+JACQUES_MODULE(mod);

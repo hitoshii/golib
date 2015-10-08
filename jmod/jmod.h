@@ -22,12 +22,12 @@
 
 typedef struct {
     const char *name;
-    JHookStruct *hooks;
+    JacHook *hooks;
 } JacModule;
 
 
 #define JACQUES_MODULE_NAME  "__jacques_module__"
-#define JACUQES_MODULE(object) JacModule* JACQUES_MODULE_NAME = &object
+#define JACQUES_MODULE(object) JacModule *__jacques_module__ = &object
 
 
 /* 从模块中读取模块结构 */

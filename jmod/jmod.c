@@ -23,11 +23,13 @@
 JacModule *jacques_loads_module(const char *filename) {
     JModule *mod = j_module_open(filename, J_MODULE_NODELETE|J_MODULE_LAZY);
     if(mod==NULL) {
+        printf("2\n");
         return NULL;
     }
     void *ptr=NULL;
     JacModule *result = NULL;
     if(!j_module_symbol(mod, JACQUES_MODULE_NAME, &ptr)||ptr==NULL) {
+        printf("1\n");
         goto OUT;
     }
     result = (JacModule*)*((JacModule**)ptr);

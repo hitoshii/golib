@@ -25,7 +25,7 @@ typedef void (*ClientAccept)(JSocket *socket);
 
 typedef struct {
     ClientAccept accept;
-} JHookStruct;
+} JacHook;
 
 
 #endif

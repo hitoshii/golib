@@ -16,7 +16,8 @@ AM_CFLAGS =\
 AM_LDFLAGS =\
     $(jlib_ADD) \
     $(jio_ADD) \
-    $(jconf_ADD)
+    $(jconf_ADD) \
+    $(jmod_ADD)
 
 noinst_PROGRAMS= \
     test-string \
