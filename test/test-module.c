@@ -19,7 +19,7 @@
 
 
 int main (int argc, char *argv[]) {
-    JacModule *mod = jacques_loads_module("./test-mod");
+    JacModule *mod = jac_loads_module("./test-mod");
     if(mod==NULL) {
         return -1;
     }

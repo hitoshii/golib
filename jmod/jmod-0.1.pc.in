@@ -5,9 +5,9 @@ datarootdir=@datarootdir@
 datadir=@datadir@
 includedir=@includedir@/jlib-0.1
 
-Name: JConf
-Description: JLib Config library.
+Name: JMod
+Description: JLib Module library.
 Version: @VERSION@
 Requires: jlib-0.1 jio-0.1
-Libs: -L${libdir} -ljconf
+Libs: -L${libdir} -ljmod
 Cflags: -I${includedir}

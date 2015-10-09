@@ -33,7 +33,7 @@ static inline void register_module(JacModule *mod) {
 
 
 /* 从模块中读取模块结构 */
-JacModule *jacques_loads_module(const char *filename) {
+JacModule *jac_loads_module(const char *filename) {
     JModule *mod = j_module_open(filename, J_MODULE_NODELETE|J_MODULE_LAZY);
     if(mod==NULL) {
         return NULL;
@@ -51,10 +51,14 @@ OUT:
 }
 
 
-void jacques_loads_modules(JList *filenames) {
+boolean jac_loads_modules(JList *filenames) {
     JList *ptr=filenames;
     while(ptr) {
-        jacques_loads_module((const char*)j_list_data(ptr));
+        JacModule *mod = jac_loads_module((const char*)j_list_data(ptr));
+        if(mod==NULL) {
+            return FALSE;
+        }
         ptr=j_list_next(ptr);
     }
+    return TRUE;
 }

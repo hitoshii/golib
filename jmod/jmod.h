@@ -33,8 +33,8 @@ typedef struct {
 JList *get_jacques_modules(void);
 
 /* 从模块中读取模块结构 */
-JacModule *jacques_loads_module(const char *filename);
+JacModule *jac_loads_module(const char *filename);
 
-void jacques_loads_modules(JList *filenames);
+boolean jac_loads_modules(JList *filenames);
 
 #endif
