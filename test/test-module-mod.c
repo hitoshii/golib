@@ -18,6 +18,8 @@
 #include <jmod/jmod.h>
 
 JacHook hooks= {
+    NULL,
+    NULL,
     NULL
 };
 

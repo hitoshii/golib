@@ -18,15 +18,31 @@
 #include <jlib/jlib.h>
 
 static JList *client_accept_hooks = NULL;
+static JList *client_recv_hooks = NULL;
+static JList *client_send_hooks = NULL;
 
 
 JList *get_client_accept_hooks(void) {
     return client_accept_hooks;
 }
 
-void register_client_accept(ClientAccept accept) {
+void register_client_accept(AcceptClient accept) {
     if(accept==NULL) {
         return;
     }
     client_accept_hooks = j_list_append(client_accept_hooks, accept);
+}
+
+void register_client_recv(RecvClient recv) {
+    if(recv==NULL) {
+        return;
+    }
+    client_recv_hooks=j_list_append(client_recv_hooks, recv);
+}
+
+void register_client_send(RecvClient send) {
+    if(send==NULL) {
+        return;
+    }
+    client_send_hooks=j_list_append(client_send_hooks, send);
 }

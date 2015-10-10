@@ -21,16 +21,22 @@
 #include <jlib/jlib.h>
 
 
-typedef void (*ClientAccept)(JSocket *socket);
+typedef void (*AcceptClient)(JSocket *socket);
+typedef void (*RecvClient)(JSocket *socket, const char *buffer, int size, void *user_data);
+typedef void (*SendClient)(JSocket *socket, int ret, void *user_data);
 
 
 typedef struct {
-    ClientAccept accept;
+    AcceptClient accept;
+    RecvClient recv;
+    SendClient send;
 } JacHook;
 
 
 JList *get_client_accept_hooks(void);
-void register_client_accept(ClientAccept accept);
+void register_client_accept(AcceptClient accept);
+void register_client_recv(RecvClient recv);
+void register_client_send(RecvClient send);
 
 
 #endif
