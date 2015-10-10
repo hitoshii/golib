@@ -20,6 +20,7 @@
 JacHook hooks= {
     NULL,
     NULL,
+    NULL,
     NULL
 };
 

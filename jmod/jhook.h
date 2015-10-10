@@ -20,6 +20,8 @@
 #include <jio/jio.h>
 #include <jlib/jlib.h>
 
+typedef void (*ServerInit)(const char *name, const char *host, unsigned short port);
+
 
 typedef void (*AcceptClient)(JSocket *socket);
 typedef void (*RecvClient)(JSocket *socket, const char *buffer, int size, void *user_data);
@@ -27,6 +29,7 @@ typedef void (*SendClient)(JSocket *socket, int ret, void *user_data);
 
 
 typedef struct {
+    ServerInit init;
     AcceptClient accept;
     RecvClient recv;
     SendClient send;
@@ -34,6 +37,9 @@ typedef struct {
 
 
 JList *get_client_accept_hooks(void);
+JList *get_client_recv_hooks(void);
+JList *get_client_send_hooks(void);
+
 void register_client_accept(AcceptClient accept);
 void register_client_recv(RecvClient recv);
 void register_client_send(RecvClient send);

@@ -32,6 +32,7 @@ typedef enum {
 } JLogLevelFlag;
 
 #define J_LOG_LEVEL_USER_SHIFT (6)
+#define J_LOG_LEVEL_ALL (J_LOG_LEVEL_ERROR|J_LOG_LEVEL_CRITICAL|J_LOG_LEVEL_WARNING|J_LOG_LEVEL_MESSAGE|J_LOG_LEVEL_INFO|J_LOG_LEVEL_DEBUG)
 
 typedef void (*JLogFunc) (const char * domain, JLogLevelFlag level,
                           const char * message, void * user_data);

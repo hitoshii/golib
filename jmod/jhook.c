@@ -26,6 +26,14 @@ JList *get_client_accept_hooks(void) {
     return client_accept_hooks;
 }
 
+JList *get_client_recv_hooks(void) {
+    return client_recv_hooks;
+}
+
+JList *get_client_send_hooks(void) {
+    return client_send_hooks;
+}
+
 void register_client_accept(AcceptClient accept) {
     if(accept==NULL) {
         return;
