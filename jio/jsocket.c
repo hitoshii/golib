@@ -570,14 +570,18 @@ boolean j_socket_get_remote_address(JSocket * socket,
 }
 
 /****************************** 异步操作 ******************************/
-typedef struct {
-    JSource source;
+struct _JSocketSource {
+    JSource parent;
     JSocket *socket;
     boolean listening;
     short event;
     void *buffer;
     unsigned int size;
-} JSocketSource;
+};
+
+JSocket *j_socket_source_get_socket(JSocketSource *src) {
+    return src->socket;
+}
 
 static boolean j_socket_source_dispatch(JSource * source,
                                         JSourceFunc callback,
@@ -624,6 +628,7 @@ static JSocketSource *j_socket_source_new(JSocket * socket, short event) {
     j_socket_ref(socket);
     src->socket = socket;
     src->event = event;
+    src->parent.name = j_strdup("SocketSource");
     j_source_add_poll_fd((JSource *) src, socket->fd, event);
     return src;
 }

@@ -19,6 +19,7 @@
 
 #include "jtypes.h"
 #include "jarray.h"
+#include "jlist.h"
 #include <sys/epoll.h>
 
 typedef struct _JXPoll JXPoll;
@@ -55,5 +56,8 @@ boolean j_xpoll_del(JXPoll *p, int fd, unsigned short events);
 int j_xpoll_wait(JXPoll *p, JXPollEvent *events, unsigned int maxevent, int timeout);
 
 unsigned int j_xpoll_event_count(JXPoll *p);
+
+/* 获取当前注册的所有文件描述符 */
+JPtrArray *j_xpoll_get_fds(JXPoll *p);
 
 #endif

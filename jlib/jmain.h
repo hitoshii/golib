@@ -188,6 +188,9 @@ boolean j_main_context_check(JMainContext * ctx,
                              JXPollEvent * fds, int n_fds);
 void j_main_context_dispatch(JMainContext * ctx);
 
+
+JList *j_main_context_get_sources(JMainContext *ctx, const char *name);
+
 /*
  * Runs a single iteration
  */
@@ -226,11 +229,14 @@ void j_main_loop_try_quit(JMainLoop *loop);
  */
 void j_main_loop_quit_notify(JMainLoop *loop);
 
+
+JList *j_main_loop_get_sources(JMainLoop *loop, const char *name);
+
 void j_main(void);
 void j_main_quit(void);
 void j_main_quit_notify(void);
 void j_main_try_quit(void);
-
+JList *j_main_get_sources(const char *name);
 
 /*
  * 定时回调

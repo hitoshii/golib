@@ -21,6 +21,10 @@
 #include "jsocketaddress.h"
 
 typedef struct _JSocket JSocket;
+typedef struct _JSocketSource JSocketSource;
+
+
+JSocket *j_socket_source_get_socket(JSocketSource *src);
 
 JSocket *j_socket_new(JSocketFamily family, JSocketType type,
                       JSocketProtocol protocol);

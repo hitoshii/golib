@@ -39,6 +39,11 @@ struct _JXPoll {
     unsigned int n_cached_events;
 };
 
+/* 获取当前注册的所有文件描述符 */
+JPtrArray *j_xpoll_get_fds(JXPoll *p) {
+    return j_hash_table_get_keys(p->datas);
+}
+
 
 JXPoll *j_xpoll_new(void) {
     int fd=epoll_create(128);

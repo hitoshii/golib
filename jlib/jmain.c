@@ -23,6 +23,7 @@
 #include "jmem.h"
 #include "jatomic.h"
 #include "jmessage.h"
+#include "jstrfuncs.h"
 #include <time.h>
 
 
@@ -539,6 +540,22 @@ JMainContext *j_main_context_new(void) {
     j_main_context_add_poll_unlocked(ctx, &(ctx->wakeup_record.event));
 
     return ctx;
+}
+
+JList *j_main_context_get_sources(JMainContext *ctx, const char *name) {
+    J_MAIN_CONTEXT_LOCK(ctx);
+    JPtrArray *keys=j_hash_table_get_keys(ctx->sources);
+    unsigned int i;
+    JList *sockets=NULL;
+    for(i=0; i<j_ptr_array_get_len(keys); i++) {
+        unsigned id=(long)j_ptr_array_get(keys, i);
+        JSource *src=j_hash_table_find(ctx->sources, (void*)(long)id);
+        if(src&&j_strcmp0(src->name, name)==0) {
+            sockets=j_list_prepend(sockets, src);
+        }
+    }
+    J_MAIN_CONTEXT_UNLOCK(ctx);
+    return sockets;
 }
 
 /*
@@ -1305,6 +1322,7 @@ void j_main_loop_quit(JMainLoop * loop) {
     J_MAIN_CONTEXT_UNLOCK(loop->context);
 }
 
+
 /*
  * 试图获取JMainContext的锁，如果成功，相当于调用了j_main_quit()
  * 否则只是将loop->is_running设置为FALSE
@@ -1320,6 +1338,13 @@ void j_main_loop_try_quit(JMainLoop *loop) {
         J_MAIN_CONTEXT_UNLOCK(loop->context);
     }
 }
+
+
+JList *j_main_loop_get_sources(JMainLoop *loop, const char *name) {
+    j_return_val_if_fail(loop != NULL && j_atomic_int_get(&loop->ref) > 0, NULL);
+    return j_main_context_get_sources(loop->context, name);
+}
+
 
 
 static JMainLoop *default_main_loop = NULL;
@@ -1352,6 +1377,16 @@ void j_main_try_quit(void) {
         j_main_loop_try_quit(default_main_loop);
     }
     j_mutex_unlock(&default_main_loop_mutex);
+}
+
+JList *j_main_get_sources(const char *name) {
+    JList *sockets=NULL;
+    j_mutex_lock(&default_main_loop_mutex);
+    if (default_main_loop) {
+        sockets=j_main_loop_get_sources(default_main_loop, name);
+    }
+    j_mutex_unlock(&default_main_loop_mutex);
+    return sockets;
 }
 
 /***************************** TIMEOUT ****************************/
