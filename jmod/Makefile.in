@@ -134,7 +134,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(jmodsubincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjmod_la_DEPENDENCIES =
-am_libjmod_la_OBJECTS = libjmod_la-jhook.lo libjmod_la-jmod.lo
+am_libjmod_la_OBJECTS = libjmod_la-jhook.lo libjmod_la-jmod.lo \
+	libjmod_la-jwrapper.lo
 libjmod_la_OBJECTS = $(am_libjmod_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -341,7 +342,8 @@ AM_CFLAGS = \
 lib_LTLIBRARIES = libjmod.la
 libjmod_la_SOURCES = \
     jhook.c \
-    jmod.c
+    jmod.c \
+    jwrapper.c
 
 libjmod_la_CFLAGS = $(jlib_INCLUDE)
 libjmod_la_LDFLAGS = 
@@ -349,7 +351,8 @@ libjmod_la_LIBADD =
 jmodsubincludedir = $(jlib_includedir)/jmod
 jmodsubinclude_HEADERS = \
     jmod.h \
-    jhook.h
+    jhook.h \
+    jwrapper.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = jmod-0.1.pc
@@ -438,6 +441,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjmod_la-jhook.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjmod_la-jmod.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjmod_la-jwrapper.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -473,6 +477,13 @@ libjmod_la-jmod.lo: jmod.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jmod.c' object='libjmod_la-jmod.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjmod_la_CFLAGS) $(CFLAGS) -c -o libjmod_la-jmod.lo `test -f 'jmod.c' || echo '$(srcdir)/'`jmod.c
+
+libjmod_la-jwrapper.lo: jwrapper.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjmod_la_CFLAGS) $(CFLAGS) -MT libjmod_la-jwrapper.lo -MD -MP -MF $(DEPDIR)/libjmod_la-jwrapper.Tpo -c -o libjmod_la-jwrapper.lo `test -f 'jwrapper.c' || echo '$(srcdir)/'`jwrapper.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjmod_la-jwrapper.Tpo $(DEPDIR)/libjmod_la-jwrapper.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jwrapper.c' object='libjmod_la-jwrapper.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libjmod_la_CFLAGS) $(CFLAGS) -c -o libjmod_la-jwrapper.lo `test -f 'jwrapper.c' || echo '$(srcdir)/'`jwrapper.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -20,6 +20,12 @@
 static JList *client_accept_hooks = NULL;
 static JList *client_recv_hooks = NULL;
 static JList *client_send_hooks = NULL;
+static JList *server_init_hooks = NULL;
+
+
+JList *get_server_init_hooks(void) {
+    return server_init_hooks;
+}
 
 
 JList *get_client_accept_hooks(void) {
@@ -48,9 +54,16 @@ void register_client_recv(RecvClient recv) {
     client_recv_hooks=j_list_append(client_recv_hooks, recv);
 }
 
-void register_client_send(RecvClient send) {
+void register_client_send(SendClient send) {
     if(send==NULL) {
         return;
     }
     client_send_hooks=j_list_append(client_send_hooks, send);
+}
+
+void register_server_init(ServerInit init) {
+    if(init==NULL) {
+        return;
+    }
+    server_init_hooks = j_list_append(server_init_hooks, init);
 }

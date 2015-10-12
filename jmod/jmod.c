@@ -28,7 +28,10 @@ static inline void register_module(JacModule *mod) {
         return;
     }
     jacques_modules = j_list_append(jacques_modules, mod);
+    register_server_init(mod->hooks->init);
     register_client_accept(mod->hooks->accept);
+    register_client_recv(mod->hooks->recv);
+    register_client_send(mod->hooks->send);
 }
 
 

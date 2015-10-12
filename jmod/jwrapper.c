@@ -14,28 +14,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-#ifndef __JMOD_H__
-#define __JMOD_H__
 
-#include "jhook.h"
 #include "jwrapper.h"
-#include <jlib/jlib.h>
-
-typedef struct {
-    const char *name;
-    JacHook *hooks;
-} JacModule;
 
 
-#define JACQUES_MODULE_NAME  "__jacques_module__"
-#define JACQUES_MODULE(object) JacModule *__jacques_module__ = &object
+static JacSendFunc send_func=NULL;
 
+void register_jac_send(JacSendFunc send) {
+    send_func = send;
+}
 
-JList *get_jacques_modules(void);
-
-/* 从模块中读取模块结构 */
-JacModule *jac_loads_module(const char *filename);
-
-boolean jac_loads_modules(JList *filenames);
-
-#endif
+void jac_send(JSocket *socket, const char *buf, int size, void *user_data) {
+    if(J_UNLIKELY(send_func==NULL)) {
+        return;
+    }
+    send_func(socket, buf, size, user_data);
+}

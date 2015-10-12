@@ -36,13 +36,15 @@ typedef struct {
 } JacHook;
 
 
+JList *get_server_init_hooks(void);
 JList *get_client_accept_hooks(void);
 JList *get_client_recv_hooks(void);
 JList *get_client_send_hooks(void);
 
+void register_server_init(ServerInit init);
 void register_client_accept(AcceptClient accept);
 void register_client_recv(RecvClient recv);
-void register_client_send(RecvClient send);
+void register_client_send(SendClient send);
 
 
 #endif
