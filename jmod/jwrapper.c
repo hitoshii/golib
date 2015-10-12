@@ -24,7 +24,8 @@ void register_jac_send(JacSendFunc send) {
     send_func = send;
 }
 
-void jac_send(JSocket *socket, const char *buf, int size, void *user_data) {
+void jac_send(JSocket *socket, const char *buf, int size,
+              void *user_data) {
     if(J_UNLIKELY(send_func==NULL)) {
         return;
     }

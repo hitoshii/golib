@@ -53,18 +53,18 @@ boolean j_daemonize(void) {
         return FALSE;
     }
 
-    int i;
-    for (i = 0; i < 3; i++) {
-        close(i);
-    }
+    /*int i;*/
+    /*for (i = 0; i < 3; i++) {*/
+    /*close(i);*/
+    /*}*/
 
-    int fd0 = open("/dev/null", O_RDWR);
-    int fd1 = dup(0);
-    int fd2 = dup(1);
+    /*int fd0 = open("/dev/null", O_RDWR);*/
+    /*int fd1 = dup(0);*/
+    /*int fd2 = dup(1);*/
 
-    if (fd0 != 0 || fd1 != 1 || fd2 != 2) {
-        return FALSE;
-    }
+    /*if (fd0 != 0 || fd1 != 1 || fd2 != 2) {*/
+    /*return FALSE;*/
+    /*}*/
     return TRUE;
 }
 
