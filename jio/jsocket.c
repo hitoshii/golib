@@ -298,14 +298,11 @@ JSocket *j_socket_accept(JSocket * socket) {
 #endif
 
 /* 发送数据 */
-int j_socket_send_with_blocking(JSocket * socket, const char * buffer,
-                                int size, boolean blocking) {
+int j_socket_send_with_blocking(JSocket * socket, const void * buffer,
+                                unsigned int size, boolean blocking) {
     j_return_val_if_fail(socket->closed == FALSE, -1);
     j_socket_check_timeout(socket, -1);
 
-    if (size < 0) {
-        size = j_strlen(buffer);
-    }
     int ret;
     while ((ret = j_send(socket->fd, buffer, size,
                          J_SOCKET_DEFAULT_SEND_FLAGS)) < 0) {
@@ -322,13 +319,13 @@ int j_socket_send_with_blocking(JSocket * socket, const char * buffer,
     return ret;
 }
 
-int j_socket_send(JSocket * socket, const char * buffer, int size) {
+int j_socket_send(JSocket * socket, const void * buffer, unsigned int size) {
     return j_socket_send_with_blocking(socket, buffer, size,
                                        socket->blocking);
 }
 
 int j_socket_send_to(JSocket * socket, JSocketAddress * address,
-                     const char * buffer, int size) {
+                     const void * buffer, unsigned int size) {
     if (address == NULL) {
         return j_socket_send(socket, buffer, size);
     }
@@ -336,9 +333,6 @@ int j_socket_send_to(JSocket * socket, JSocketAddress * address,
     j_return_val_if_fail(socket->closed == FALSE, -1);
     j_socket_check_timeout(socket, -1);
 
-    if (size < 0) {
-        size = j_strlen(buffer);
-    }
     struct sockaddr_storage addr;
     socklen_t addrlen = j_socket_address_get_native_size(address);
     j_socket_address_to_native(address, &addr, sizeof(addr));
@@ -634,12 +628,9 @@ static JSocketSource *j_socket_source_new(JSocket * socket, short event) {
     return src;
 }
 
-void j_socket_send_async(JSocket * socket, const char * buffer, int size,
+void j_socket_send_async(JSocket * socket, const void * buffer, unsigned int size,
                          JSocketSendCallback callback, void * user_data) {
     j_return_if_fail(socket->closed == FALSE);
-    if (size < 0) {
-        size = j_strlen(buffer);
-    }
     JSocketSource *src = j_socket_source_new(socket, J_XPOLL_OUT);
     src->buffer = j_memdup(buffer, size);
     src->size = size;

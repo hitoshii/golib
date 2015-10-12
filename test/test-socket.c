@@ -88,10 +88,8 @@ int main(int argc, char const *argv[]) {
         return 7;
     }
 
-    if (j_socket_send
-            (socket,
-             "GET / HTTP/1.1\r\nHost: test.scopehigh.top\r\nConnection: Close\r\n\r\n",
-             -1) <= 0) {
+    const char *request="GET / HTTP/1.1\r\nHost: test.scopehigh.top\r\nConnection: Close\r\n\r\n";
+    if (j_socket_send(socket,request,j_strlen(request)) <= 0) {
         return 8;
     }
     char buf[1024];
@@ -117,9 +115,8 @@ int main(int argc, char const *argv[]) {
     if (!j_socket_connect(socket, &addr)) {
         return 11;
     }
-    j_socket_send_async(socket,
-                        "GET / HTTP/1.1\r\nHost: baidu.com\r\nConnection: Close\r\n\r\n",
-                        -1, send_callback, NULL);
+    request= "GET / HTTP/1.1\r\nHost: baidu.com\r\nConnection: Close\r\n\r\n";
+    j_socket_send_async(socket, request,j_strlen(request), send_callback, NULL);
 
     j_socket_unref(socket);
     j_main();

@@ -49,16 +49,16 @@ void j_socket_accept_async(JSocket * socket,
                            void * user_data);
 
 /* 发送数据 */
-int j_socket_send_with_blocking(JSocket * socket, const char * buffer,
-                                int size, boolean blocking);
-int j_socket_send(JSocket * socket, const char * buffer, int size);
+int j_socket_send_with_blocking(JSocket * socket, const void * buffer,
+                                unsigned int size, boolean blocking);
+int j_socket_send(JSocket * socket, const void * buffer, unsigned int size);
 /* 如果address为NULL，则等同于 j_socket_send() */
 int j_socket_send_to(JSocket * socket, JSocketAddress * address,
-                     const char * buffer, int size);
+                     const void * buffer, unsigned int size);
 
 typedef void (*JSocketSendCallback) (JSocket * socket, int ret,
                                      void * user_data);
-void j_socket_send_async(JSocket * socket, const char * buffer, int size,
+void j_socket_send_async(JSocket * socket, const void * buffer, unsigned int size,
                          JSocketSendCallback callback, void * user_data);
 
 /* 读取数据 */

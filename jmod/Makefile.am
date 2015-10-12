@@ -16,7 +16,7 @@ lib_LTLIBRARIES = libjmod.la
 libjmod_la_SOURCES = \
     jhook.c \
     jmod.c \
-    jwrapper.c
+    jproxy.c
 
 libjmod_la_CFLAGS = $(jlib_INCLUDE)
 
@@ -30,7 +30,7 @@ jmodsubincludedir=$(jlib_includedir)/jmod
 jmodsubinclude_HEADERS= \
     jmod.h \
     jhook.h \
-    jwrapper.h
+    jproxy.h
 
 
 pkgconfigdir = $(libdir)/pkgconfig

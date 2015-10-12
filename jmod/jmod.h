@@ -18,7 +18,7 @@
 #define __JMOD_H__
 
 #include "jhook.h"
-#include "jwrapper.h"
+#include "jproxy.h"
 #include <jlib/jlib.h>
 
 typedef struct {

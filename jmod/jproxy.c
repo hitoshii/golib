@@ -15,19 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#include "jwrapper.h"
+#include "jproxy.h"
 
 
 static JacSendFunc send_func=NULL;
+static JacSendMultiFunc send_multi_func=NULL;
 
 void register_jac_send(JacSendFunc send) {
     send_func = send;
 }
 
-void jac_send(JSocket *socket, const char *buf, int size,
+void jac_send(JSocket *socket, const void *buf, unsigned int size,
               void *user_data) {
     if(J_UNLIKELY(send_func==NULL)) {
         return;
     }
     send_func(socket, buf, size, user_data);
+}
+
+void register_jac_send_multi(JacSendMultiFunc send_multi) {
+    send_multi_func = send_multi;
+}
+
+void jac_send_multi(const void *buf, unsigned int size, void *user_data,
+                    JacSocketFilter filter, void *filter_data) {
+    if(J_UNLIKELY(send_multi_func==NULL)) {
+        return;
+    }
+    send_multi_func(buf,size, user_data, filter, filter_data);
 }
