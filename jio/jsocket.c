@@ -575,7 +575,7 @@ typedef struct {
     JSocket *socket;
     boolean listening;
     short event;
-    char *buffer;
+    void *buffer;
     unsigned int size;
 } JSocketSource;
 

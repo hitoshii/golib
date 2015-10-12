@@ -69,7 +69,7 @@ int j_socket_receive_with_blocking(JSocket * socket, char * buffer,
 int j_socket_receive_from(JSocket * socket, JSocketAddress * address,
                           char * buffer, unsigned int size);
 typedef boolean(*JSocketRecvCallback) (JSocket * socket,
-                                       const char * buffer, int size,
+                                       const void * buffer, int size,
                                        void * user_data);
 void j_socket_receive_async(JSocket * socket, JSocketRecvCallback callback,
                             void * user_data);

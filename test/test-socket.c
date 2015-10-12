@@ -18,7 +18,7 @@
 
 static boolean async_result = FALSE;
 
-static boolean recv_callback(JSocket * socket, const char * buffer,
+static boolean recv_callback(JSocket * socket, const void * buffer,
                              int size, void * user_daata) {
     if (size == 0) {
         async_result = TRUE;
@@ -26,7 +26,7 @@ static boolean recv_callback(JSocket * socket, const char * buffer,
     } else if (size < 0) {
         j_main_quit();
     } else {
-        j_printf("%.*s", size, buffer);
+        j_printf("%.*s", size, (const char*)buffer);
         return TRUE;
     }
     return FALSE;
