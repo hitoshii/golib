@@ -41,7 +41,7 @@ libjlib_la_SOURCES = \
     jmodule.c \
     jxpoll.c
 
-libjlib_la_LDFLAGS = -pthread -ldl
+libjlib_la_LDFLAGS = -pthread -ldl -lev
 
 libjlib_la_LIBADD =
 

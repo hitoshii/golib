@@ -13,7 +13,8 @@ AC_PREFIX_DEFAULT(/usr)
 
 #this line defines what libraries should be used during building
 # DEFINE YOUR OWN LIBRARY CHECK - DO NOT DELETE THIS LINE
-AC_CHECK_LIB([pthread],[pthread_create], ,[AC_MSG_ERROR(You need to have pthread)])
+AC_CHECK_LIB([pthread],[pthread_create], ,[AC_MSG_ERROR(***You need to have pthread***)])
+AC_CHECK_LIB([ev],[ev_run], ,[AC_MSG_ERROR(***You need to have libev***)])
 
 
 AC_CONFIG_MACRO_DIR(m4)
