@@ -33,6 +33,12 @@ type LoggerConfig struct {
 	File string `json:"file"`
 }
 
+type LogConfig struct {
+	Namespace     string `json:"namespace"`     /* 命名空间 */
+	ShowNamespace bool   `json:"showNamespace"` /* 是否在输出日志时也打印命名空间 */
+	Loggers       []LoggerConfig
+}
+
 var (
 	gLogFlag  int               = log.Ldate | log.Ltime
 	gLogColor map[string]string = map[string]string{ /* 日志在终端的颜色 */
@@ -41,67 +47,85 @@ var (
 		"WARNING": "33m",
 		"ERROR":   "31m",
 	}
-	gLoggers map[string]*log.Logger = map[string]*log.Logger{
-		"DEBUG":   nil,
-		"INFO":    nil,
-		"WARNING": nil,
-		"ERROR":   nil,
-	}
+	gLoggers map[string]map[string]*log.Logger = make(map[string]map[string]*log.Logger)
 )
 
-/* 打开日志文件 */
-func openLogFile(file string) *os.File {
+/*
+ * 打开日志文件
+ * 如果打开成功，返回打开的文件以及文件是否是字符设备
+ */
+func openLogFile(file string) (*os.File, bool) {
 	if file == "STDOUT" {
-		return os.Stdout
+		return os.Stdout, true
 	} else if file == "STDERR" {
-		return os.Stderr
+		return os.Stderr, true
 	}
 	fd, err := os.OpenFile(file, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil { /* 打开日志文件出错 */
-		fmt.Println("fail to open log file %s : %s\n", file, err)
-		return nil
+		fmt.Fprintf(os.Stderr, "fail to open log file %s : %s\n", file, err)
+		return nil, false
 	}
-	return fd
+	return fd, C.isatty(C.int(fd.Fd())) > 0
 }
 
-/* 初始化日志模块 */
-func Init(lgcfg []LoggerConfig) {
-	for _, cfg := range lgcfg {
+/*
+ * 初始化日志模块
+ * 参数分别是日志配置、命名空间和是否输出命名空间
+ */
+func Init(logCFG *LogConfig) {
+	namespace := logCFG.Namespace
+	showNamespace := logCFG.ShowNamespace
+	for _, cfg := range logCFG.Loggers {
 		level := strings.ToUpper(cfg.Level)
-		fd := openLogFile(cfg.File)
+		fd, isatty := openLogFile(cfg.File)
 		if fd == nil {
 			continue
 		}
-		var prefix string
-		if C.isatty(C.int(fd.Fd())) > 0 {
-			prefix = fmt.Sprintf("\x1b[%s[%s]\x1b[0m", gLogColor[level], level)
-		} else {
-			prefix = fmt.Sprintf("[%s]", level)
+		name := level
+		if showNamespace {
+			name = fmt.Sprintf("%s-%s", namespace, level)
 		}
-		gLoggers[level] = log.New(fd, prefix, gLogFlag)
+		var prefix string
+		if isatty {
+			prefix = fmt.Sprintf("\x1b[%s[%s]\x1b[0m", gLogColor[level], name)
+		} else {
+			prefix = fmt.Sprintf("[%s]", name)
+		}
+		if gLoggers[namespace] == nil {
+			gLoggers[namespace] = make(map[string]*log.Logger)
+		}
+		gLoggers[namespace][level] = log.New(fd, prefix, gLogFlag)
 	}
 }
 
-func DEBUG(fmt string, v ...interface{}) {
-	if logger := gLoggers["DEBUG"]; logger != nil {
-		logger.Printf(fmt, v...)
+func DEBUG(namespace string, fmt string, v ...interface{}) {
+	if loggers := gLoggers[namespace]; loggers != nil {
+		if logger := loggers["DEBUG"]; logger != nil {
+			logger.Printf(fmt, v...)
+		}
 	}
 }
 
-func INFO(fmt string, v ...interface{}) {
-	if logger := gLoggers["INFO"]; logger != nil {
-		logger.Printf(fmt, v...)
+func INFO(namespace string, fmt string, v ...interface{}) {
+	if loggers := gLoggers[namespace]; loggers != nil {
+		if logger := loggers["INFO"]; logger != nil {
+			logger.Printf(fmt, v...)
+		}
 	}
 }
 
-func WARNING(fmt string, v ...interface{}) {
-	if logger := gLoggers["WARNING"]; logger != nil {
-		logger.Printf(fmt, v...)
+func WARNING(namespace string, fmt string, v ...interface{}) {
+	if loggers := gLoggers[namespace]; loggers != nil {
+		if logger := loggers["WARNING"]; logger != nil {
+			logger.Printf(fmt, v...)
+		}
 	}
 }
 
-func ERROR(fmt string, v ...interface{}) {
-	if logger := gLoggers["ERROR"]; logger != nil {
-		logger.Printf(fmt, v...)
+func ERROR(namespace string, fmt string, v ...interface{}) {
+	if loggers := gLoggers[namespace]; loggers != nil {
+		if logger := loggers["ERROR"]; logger != nil {
+			logger.Printf(fmt, v...)
+		}
 	}
 }

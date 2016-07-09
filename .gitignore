@@ -6,3 +6,6 @@ cscope.*
 *.o
 *.lo
 .libs
+bin/
+pkg/
+./*.output
