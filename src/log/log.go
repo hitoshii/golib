@@ -97,35 +97,3 @@ func Init(logCFG *LogConfig) {
 		gLoggers[namespace][level] = log.New(fd, prefix, gLogFlag)
 	}
 }
-
-func DEBUG(namespace string, fmt string, v ...interface{}) {
-	if loggers := gLoggers[namespace]; loggers != nil {
-		if logger := loggers["DEBUG"]; logger != nil {
-			logger.Printf(fmt, v...)
-		}
-	}
-}
-
-func INFO(namespace string, fmt string, v ...interface{}) {
-	if loggers := gLoggers[namespace]; loggers != nil {
-		if logger := loggers["INFO"]; logger != nil {
-			logger.Printf(fmt, v...)
-		}
-	}
-}
-
-func WARNING(namespace string, fmt string, v ...interface{}) {
-	if loggers := gLoggers[namespace]; loggers != nil {
-		if logger := loggers["WARNING"]; logger != nil {
-			logger.Printf(fmt, v...)
-		}
-	}
-}
-
-func ERROR(namespace string, fmt string, v ...interface{}) {
-	if loggers := gLoggers[namespace]; loggers != nil {
-		if logger := loggers["ERROR"]; logger != nil {
-			logger.Printf(fmt, v...)
-		}
-	}
-}

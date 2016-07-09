@@ -8,4 +8,4 @@ cscope.*
 .libs
 bin/
 pkg/
-./*.output
+*.output
