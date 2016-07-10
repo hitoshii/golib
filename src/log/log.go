@@ -42,10 +42,10 @@ type LogConfig struct {
 var (
 	gLogFlag  int               = log.Ldate | log.Ltime
 	gLogColor map[string]string = map[string]string{ /* 日志在终端的颜色 */
-		"DEBUG":   "36m",
-		"INFO":    "34m",
-		"WARNING": "33m",
-		"ERROR":   "31m",
+		"DEBUG": "36m",
+		"INFO":  "34m",
+		"WARN":  "33m",
+		"ERROR": "31m",
 	}
 	gLoggers map[string]map[string]*log.Logger = make(map[string]map[string]*log.Logger)
 )

@@ -42,18 +42,34 @@ func SetDefault(namespace string) {
 	gDefaultNamespace = namespace
 }
 
-func DEBUG(fmt string, v ...interface{}) {
+func D(fmt string, v ...interface{}) {
 	output(gDefaultNamespace, "DEBUG", fmt, v...)
 }
 
-func INFO(fmt string, v ...interface{}) {
+func I(fmt string, v ...interface{}) {
 	output(gDefaultNamespace, "INFO", fmt, v...)
 }
 
-func WARNING(fmt string, v ...interface{}) {
-	output(gDefaultNamespace, "WARNING", fmt, v...)
+func W(fmt string, v ...interface{}) {
+	output(gDefaultNamespace, "WARN", fmt, v...)
 }
 
-func ERROR(fmt string, v ...interface{}) {
+func E(fmt string, v ...interface{}) {
 	output(gDefaultNamespace, "ERROR", fmt, v...)
+}
+
+func DEBUG(namespace, fmt string, v ...interface{}) {
+	output(namespace, "DEBUG", fmt, v...)
+}
+
+func INFO(namespace, fmt string, v ...interface{}) {
+	output(namespace, "INFO", fmt, v...)
+}
+
+func WARN(namespace, fmt string, v ...interface{}) {
+	output(namespace, "WARN", fmt, v...)
+}
+
+func ERROR(namespace, fmt string, v ...interface{}) {
+	output(namespace, "ERROR", fmt, v...)
 }

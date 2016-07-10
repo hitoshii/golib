@@ -28,14 +28,14 @@ func main() {
 		Loggers: []log.LoggerConfig{
 			{"DEBUG", "STDOUT"},
 			{"ERROR", "STDERR"},
-			{"WARNING", "./warn.output"},
+			{"WARN", "./warn.output"},
 		},
 	}
 	log.Init(&cfg)
 	log.SetDefault(cfg.Namespace)
-	log.DEBUG("hello %d", 1)
-	log.ERROR("world %s", "nice")
-	log.WARNING("oh no")
+	log.D("hello %d", 1)
+	log.E("world %s", "nice")
+	log.W("oh no")
 
 	cfg = log.LogConfig{
 		Namespace:     "logger",
@@ -43,12 +43,12 @@ func main() {
 		Loggers: []log.LoggerConfig{
 			{"DEBUG", "STDOUT"},
 			{"ERROR", "STDERR"},
-			{"WARNING", "./warn.output"},
+			{"WARN", "./warn.output"},
 		},
 	}
 	log.Init(&cfg)
 	log.SetDefault(cfg.Namespace)
-	log.DEBUG("hello again %f", 2.3)
-	log.ERROR("world again %c", 'c')
-	log.WARNING("oh no")
+	log.D("hello again %f", 2.3)
+	log.E("world again %c", 'c')
+	log.W("oh no")
 }
