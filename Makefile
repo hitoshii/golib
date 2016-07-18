@@ -1,12 +1,22 @@
 
-all: log
+GOPATH=`pwd`
 
-log: src/log/log.go
-	GOPATH=`pwd` go build src/log/log.go
+all: log unix
 
 fmt:
 	find . -name '*.go'|xargs gofmt -w
 
-expl: example/log.go
-	GOPATH=`pwd` go build -o bin/log example/log.go
+log: src/log/log.go
+	go build $^
+
+unix: src/unix/unistd.go
+	go build $^
+
+example: expl-log expl-unix
+
+expl-log: example/log.go
+	go build -o bin/log $^
+
+expl-unix: example/unix.go
+	go build -o bin/unix $^
 
