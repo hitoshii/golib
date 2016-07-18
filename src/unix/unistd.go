@@ -20,6 +20,13 @@ package unix
 //#include <unistd.h>
 import "C"
 
+func btoi(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
 /*
  * man daemon
  *
@@ -37,6 +44,6 @@ import "C"
  * this function should be called before any goroutine created,
  * otherwise its behavior is undefined
  */
-func Daemon(nochdir, noclose int) {
-	C.daemon(C.int(nochdir), C.int(noclose))
+func Daemon(nochdir, noclose bool) {
+	C.daemon(C.int(btoi(nochdir)), C.int(btoi(noclose)))
 }
