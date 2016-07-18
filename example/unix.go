@@ -19,8 +19,18 @@ package main
 
 import (
 	"../src/unix"
+	"fmt"
+	"os"
 )
 
 func main() {
-	unix.Daemon(1, 1)
+	unix.Daemon(true, true)
+	dir, _ := os.Getwd()
+	fmt.Printf("1. curdir %s\n", dir)
+	fmt.Printf("1. stdout is not closed\n")
+
+	unix.Daemon(false, false)
+	dir, _ = os.Getwd()
+	fmt.Printf("2. curdir %s\n", dir)
+	fmt.Printf("2. stdout is not closed\n")
 }

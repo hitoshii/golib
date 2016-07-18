@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"path/filepath"
 )
 
 type LoggerConfig struct {
@@ -49,6 +50,26 @@ var (
 	}
 	gLoggers map[string]map[string]*log.Logger = make(map[string]map[string]*log.Logger)
 )
+
+const (
+	stdout_name = "STDOUT"
+	stderr_name = "STDERR"
+)
+
+/* 将文件路径转化为绝对路径 */
+func (c *LoggerConfig) absolutize(){
+	if c.File != stdout_name && c.File != stderr_name {
+		if path, err := filepath.Abs(c.File); err == nil {
+			c.File = path
+		}
+	}
+}
+
+func (c *LogConfig) Absolutize() {
+	for _, lc := range c.Loggers {
+		lc.absolutize()
+	}
+}
 
 /*
  * 打开日志文件

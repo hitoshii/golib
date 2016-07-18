@@ -31,6 +31,7 @@ func main() {
 			{"WARN", "./warn.output"},
 		},
 	}
+	cfg.Absolutize()
 	log.Init(&cfg)
 	log.SetDefault(cfg.Namespace)
 	log.D("hello %d", 1)
