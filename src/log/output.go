@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	gDefaultNamespace = ""
+	gDefaultName = ""
 )
 
 func output(namespace, level, fmt string, v ...interface{}) {
@@ -37,25 +37,30 @@ func MESSAGE(namespace, level, fmt string, v ...interface{}) {
 	output(namespace, strings.ToUpper(level), fmt, v...)
 }
 
+func InitDefault(cfg *Config) {
+	Init(cfg)
+	SetDefault(cfg.Name)
+}
+
 /* 设置默认的命名空间 */
-func SetDefault(namespace string) {
-	gDefaultNamespace = namespace
+func SetDefault(name string) {
+	gDefaultName = name
 }
 
 func D(fmt string, v ...interface{}) {
-	output(gDefaultNamespace, "DEBUG", fmt, v...)
+	output(gDefaultName, "DEBUG", fmt, v...)
 }
 
 func I(fmt string, v ...interface{}) {
-	output(gDefaultNamespace, "INFO", fmt, v...)
+	output(gDefaultName, "INFO", fmt, v...)
 }
 
 func W(fmt string, v ...interface{}) {
-	output(gDefaultNamespace, "WARN", fmt, v...)
+	output(gDefaultName, "WARN", fmt, v...)
 }
 
 func E(fmt string, v ...interface{}) {
-	output(gDefaultNamespace, "ERROR", fmt, v...)
+	output(gDefaultName, "ERROR", fmt, v...)
 }
 
 func DEBUG(namespace, fmt string, v ...interface{}) {

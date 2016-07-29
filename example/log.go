@@ -22,10 +22,10 @@ import (
 )
 
 func main() {
-	cfg := log.LogConfig{
-		Namespace:     "",
-		ShowNamespace: false,
-		Loggers: []log.LoggerConfig{
+	cfg := log.Config{
+		Name:     "",
+		ShowName: false,
+		Loggers: []log.Logger{
 			{"DEBUG", "STDOUT"},
 			{"ERROR", "STDERR"},
 			{"WARN", "./warn.output"},
@@ -33,22 +33,21 @@ func main() {
 	}
 	cfg.Absolutize()
 	log.Init(&cfg)
-	log.SetDefault(cfg.Namespace)
+	log.SetDefault(cfg.Name)
 	log.D("hello %d", 1)
 	log.E("world %s", "nice")
 	log.W("oh no")
 
-	cfg = log.LogConfig{
-		Namespace:     "logger",
-		ShowNamespace: true,
-		Loggers: []log.LoggerConfig{
+	cfg = log.Config{
+		Name:     "logger",
+		ShowName: true,
+		Loggers: []log.Logger{
 			{"DEBUG", "STDOUT"},
 			{"ERROR", "STDERR"},
 			{"WARN", "./warn.output"},
 		},
 	}
-	log.Init(&cfg)
-	log.SetDefault(cfg.Namespace)
+	log.InitDefault(&cfg)
 	log.D("hello again %f", 2.3)
 	log.E("world again %c", 'c')
 	log.W("oh no")

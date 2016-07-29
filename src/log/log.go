@@ -27,17 +27,17 @@ import (
 	"path/filepath"
 )
 
-type LoggerConfig struct {
+type Logger struct {
 	/* 日志等级，可以用|连接多个，如DEBUG|INFO */
 	Level string `json:"level" yaml:"level"`
 	/* 日志记录文件，如果是标准输出，则是STDOUT，标准错误输出STDERR */
 	File string `json:"file" yaml:"file"`
 }
 
-type LogConfig struct {
-	Namespace     string `json:"namespace" yaml:"namespace"`     /* 命名空间 */
-	ShowNamespace bool   `json:"showNamespace" yaml:"showNamespace"` /* 是否在输出日志时也打印命名空间 */
-	Loggers       []LoggerConfig
+type Config struct {
+	Name     string `json:"name" yaml:"name"`     /* 命名空间 */
+	ShowName bool   `json:"showName" yaml:"showName"` /* 是否在输出日志时也打印命名空间 */
+	Loggers  []Logger
 }
 
 var (
@@ -57,7 +57,7 @@ const (
 )
 
 /* 将文件路径转化为绝对路径 */
-func (c *LoggerConfig) absolutize(){
+func (c *Logger) absolutize(){
 	if c.File != stdout_name && c.File != stderr_name {
 		if path, err := filepath.Abs(c.File); err == nil {
 			c.File = path
@@ -65,7 +65,7 @@ func (c *LoggerConfig) absolutize(){
 	}
 }
 
-func (c *LogConfig) Absolutize() {
+func (c *Config) Absolutize() {
 	for _, lc := range c.Loggers {
 		lc.absolutize()
 	}
@@ -93,12 +93,12 @@ func openLogFile(file string) (*os.File, bool) {
  * 初始化日志模块
  * 参数分别是日志配置、命名空间和是否输出命名空间
  */
-func Init(logCFG *LogConfig) {
-	namespace := logCFG.Namespace
-	showNamespace := logCFG.ShowNamespace
-	for _, cfg := range logCFG.Loggers {
-		level := strings.ToUpper(cfg.Level)
-		fd, isatty := openLogFile(cfg.File)
+func Init(cfg *Config) {
+	namespace := cfg.Name
+	showNamespace := cfg.ShowName
+	for _, logger := range cfg.Loggers {
+		level := strings.ToUpper(logger.Level)
+		fd, isatty := openLogFile(logger.File)
 		if fd == nil {
 			continue
 		}
@@ -118,3 +118,4 @@ func Init(logCFG *LogConfig) {
 		gLoggers[namespace][level] = log.New(fd, prefix, gLogFlag)
 	}
 }
+
